@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --font-plex-sans: "Avenir Next", Avenir, "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-plex-mono: "IBM Plex Mono", "SF Mono", Menlo, Monaco, monospace;
+}
+
+html {
+  background: #f6f2e8;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 30%),
+    linear-gradient(180deg, rgba(255, 253, 247, 0.98), rgba(246, 242, 232, 1));
+  color: #101217;
+}
+
+a {
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(15, 118, 110, 0.18);
+}
+
+.prose-skill {
+  @apply max-w-none text-[15px] leading-7 text-slate-800;
+}
+
+.prose-skill h1,
+.prose-skill h2,
+.prose-skill h3 {
+  @apply mt-8 scroll-m-20 font-mono text-ink;
+}
+
+.prose-skill h1 {
+  @apply text-3xl;
+}
+
+.prose-skill h2 {
+  @apply border-b border-line pb-2 text-2xl;
+}
+
+.prose-skill h3 {
+  @apply text-xl;
+}
+
+.prose-skill p,
+.prose-skill ul,
+.prose-skill ol,
+.prose-skill blockquote {
+  @apply my-4;
+}
+
+.prose-skill ul {
+  @apply list-disc pl-6;
+}
+
+.prose-skill ol {
+  @apply list-decimal pl-6;
+}
+
+.prose-skill li {
+  @apply my-2;
+}
+
+.prose-skill code {
+  @apply rounded-md bg-stone-200 px-1.5 py-0.5 font-mono text-[0.9em] text-ink;
+}
+
+.prose-skill pre {
+  @apply overflow-x-auto rounded-2xl border border-stone-200 bg-stone-950 p-4 text-stone-100;
+}
+
+.prose-skill pre code {
+  @apply bg-transparent p-0 text-inherit;
+}
+
+.prose-skill blockquote {
+  @apply border-l-4 border-accent/40 pl-4 text-slate-600;
+}
+
+.prose-skill a {
+  @apply text-accent underline underline-offset-4;
+}
