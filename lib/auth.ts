@@ -25,6 +25,12 @@ function createAuth() {
   return betterAuth({
     baseURL,
     secret,
+    // Schema uses uuid columns; Better Auth’s default ids are nanoid strings and Postgres rejects them.
+    advanced: {
+      database: {
+        generateId: "uuid",
+      },
+    },
     database: drizzleAdapter(db, {
       provider: "pg",
       schema,

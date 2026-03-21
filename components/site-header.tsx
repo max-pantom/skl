@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { SignOutButton } from "@/components/sign-out-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { isDatabaseConfigured } from "@/db";
 import { getCurrentViewer, isAppConfigured } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,7 @@ export async function SiteHeader() {
           ))}
 
           <span className="mx-1 hidden h-4 w-px bg-zinc-200 sm:inline-block" aria-hidden />
+          <ThemeToggle />
 
           {viewer ? (
             <>
@@ -46,6 +48,12 @@ export async function SiteHeader() {
                 className="px-3 py-2 text-sm font-medium text-ink hover:underline hover:decoration-zinc-400 hover:underline-offset-4"
               >
                 @{viewer.username}
+              </Link>
+              <Link
+                href="/settings"
+                className="px-3 py-2 text-sm text-zinc-600 hover:text-ink"
+              >
+                Settings
               </Link>
               <SignOutButton />
             </>

@@ -12,11 +12,17 @@ const databaseUrl = process.env.DATABASE_URL;
 
 export const isDatabaseConfigured = Boolean(databaseUrl);
 
+const isLocal =
+  databaseUrl != null &&
+  (databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1"));
+
+/** Supabase transaction pooler (PgBouncer) requires no prepared statements. */
 const postgresClient = databaseUrl
   ? (globalForDb.postgresClient ??=
       postgres(databaseUrl, {
         prepare: false,
-        ssl: databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1") ? undefined : "require",
+        ssl: isLocal ? undefined : "require",
+        connect_timeout: 60,
       }))
   : null;
 

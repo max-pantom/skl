@@ -8,6 +8,11 @@
   --font-plex-mono: "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
 }
 
+html.dark {
+  color-scheme: dark;
+  background: #09090b;
+}
+
 html {
   background: #f4f4f5;
 }
@@ -50,6 +55,102 @@ a {
   .skl-divider {
     @apply border-t border-zinc-200;
   }
+
+  .dark .skl-input {
+    @apply border-zinc-700 bg-zinc-950 text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-1;
+    @apply focus:border-[#fafafa] focus:ring-[#fafafa];
+  }
+
+  .dark .skl-btn-primary {
+    @apply skl-btn border-[#fafafa] bg-[#fafafa] text-zinc-950 hover:bg-zinc-200;
+  }
+
+  .dark .skl-btn-secondary {
+    @apply border-zinc-700 bg-zinc-950 text-zinc-100 hover:border-zinc-500 hover:bg-zinc-900;
+  }
+
+  .dark .skl-surface {
+    @apply border-zinc-800 bg-zinc-950 shadow-none;
+  }
+
+  .dark .skl-divider {
+    @apply border-zinc-800;
+  }
+}
+
+.dark body {
+  background: #09090b;
+  color: #f4f4f5;
+}
+
+.dark ::selection {
+  background: rgba(244, 244, 245, 0.16);
+}
+
+.dark .bg-white {
+  background-color: rgb(9 9 11) !important;
+}
+
+.dark .bg-zinc-50 {
+  background-color: rgb(24 24 27) !important;
+}
+
+.dark .bg-zinc-100 {
+  background-color: rgb(39 39 42) !important;
+}
+
+.dark .bg-zinc-200 {
+  background-color: rgb(63 63 70) !important;
+}
+
+.dark .border-zinc-100 {
+  border-color: rgb(39 39 42) !important;
+}
+
+.dark .border-zinc-200 {
+  border-color: rgb(63 63 70) !important;
+}
+
+.dark .border-zinc-300 {
+  border-color: rgb(82 82 91) !important;
+}
+
+.dark .text-zinc-500 {
+  color: rgb(161 161 170) !important;
+}
+
+.dark .text-zinc-600 {
+  color: rgb(212 212 216) !important;
+}
+
+.dark .text-zinc-700 {
+  color: rgb(228 228 231) !important;
+}
+
+.dark .text-zinc-800 {
+  color: rgb(244 244 245) !important;
+}
+
+.dark .text-zinc-900,
+.dark .text-ink {
+  color: rgb(250 250 250) !important;
+}
+
+.dark .bg-zinc-900 {
+  background-color: rgb(250 250 250) !important;
+}
+
+.dark .hover\:bg-zinc-50:hover,
+.dark .hover\:bg-zinc-100:hover {
+  background-color: rgb(39 39 42) !important;
+}
+
+.dark .hover\:text-ink:hover {
+  color: rgb(250 250 250) !important;
+}
+
+.dark .hover\:border-zinc-400:hover {
+  border-color: rgb(161 161 170) !important;
 }
 
 .prose-skill {
@@ -111,4 +212,39 @@ a {
 
 .prose-skill a {
   @apply text-zinc-900 underline decoration-zinc-400 underline-offset-4 hover:decoration-zinc-900;
+}
+
+.dark .prose-skill {
+  color: rgb(228 228 231);
+}
+
+.dark .prose-skill h1,
+.dark .prose-skill h2,
+.dark .prose-skill h3 {
+  color: rgb(250 250 250);
+}
+
+.dark .prose-skill h2 {
+  border-color: rgb(63 63 70);
+}
+
+.dark .prose-skill code {
+  background: rgb(24 24 27);
+  color: rgb(250 250 250);
+}
+
+.dark .prose-skill pre {
+  border-color: rgb(63 63 70);
+  background: rgb(2 6 23);
+  color: rgb(244 244 245);
+}
+
+.dark .prose-skill blockquote {
+  border-color: rgb(82 82 91);
+  color: rgb(212 212 216);
+}
+
+.dark .prose-skill a {
+  color: rgb(250 250 250);
+  text-decoration-color: rgb(113 113 122);
 }

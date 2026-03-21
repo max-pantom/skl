@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { db, isDatabaseConfigured } from "@/db";
-import { forks, skillVersions, skills, stars } from "@/db/schema";
+import { forks, skillVersions, skills, stars, users } from "@/db/schema";
 import { isAppConfigured, requireCurrentViewer } from "@/lib/auth";
 import { launchCategories, type SkillCategory } from "@/lib/types";
 import {
@@ -83,6 +83,37 @@ function revalidateSkillSurfaces(skillSlug: string, username: string) {
   revalidatePath("/explore");
   revalidatePath(`/s/${skillSlug}`);
   revalidatePath(`/u/${username}`);
+}
+
+export async function updateProfileAction(formData: FormData) {
+  ensureConfigured("/settings");
+  const viewer = await requireCurrentViewer("/settings");
+
+  const displayName = getString(formData.get("displayName"));
+  const bio = getString(formData.get("bio"));
+  const website = getString(formData.get("website"));
+  const xUrl = getString(formData.get("xUrl"));
+  const avatarUrl = getString(formData.get("avatarUrl"));
+
+  if (!displayName) {
+    redirectWithError("/settings", "Display name is required.");
+  }
+
+  await db!
+    .update(users)
+    .set({
+      displayName,
+      bio: bio || null,
+      website: website || null,
+      xUrl: xUrl || null,
+      avatarUrl: avatarUrl || null,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, viewer.id));
+
+  revalidatePath(`/u/${viewer.username}`);
+  revalidatePath("/settings");
+  redirect(withQuery("/settings", { ok: "1" }));
 }
 
 export async function createSkillAction(formData: FormData) {

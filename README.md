@@ -35,6 +35,12 @@ pnpm db:migrate
 pnpm dev
 ```
 
+### After migrations are applied
+
+1. Ensure `.env` has **`BETTER_AUTH_SECRET`** (32+ random characters) — not optional for sign-up / publish.
+2. Run **`pnpm dev`**, open **`/signup`**, create an account, then **`/new`** to publish a skill.
+3. For production: set the same variables on the host, point **`NEXT_PUBLIC_APP_URL`** at the live site, run **`pnpm db:migrate`** once against the production database, then deploy.
+
 There is no seed script anymore. The registry starts empty until real users publish skills.
 
 ## Important Behavior
@@ -63,4 +69,5 @@ Core tables:
 
 ## Docs
 
-More detail is in [docs/how-it-works.md](/Users/macbook/Desktop/code/skill/docs/how-it-works.md).
+- [docs/how-it-works.md](/Users/macbook/Desktop/code/skill/docs/how-it-works.md) — stack, env, Supabase vs pooler, auth.
+- [docs/roadmap.md](/Users/macbook/Desktop/code/skill/docs/roadmap.md) — planned work (e.g. optional `supabase-js`, production checklist ideas).
