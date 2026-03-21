@@ -20,21 +20,25 @@ export async function GET(_: Request, { params }: RawSkillRouteProps) {
   }
 
   if (db) {
-    const viewer = await getCurrentViewer();
+    try {
+      const viewer = await getCurrentViewer();
 
-    await db.transaction(async (tx) => {
-      await tx.insert(downloads).values({
-        userId: viewer?.id ?? null,
-        skillId: skill.id,
+      await db.transaction(async (tx) => {
+        await tx.insert(downloads).values({
+          userId: viewer?.id ?? null,
+          skillId: skill.id,
+        });
+
+        await tx
+          .update(skills)
+          .set({
+            downloadsCount: sql`${skills.downloadsCount} + 1`,
+          })
+          .where(eq(skills.id, skill.id));
       });
-
-      await tx
-        .update(skills)
-        .set({
-          downloadsCount: sql`${skills.downloadsCount} + 1`,
-        })
-        .where(eq(skills.id, skill.id));
-    });
+    } catch {
+      /* demo slugs or missing rows should still return the file */
+    }
   }
 
   const filename = `${skill.slug}-${skill.currentVersion.version}.md`;

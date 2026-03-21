@@ -1,16 +1,9 @@
 import "server-only";
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { db, isDatabaseConfigured } from "@/db";
 import { skills, stars, users } from "@/db/schema";
-import {
-  getDemoExploreSkills,
-  getDemoFeaturedSkills,
-  getDemoProfileByUsername,
-  getDemoRecentSkills,
-  getDemoSkillBySlug,
-} from "@/lib/demo-data";
 import type {
   ExploreFilters,
   ForkReference,
@@ -172,33 +165,37 @@ async function fetchAllSkillRows() {
     return null;
   }
 
-  return db.query.skills.findMany({
-    with: {
-      author: true,
-      currentVersion: true,
-      parentFork: {
-        with: {
-          parentSkill: {
-            with: {
-              author: true,
+  try {
+    return await db.query.skills.findMany({
+      with: {
+        author: true,
+        currentVersion: true,
+        parentFork: {
+          with: {
+            parentSkill: {
+              with: {
+                author: true,
+              },
             },
           },
         },
       },
-    },
-    orderBy: (skillsTable, { desc: orderDesc }) => [
-      orderDesc(skillsTable.downloadsCount),
-      orderDesc(skillsTable.starsCount),
-      orderDesc(skillsTable.updatedAt),
-    ],
-  });
+      orderBy: (skillsTable, { desc: orderDesc }) => [
+        orderDesc(skillsTable.downloadsCount),
+        orderDesc(skillsTable.starsCount),
+        orderDesc(skillsTable.updatedAt),
+      ],
+    });
+  } catch {
+    return null;
+  }
 }
 
 export async function getFeaturedSkills(limit = 4) {
   const rows = await fetchAllSkillRows();
 
   if (!rows) {
-    return getDemoFeaturedSkills(limit);
+    return [];
   }
 
   return rows.map(mapSkill).filter((skill): skill is SkillListItem => Boolean(skill)).slice(0, limit);
@@ -208,7 +205,7 @@ export async function getRecentSkills(limit = 4) {
   const rows = await fetchAllSkillRows();
 
   if (!rows) {
-    return getDemoRecentSkills(limit);
+    return [];
   }
 
   return rows
@@ -225,7 +222,7 @@ export async function getExploreSkills(filters: ExploreFilters = {}) {
   const rows = await fetchAllSkillRows();
 
   if (!rows) {
-    return getDemoExploreSkills(filters);
+    return [];
   }
 
   const items = rows.map(mapSkill).filter((skill): skill is SkillListItem => Boolean(skill));
@@ -234,105 +231,127 @@ export async function getExploreSkills(filters: ExploreFilters = {}) {
 
 export async function getSkillBySlug(slug: string): Promise<SkillDetail | null> {
   if (!db || !isDatabaseConfigured) {
-    return getDemoSkillBySlug(slug);
-  }
-
-  const skill = await db.query.skills.findFirst({
-    where: eq(skills.slug, slug),
-    with: {
-      author: true,
-      currentVersion: true,
-      parentFork: {
-        with: {
-          parentSkill: {
-            with: {
-              author: true,
-            },
-          },
-        },
-      },
-      versions: {
-        orderBy: (skillVersions, { desc: orderDesc }) => [orderDesc(skillVersions.createdAt)],
-      },
-    },
-  });
-
-  if (!skill || !skill.author || !skill.currentVersion) {
     return null;
   }
 
-  const baseSkill = mapSkill(skill as SkillRecord);
-
-  if (!baseSkill) {
-    return null;
-  }
-
-  return {
-    ...baseSkill,
-    versions: skill.versions.map((version) => ({
-      id: version.id,
-      skillId: version.skillId,
-      version: version.version,
-      content: version.content,
-      changelog: version.changelog,
-      compatibleWith: version.compatibleWith,
-      metadata: version.metadata,
-      createdAt: toIso(version.createdAt),
-    })),
-  };
-}
-
-export async function getProfileByUsername(username: string): Promise<ProfileData | null> {
-  if (!db || !isDatabaseConfigured) {
-    return getDemoProfileByUsername(username);
-  }
-
-  const user = await db.query.users.findFirst({
-    where: eq(users.username, username),
-    with: {
-      skills: {
-        with: {
-          author: true,
-          currentVersion: true,
-          parentFork: {
-            with: {
-              parentSkill: {
-                with: {
-                  author: true,
-                },
+  try {
+    const skill = await db.query.skills.findFirst({
+      where: eq(skills.slug, slug),
+      with: {
+        author: true,
+        currentVersion: true,
+        parentFork: {
+          with: {
+            parentSkill: {
+              with: {
+                author: true,
               },
             },
           },
         },
-        orderBy: (skillsTable, { desc: orderDesc }) => [
-          orderDesc(skillsTable.starsCount),
-          orderDesc(skillsTable.updatedAt),
-        ],
+        versions: {
+          orderBy: (skillVersions, { desc: orderDesc }) => [orderDesc(skillVersions.createdAt)],
+        },
       },
-    },
-  });
+    });
 
-  if (!user) {
+    if (!skill || !skill.author || !skill.currentVersion) {
+      return null;
+    }
+
+    const baseSkill = mapSkill(skill as SkillRecord);
+
+    if (!baseSkill) {
+      return null;
+    }
+
+    return {
+      ...baseSkill,
+      versions: skill.versions.map((version) => ({
+        id: version.id,
+        skillId: version.skillId,
+        version: version.version,
+        content: version.content,
+        changelog: version.changelog,
+        compatibleWith: version.compatibleWith,
+        metadata: version.metadata,
+        createdAt: toIso(version.createdAt),
+      })),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function getViewerStar(skillId: string, userId: string) {
+  if (!db || !isDatabaseConfigured) {
     return null;
   }
 
-  const publicUser: PublicUser = {
-    id: user.id,
-    username: user.username,
-    displayName: user.displayName,
-    bio: user.bio,
-    avatarUrl: user.avatarUrl,
-    website: user.website,
-    xUrl: user.xUrl,
-    createdAt: toIso(user.createdAt),
-  };
+  try {
+    return await db.query.stars.findFirst({
+      where: and(eq(stars.skillId, skillId), eq(stars.userId, userId)),
+    });
+  } catch {
+    return null;
+  }
+}
 
-  return {
-    user: publicUser,
-    skills: user.skills
-      .map((skill) => mapSkill(skill as SkillRecord))
-      .filter((skill): skill is SkillListItem => Boolean(skill)),
-  };
+export async function getProfileByUsername(username: string): Promise<ProfileData | null> {
+  if (!db || !isDatabaseConfigured) {
+    return null;
+  }
+
+  try {
+    const user = await db.query.users.findFirst({
+      where: eq(users.username, username),
+      with: {
+        skills: {
+          with: {
+            author: true,
+            currentVersion: true,
+            parentFork: {
+              with: {
+                parentSkill: {
+                  with: {
+                    author: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: (skillsTable, { desc: orderDesc }) => [
+            orderDesc(skillsTable.starsCount),
+            orderDesc(skillsTable.updatedAt),
+          ],
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const publicUser: PublicUser = {
+      id: user.id,
+      username: user.username,
+      displayName: user.displayName,
+      bio: user.bio,
+      avatarUrl: user.avatarUrl,
+      website: user.website,
+      xUrl: user.xUrl,
+      createdAt: toIso(user.createdAt),
+    };
+
+    return {
+      user: publicUser,
+      skills: user.skills
+        .map((skill) => mapSkill(skill as SkillRecord))
+        .filter((skill): skill is SkillListItem => Boolean(skill)),
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function getUserById(userId: string) {
@@ -340,9 +359,13 @@ export async function getUserById(userId: string) {
     return null;
   }
 
-  return db.query.users.findFirst({
-    where: eq(users.id, userId),
-  });
+  try {
+    return await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+  } catch {
+    return null;
+  }
 }
 
 export async function hasUserStarredSkill(userId: string, skillId: string) {
@@ -350,9 +373,13 @@ export async function hasUserStarredSkill(userId: string, skillId: string) {
     return false;
   }
 
-  const existingStar = await db.query.stars.findFirst({
-    where: and(eq(stars.userId, userId), eq(stars.skillId, skillId)),
-  });
+  try {
+    const existingStar = await db.query.stars.findFirst({
+      where: and(eq(stars.userId, userId), eq(stars.skillId, skillId)),
+    });
 
-  return Boolean(existingStar);
+    return Boolean(existingStar);
+  } catch {
+    return false;
+  }
 }

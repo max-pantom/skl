@@ -6,56 +6,48 @@ import { formatDate, formatNumber } from "@/lib/utils";
 
 export function SkillCard({ skill }: { skill: SkillListItem }) {
   return (
-    <article className="group rounded-[1.5rem] border border-line bg-panel p-6 shadow-card transition hover:-translate-y-0.5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
-              {skill.category}
-            </p>
-            <Link href={`/s/${skill.slug}`} className="block">
-              <h3 className="text-xl font-semibold tracking-tight text-ink transition group-hover:text-accent">
-                {skill.title}
-              </h3>
-            </Link>
-            <p className="max-w-xl text-sm leading-6 text-slate-600">{skill.summary}</p>
+    <article className="skl-surface group transition-colors hover:border-zinc-400">
+      <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+        <div className="min-w-0 flex-1 space-y-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">{skill.category}</span>
+            <span className="text-zinc-300">·</span>
+            <span className="font-mono text-xs text-zinc-600">v{skill.currentVersion.version}</span>
           </div>
-
+          <Link href={`/s/${skill.slug}`} className="block">
+            <h3 className="text-lg font-semibold tracking-tight text-ink group-hover:underline group-hover:decoration-zinc-400 group-hover:underline-offset-4">
+              {skill.title}
+            </h3>
+          </Link>
+          <p className="max-w-2xl text-sm leading-6 text-zinc-600">{skill.summary}</p>
           <TagList tags={skill.tags} />
-
           {skill.forkedFrom ? (
-            <p className="text-xs text-slate-500">
-              Forked from{" "}
-              <Link href={`/s/${skill.forkedFrom.slug}`} className="text-accent underline underline-offset-4">
+            <p className="text-xs text-zinc-500">
+              Fork of{" "}
+              <Link href={`/s/${skill.forkedFrom.slug}`} className="text-ink underline decoration-zinc-300 underline-offset-2">
                 {skill.forkedFrom.title}
               </Link>{" "}
-              by {skill.forkedFrom.author.displayName}
+              · {skill.forkedFrom.author.displayName}
             </p>
           ) : null}
         </div>
-
-        <div className="rounded-2xl border border-stone-300 bg-white px-3 py-2 text-right">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-slate-500">Version</p>
-          <p className="mt-1 text-sm font-semibold text-ink">{skill.currentVersion.version}</p>
-        </div>
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 border-t border-line pt-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
+      <div className="skl-divider flex flex-col gap-3 px-5 py-4 text-sm text-zinc-600 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <Link href={`/u/${skill.author.username}`} className="font-medium text-ink">
             @{skill.author.username}
           </Link>
-          <span>{skill.author.displayName}</span>
-          <span>Updated {formatDate(skill.updatedAt)}</span>
+          <span className="text-zinc-400">{skill.author.displayName}</span>
+          <span className="text-zinc-400">·</span>
+          <span className="text-zinc-500">{formatDate(skill.updatedAt)}</span>
         </div>
-
-        <div className="flex items-center gap-4 font-mono text-xs uppercase tracking-[0.18em] text-slate-500">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-500">
           <span>{formatNumber(skill.starsCount)} stars</span>
-          <span>{formatNumber(skill.downloadsCount)} downloads</span>
+          <span>{formatNumber(skill.downloadsCount)} dl</span>
           <span>{formatNumber(skill.forksCount)} forks</span>
         </div>
       </div>
     </article>
   );
 }
-

@@ -9,7 +9,8 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import type { AppViewer } from "@/lib/types";
 
-const baseURL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const baseURL =
+  process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const secret = process.env.BETTER_AUTH_SECRET;
 
 function createAuth() {
@@ -76,12 +77,16 @@ export async function getAuthSession() {
     return null;
   }
 
-  const headerList = await headers();
-  const session = await auth.api.getSession({
-    headers: headerList,
-  });
+  try {
+    const headerList = await headers();
+    const session = await auth.api.getSession({
+      headers: headerList,
+    });
 
-  return session;
+    return session;
+  } catch {
+    return null;
+  }
 }
 
 export async function getCurrentViewer(): Promise<AppViewer | null> {
@@ -95,9 +100,15 @@ export async function getCurrentViewer(): Promise<AppViewer | null> {
     return null;
   }
 
-  const localUser = await db.query.users.findFirst({
-    where: eq(schema.users.id, session.user.id),
-  });
+  let localUser;
+
+  try {
+    localUser = await db.query.users.findFirst({
+      where: eq(schema.users.id, session.user.id),
+    });
+  } catch {
+    return null;
+  }
 
   if (!localUser) {
     return null;

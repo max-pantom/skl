@@ -1,6 +1,10 @@
 # SKL
 
-Minimal MVP foundation for a registry of portable AI skills.
+GitHub for AI prompts. Version control and sharing for AI skills.
+
+## What it does
+
+A registry where users can publish, version, and fork AI skills like code. Browse by category and author, see version history, and download raw markdown with visible authorship.
 
 ## Stack
 
@@ -11,74 +15,52 @@ Minimal MVP foundation for a registry of portable AI skills.
 - PostgreSQL
 - Drizzle ORM
 
-No `shadcn/ui` is included. The UI uses plain Tailwind and custom components.
+Supabase is only the Postgres host in this setup. Supabase Auth is not used.
 
-## Architecture
-
-- Better Auth handles sign up, sign in, session cookies, and auth routes.
-- Supabase is only the hosted PostgreSQL database in this setup.
-- Drizzle owns the schema, migrations, and queries.
-- If `DATABASE_URL` is missing, the app falls back to local demo data for browse pages.
-- If `BETTER_AUTH_SECRET` is missing, auth-only flows like login, signup, publish, edit, star, fork, and settings stay disabled.
-
-More detail is in [docs/how-it-works.md](/Users/macbook/Desktop/code/skill/docs/how-it-works.md).
-
-## Environment
+## Required Environment
 
 Copy `.env.example` to `.env` and set:
 
 ```env
+DATABASE_URL=postgres://...
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-BETTER_AUTH_SECRET=replace-with-a-long-random-secret
-DATABASE_URL=your-postgres-connection-string
+BETTER_AUTH_SECRET=your-long-random-secret
 ```
-
-For Supabase, `DATABASE_URL` should be your Supabase Postgres connection string. You do not need Supabase Auth keys because auth is handled by Better Auth in this app.
 
 ## Local Setup
 
-Install dependencies:
-
 ```bash
 pnpm install
-```
-
-Run in demo mode:
-
-```bash
-pnpm dev
-```
-
-Run against a real database:
-
-```bash
 pnpm db:migrate
-pnpm db:seed
 pnpm dev
 ```
 
-Useful checks:
+There is no seed script anymore. The registry starts empty until real users publish skills.
 
-```bash
-pnpm typecheck
-pnpm build
-```
+## Important Behavior
 
-## Current Product Surface
+- Browse pages read from the database only.
+- If the database is unavailable, list pages render empty states instead of fake sample content.
+- Auth, publish, star, fork, and profile updates require both `DATABASE_URL` and `BETTER_AUTH_SECRET`.
 
-- Home and explore pages
-- Signup and login with Better Auth
-- User settings and public profiles
-- Publish skill flow
-- Skill page with star, fork, and raw download
-- Version history
-- Seeded sample content
+## Database
 
-## Database Notes
+Schema: [db/schema.ts](/Users/macbook/Desktop/code/skill/db/schema.ts)
 
-The schema includes:
+Migration runner: [scripts/migrate.ts](/Users/macbook/Desktop/code/skill/scripts/migrate.ts)
 
-- Better Auth tables: `users`, `sessions`, `accounts`, `verifications`
-- Product tables: `skills`, `skill_versions`, `stars`, `downloads`, `forks`
+Core tables:
 
-Skill content is single-file markdown for the MVP. Downloads are generated from the current version content stored in the database.
+- `users`
+- `sessions`
+- `accounts`
+- `verifications`
+- `skills`
+- `skill_versions`
+- `stars`
+- `downloads`
+- `forks`
+
+## Docs
+
+More detail is in [docs/how-it-works.md](/Users/macbook/Desktop/code/skill/docs/how-it-works.md).

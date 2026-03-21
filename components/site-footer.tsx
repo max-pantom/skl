@@ -1,9 +1,9 @@
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line py-8 text-sm text-slate-500">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p>SKL is a minimal registry for portable AI skills.</p>
-        <p className="font-mono text-xs uppercase tracking-[0.18em]">Simple. Technical. Calm.</p>
+    <footer className="skl-divider mt-16 py-8 text-sm text-zinc-500">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="max-w-md">Minimal registry: publish, version, fork, and download skills as markdown.</p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-zinc-400">SKL</p>
       </div>
     </footer>
   );

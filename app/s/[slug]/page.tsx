@@ -51,25 +51,27 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
   const canEdit = viewer?.id === skill.author.id;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <section className="space-y-8">
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <section className="space-y-6">
         {query.error ? <FormNotice tone="error">{query.error}</FormNotice> : null}
         {query.message ? <FormNotice tone="success">{query.message}</FormNotice> : null}
 
-        <div className="rounded-[2rem] border border-line bg-panel p-8 shadow-card sm:p-10">
+        <div className="skl-surface p-6 sm:p-8">
           <div className="space-y-6">
             <div className="space-y-4">
-              <p className="font-mono text-xs uppercase tracking-[0.24em] text-accent">{skill.category}</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-500">{skill.category}</p>
               <div className="space-y-3">
-                <h1 className="text-4xl font-semibold tracking-tight text-ink sm:text-5xl">{skill.title}</h1>
-                <p className="max-w-3xl text-base leading-8 text-slate-600">{skill.summary}</p>
+                <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">{skill.title}</h1>
+                <p className="max-w-3xl text-sm leading-7 text-zinc-600 sm:text-base sm:leading-8">{skill.summary}</p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-600">
                 <Link href={`/u/${skill.author.username}`} className="font-medium text-ink">
                   {skill.author.displayName}
                 </Link>
+                <span className="text-zinc-300">·</span>
                 <span>@{skill.author.username}</span>
+                <span className="text-zinc-300">·</span>
                 <span>Updated {formatDate(skill.updatedAt)}</span>
               </div>
             </div>
@@ -77,51 +79,48 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
             <TagList tags={skill.tags} />
 
             {skill.forkedFrom ? (
-              <div className="rounded-[1.25rem] border border-stone-300 bg-white p-4 text-sm text-slate-600">
-                Forked from{" "}
-                <Link href={`/s/${skill.forkedFrom.slug}`} className="font-medium text-accent underline underline-offset-4">
+              <div className="border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
+                Fork of{" "}
+                <Link
+                  href={`/s/${skill.forkedFrom.slug}`}
+                  className="font-medium text-ink underline decoration-zinc-300 underline-offset-2"
+                >
                   {skill.forkedFrom.title}
                 </Link>{" "}
-                by {skill.forkedFrom.author.displayName}
+                · {skill.forkedFrom.author.displayName}
               </div>
             ) : null}
           </div>
         </div>
 
-        <div className="rounded-[2rem] border border-line bg-panel p-8 shadow-card sm:p-10">
+        <div className="skl-surface p-6 sm:p-8">
           <MarkdownRenderer content={skill.currentVersion.content} />
         </div>
       </section>
 
-      <aside className="space-y-5">
-        <section className="rounded-[1.75rem] border border-line bg-panel p-6 shadow-card">
-          <div className="space-y-3">
+      <aside className="space-y-4">
+        <section className="skl-surface p-5">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">Actions</p>
+          <div className="mt-4 space-y-2">
             {viewer ? (
               <form action={toggleStarAction}>
                 <input type="hidden" name="skillId" value={skill.id} />
                 <input type="hidden" name="skillSlug" value={skill.slug} />
                 <input type="hidden" name="redirectTo" value={`/s/${skill.slug}`} />
-                <button
-                  type="submit"
-                  className="w-full rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-ink transition hover:border-ink"
-                >
-                  {viewerHasStarred ? "Unstar skill" : "Star skill"}
+                <button type="submit" className="skl-btn skl-btn-secondary w-full rounded-none py-2.5 text-sm">
+                  {viewerHasStarred ? "Unstar" : "Star"}
                 </button>
               </form>
             ) : isAppConfigured() ? (
               <Link
                 href={`/login?next=${encodeURIComponent(`/s/${skill.slug}`)}`}
-                className="block w-full rounded-full border border-stone-300 bg-white px-4 py-2 text-center text-sm font-medium text-ink transition hover:border-ink"
+                className="skl-btn skl-btn-secondary block w-full rounded-none py-2.5 text-center text-sm"
               >
-                Login to star
+                Log in to star
               </Link>
             ) : (
-              <button
-                type="button"
-                disabled
-                className="w-full rounded-full border border-stone-300 bg-stone-100 px-4 py-2 text-sm text-slate-500"
-              >
-                Configure auth to star
+              <button type="button" disabled className="skl-btn w-full cursor-not-allowed rounded-none border-zinc-200 bg-zinc-100 py-2.5 text-sm text-zinc-400">
+                Auth not configured
               </button>
             )}
 
@@ -130,82 +129,81 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
                 <input type="hidden" name="parentSkillId" value={skill.id} />
                 <input type="hidden" name="parentSlug" value={skill.slug} />
                 <input type="hidden" name="redirectTo" value={`/s/${skill.slug}`} />
-                <button
-                  type="submit"
-                  className="w-full rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-ink transition hover:border-ink"
-                >
-                  Fork skill
+                <button type="submit" className="skl-btn skl-btn-secondary w-full rounded-none py-2.5 text-sm">
+                  Fork
                 </button>
               </form>
-            ) : null}
-
-            {canEdit ? (
+            ) : !viewer && isAppConfigured() ? (
               <Link
-                href={`/s/${skill.slug}/edit`}
-                className="block w-full rounded-full border border-stone-300 bg-white px-4 py-2 text-center text-sm font-medium text-ink transition hover:border-ink"
+                href={`/login?next=${encodeURIComponent(`/s/${skill.slug}`)}`}
+                className="skl-btn skl-btn-secondary block w-full rounded-none py-2.5 text-center text-sm"
               >
-                Edit skill
+                Log in to fork
               </Link>
             ) : null}
 
             <Link
               href={`/api/skills/${skill.slug}/raw`}
-              className="block w-full rounded-full border border-ink bg-ink px-4 py-2 text-center text-sm font-medium text-shell transition hover:bg-slate-900"
+              className="skl-btn skl-btn-primary block w-full rounded-none py-2.5 text-center text-sm"
             >
-              Download raw skill
+              Download .md
             </Link>
             <CopyRawButton content={skill.currentVersion.content} />
           </div>
         </section>
 
-        <section className="rounded-[1.75rem] border border-line bg-panel p-6 shadow-card">
-          <div className="space-y-4">
+        <section className="skl-surface p-5">
+          <div className="space-y-5">
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.18em] text-slate-500">Compatible with</p>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">Compatible</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
                 {skill.currentVersion.compatibleWith.map((entry) => (
-                  <span
-                    key={entry}
-                    className="rounded-full border border-stone-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-700"
-                  >
+                  <span key={entry} className="border border-zinc-200 bg-zinc-50 px-2 py-0.5 font-mono text-[11px] text-zinc-700">
                     {entry}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-              <div className="rounded-[1.25rem] border border-stone-300 bg-white p-4">
-                <p className="font-mono text-xs uppercase tracking-[0.18em] text-slate-500">Version</p>
-                <p className="mt-2 text-lg font-semibold text-ink">{skill.currentVersion.version}</p>
+            <div className="grid grid-cols-2 gap-px bg-zinc-200">
+              <div className="bg-white p-3">
+                <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">Version</p>
+                <p className="mt-1 font-mono text-lg font-semibold text-ink">{skill.currentVersion.version}</p>
               </div>
-              <div className="rounded-[1.25rem] border border-stone-300 bg-white p-4">
-                <p className="font-mono text-xs uppercase tracking-[0.18em] text-slate-500">Published</p>
-                <p className="mt-2 text-lg font-semibold text-ink">{formatDate(skill.createdAt)}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-[1.25rem] border border-stone-300 bg-white p-4 text-center">
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">Stars</p>
-                <p className="mt-2 text-xl font-semibold text-ink">{formatNumber(skill.starsCount)}</p>
-              </div>
-              <div className="rounded-[1.25rem] border border-stone-300 bg-white p-4 text-center">
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">Forks</p>
-                <p className="mt-2 text-xl font-semibold text-ink">{formatNumber(skill.forksCount)}</p>
-              </div>
-              <div className="rounded-[1.25rem] border border-stone-300 bg-white p-4 text-center">
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">Downloads</p>
-                <p className="mt-2 text-xl font-semibold text-ink">{formatNumber(skill.downloadsCount)}</p>
+              <div className="bg-white p-3">
+                <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">Published</p>
+                <p className="mt-1 text-sm font-semibold text-ink">{formatDate(skill.createdAt)}</p>
               </div>
             </div>
 
-            <Link
-              href={`/s/${skill.slug}/versions`}
-              className="block rounded-full border border-stone-300 bg-white px-4 py-2 text-center text-sm font-medium text-ink transition hover:border-ink"
-            >
-              View version history
-            </Link>
+            <div className="grid grid-cols-3 gap-px bg-zinc-200 text-center">
+              <div className="bg-white p-3">
+                <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">Stars</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums text-ink">{formatNumber(skill.starsCount)}</p>
+              </div>
+              <div className="bg-white p-3">
+                <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">Forks</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums text-ink">{formatNumber(skill.forksCount)}</p>
+              </div>
+              <div className="bg-white p-3">
+                <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">DL</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums text-ink">{formatNumber(skill.downloadsCount)}</p>
+              </div>
+            </div>
+
+            {skill.versions.length > 1 ? (
+              <details className="border border-zinc-200 bg-zinc-50 px-3 py-2">
+                <summary className="cursor-pointer text-sm font-medium text-ink">Version history</summary>
+                <ul className="mt-3 space-y-2 border-t border-zinc-200 pt-3 text-sm text-zinc-600">
+                  {skill.versions.map((v) => (
+                    <li key={v.id} className="flex justify-between gap-2">
+                      <span className="font-mono text-xs text-zinc-500">{v.version}</span>
+                      <span className="text-xs">{formatDate(v.createdAt)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ) : null}
           </div>
         </section>
       </aside>

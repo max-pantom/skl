@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { db, isDatabaseConfigured } from "@/db";
-import { forks, skillVersions, skills, stars, users } from "@/db/schema";
+import { forks, skillVersions, skills, stars } from "@/db/schema";
 import { isAppConfigured, requireCurrentViewer } from "@/lib/auth";
 import { launchCategories, type SkillCategory } from "@/lib/types";
 import {
@@ -18,10 +18,6 @@ import {
 
 function redirectWithError(path: string, message: string): never {
   redirect(withQuery(path, { error: message }));
-}
-
-function redirectWithMessage(path: string, message: string): never {
-  redirect(withQuery(path, { message }));
 }
 
 function ensureConfigured(path: string) {
@@ -56,28 +52,6 @@ async function getUniqueSkillSlug(baseSlug: string, excludeSkillId?: string) {
   }
 }
 
-async function getUniqueUsername(baseUsername: string, excludeUserId?: string) {
-  if (!db) {
-    return baseUsername;
-  }
-
-  let candidate = sanitizeUsername(baseUsername);
-  let suffix = 1;
-
-  while (true) {
-    const existingUser = await db.query.users.findFirst({
-      where: eq(users.username, candidate),
-    });
-
-    if (!existingUser || existingUser.id === excludeUserId) {
-      return candidate;
-    }
-
-    suffix += 1;
-    candidate = sanitizeUsername(`${baseUsername}-${suffix}`);
-  }
-}
-
 function readSkillFields(formData: FormData) {
   const title = getString(formData.get("title"));
   const explicitSlug = getString(formData.get("slug"));
@@ -109,52 +83,6 @@ function revalidateSkillSurfaces(skillSlug: string, username: string) {
   revalidatePath("/explore");
   revalidatePath(`/s/${skillSlug}`);
   revalidatePath(`/u/${username}`);
-}
-
-export async function updateSettingsAction(formData: FormData) {
-  ensureConfigured("/settings");
-
-  const viewer = await requireCurrentViewer("/settings");
-  const username = sanitizeUsername(getString(formData.get("username")));
-  const displayName = getString(formData.get("displayName"));
-  const bio = getString(formData.get("bio")) || null;
-  const website = getString(formData.get("website")) || null;
-  const xUrl = getString(formData.get("xUrl")) || null;
-
-  if (!username || !displayName) {
-    redirectWithError("/settings", "Username and display name are required.");
-  }
-
-  const uniqueUsername = await getUniqueUsername(username, viewer.id);
-
-  if (uniqueUsername !== username) {
-    redirectWithError("/settings", "That username is already taken.");
-  }
-
-  await db!
-    .update(users)
-    .set({
-      username,
-      displayName,
-      bio,
-      website,
-      xUrl,
-      avatarUrl:
-        viewer.avatarUrl ??
-        displayName
-          .split(" ")
-          .map((entry) => entry[0]?.toUpperCase() ?? "")
-          .join("")
-          .slice(0, 2),
-      updatedAt: new Date(),
-    })
-    .where(eq(users.id, viewer.id));
-
-  revalidatePath("/settings");
-  revalidatePath(`/u/${viewer.username}`);
-  revalidatePath(`/u/${username}`);
-  revalidatePath("/");
-  redirectWithMessage("/settings", "Profile updated.");
 }
 
 export async function createSkillAction(formData: FormData) {
@@ -362,14 +290,14 @@ export async function forkSkillAction(formData: FormData) {
 
   const parentSkill = sourceSkill;
   const parentVersion = sourceSkill.currentVersion;
-  const childSlug = await getUniqueSkillSlug(`${parentSkill.slug}-${viewer.username}`);
+  const childSlug = await getUniqueSkillSlug(`${parentSkill.slug}-${sanitizeUsername(viewer.username)}`);
 
   const childSkill = await db!.transaction(async (tx) => {
     const [skill] = await tx
       .insert(skills)
       .values({
         authorId: viewer.id,
-        title: `${parentSkill.title} Fork`,
+        title: `${parentSkill.title} (fork)`,
         slug: childSlug,
         summary: parentSkill.summary,
         category: parentSkill.category,
@@ -419,5 +347,5 @@ export async function forkSkillAction(formData: FormData) {
   revalidatePath("/explore");
   revalidatePath(`/s/${parentSlug}`);
   revalidateSkillSurfaces(childSkill.slug, viewer.username);
-  redirect(`/s/${childSkill.slug}/edit?message=${encodeURIComponent("Fork created. Edit and publish the next version.")}`);
+  redirect(`/s/${childSkill.slug}`);
 }

@@ -4,20 +4,18 @@
 
 :root {
   color-scheme: light;
-  --font-plex-sans: "Avenir Next", Avenir, "IBM Plex Sans", "Segoe UI", sans-serif;
-  --font-plex-mono: "IBM Plex Mono", "SF Mono", Menlo, Monaco, monospace;
+  --font-plex-sans: "Avenir Next", Avenir, "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-plex-mono: "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
 }
 
 html {
-  background: #f6f2e8;
+  background: #f4f4f5;
 }
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 30%),
-    linear-gradient(180deg, rgba(255, 253, 247, 0.98), rgba(246, 242, 232, 1));
-  color: #101217;
+  background: #f4f4f5;
+  color: #18181b;
 }
 
 a {
@@ -25,29 +23,55 @@ a {
 }
 
 ::selection {
-  background: rgba(15, 118, 110, 0.18);
+  background: rgba(24, 24, 27, 0.12);
+}
+
+@layer components {
+  .skl-input {
+    @apply w-full border border-zinc-300 bg-white px-3 py-2.5 text-sm text-ink shadow-sm transition-colors placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900;
+  }
+
+  .skl-btn {
+    @apply inline-flex items-center justify-center border px-4 py-2.5 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .skl-btn-primary {
+    @apply skl-btn border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800;
+  }
+
+  .skl-btn-secondary {
+    @apply skl-btn border-zinc-300 bg-white text-ink hover:border-zinc-900 hover:bg-zinc-50;
+  }
+
+  .skl-surface {
+    @apply border border-zinc-200 bg-white shadow-sm;
+  }
+
+  .skl-divider {
+    @apply border-t border-zinc-200;
+  }
 }
 
 .prose-skill {
-  @apply max-w-none text-[15px] leading-7 text-slate-800;
+  @apply max-w-none text-[15px] leading-7 text-zinc-800;
 }
 
 .prose-skill h1,
 .prose-skill h2,
 .prose-skill h3 {
-  @apply mt-8 scroll-m-20 font-mono text-ink;
+  @apply mt-8 scroll-m-20 font-semibold tracking-tight text-ink;
 }
 
 .prose-skill h1 {
-  @apply text-3xl;
+  @apply font-mono text-2xl;
 }
 
 .prose-skill h2 {
-  @apply border-b border-line pb-2 text-2xl;
+  @apply border-b border-zinc-200 pb-2 text-xl;
 }
 
 .prose-skill h3 {
-  @apply text-xl;
+  @apply text-lg;
 }
 
 .prose-skill p,
@@ -70,11 +94,11 @@ a {
 }
 
 .prose-skill code {
-  @apply rounded-md bg-stone-200 px-1.5 py-0.5 font-mono text-[0.9em] text-ink;
+  @apply rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[0.9em] text-ink;
 }
 
 .prose-skill pre {
-  @apply overflow-x-auto rounded-2xl border border-stone-200 bg-stone-950 p-4 text-stone-100;
+  @apply overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-950 p-4 text-sm text-zinc-100;
 }
 
 .prose-skill pre code {
@@ -82,9 +106,9 @@ a {
 }
 
 .prose-skill blockquote {
-  @apply border-l-4 border-accent/40 pl-4 text-slate-600;
+  @apply border-l-2 border-zinc-300 pl-4 text-zinc-600;
 }
 
 .prose-skill a {
-  @apply text-accent underline underline-offset-4;
+  @apply text-zinc-900 underline decoration-zinc-400 underline-offset-4 hover:decoration-zinc-900;
 }

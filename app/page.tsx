@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { PlaceholderPanel } from "@/components/placeholder-panel";
 import { SectionHeading } from "@/components/section-heading";
 import { SkillCard } from "@/components/skill-card";
 import { getExploreSkills, getFeaturedSkills, getRecentSkills } from "@/lib/data";
@@ -13,49 +14,43 @@ export default async function HomePage() {
   ]);
 
   return (
-    <div className="space-y-16">
-      <section className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-        <div className="space-y-8">
-          <div className="space-y-5">
-            <p className="font-mono text-xs uppercase tracking-[0.24em] text-accent">Portable AI skills</p>
-            <h1 className="max-w-4xl text-5xl font-semibold tracking-tight text-ink sm:text-6xl">
-              Publish reusable instructions that agents can browse, fork, and download.
-            </h1>
-            <p className="max-w-2xl text-base leading-8 text-slate-600">
-              SKL is a calm, technical registry for single-file skills. Authors stay visible. Versions stay readable.
-              Raw access stays one click away.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/explore"
-              className="rounded-full border border-ink bg-ink px-5 py-3 text-sm font-medium text-shell transition hover:bg-slate-900"
-            >
+    <div className="space-y-14 sm:space-y-20">
+      <section className="skl-surface relative overflow-hidden p-6 sm:p-10">
+        <div className="absolute left-0 top-0 h-full w-1 bg-zinc-900" aria-hidden />
+        <div className="space-y-6 pl-4 sm:pl-6">
+          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">Registry</p>
+          <h1 className="max-w-2xl text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl lg:text-[2.75rem] lg:leading-[1.15]">
+            Publish and fork AI skills like code—versioned, attributed, one raw download away.
+          </h1>
+          <p className="max-w-xl text-sm leading-7 text-zinc-600">
+            Single-file prompts with history, stars, and forks. Built for teams who outgrow Slack screenshots.
+          </p>
+          <div className="flex flex-wrap gap-3 pt-2">
+            <Link href="/explore" className="skl-btn skl-btn-primary rounded-none px-5 py-3">
               Explore skills
             </Link>
-            <Link
-              href="/new"
-              className="rounded-full border border-stone-300 bg-white px-5 py-3 text-sm font-medium text-ink transition hover:border-ink"
-            >
-              Publish a skill
+            <Link href="/new" className="skl-btn skl-btn-secondary rounded-none px-5 py-3">
+              Publish
             </Link>
           </div>
         </div>
+      </section>
 
-        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-          <div className="rounded-[1.5rem] border border-line bg-panel p-6 shadow-card">
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-slate-500">Published skills</p>
-            <p className="mt-4 text-4xl font-semibold tracking-tight text-ink">{allSkills.length}</p>
-          </div>
-          <div className="rounded-[1.5rem] border border-line bg-panel p-6 shadow-card">
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-slate-500">Launch categories</p>
-            <p className="mt-4 text-4xl font-semibold tracking-tight text-ink">{launchCategories.length}</p>
-          </div>
-          <div className="rounded-[1.5rem] border border-line bg-panel p-6 shadow-card">
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-slate-500">Version-ready</p>
-            <p className="mt-4 text-4xl font-semibold tracking-tight text-ink">Yes</p>
-          </div>
+      <section className="grid gap-4 border border-zinc-200 bg-white p-4 sm:grid-cols-3 sm:p-5">
+        <div className="border-b border-zinc-100 pb-4 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-4">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">In registry</p>
+          <p className="mt-2 text-3xl font-semibold tabular-nums text-ink">{allSkills.length}</p>
+          <p className="mt-1 text-xs text-zinc-500">skills</p>
+        </div>
+        <div className="border-b border-zinc-100 pb-4 sm:border-b-0 sm:border-r sm:pb-0 sm:px-4">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">Categories</p>
+          <p className="mt-2 text-3xl font-semibold tabular-nums text-ink">{launchCategories.length}</p>
+          <p className="mt-1 text-xs text-zinc-500">for discovery</p>
+        </div>
+        <div className="sm:pl-4">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">Model</p>
+          <p className="mt-2 text-3xl font-semibold text-ink">v1</p>
+          <p className="mt-1 text-xs text-zinc-500">versioned content</p>
         </div>
       </section>
 
@@ -63,50 +58,57 @@ export default async function HomePage() {
         <SectionHeading
           eyebrow="Featured"
           title="Popular skills"
-          description="Read-heavy pages first. Fast publish and auth can layer on top once the registry model is in place."
+          description="Sorted by engagement. Sign in to star, fork, or publish your own."
         />
-        <div className="grid gap-5">
-          {featuredSkills.map((skill) => (
-            <SkillCard key={skill.id} skill={skill} />
-          ))}
-        </div>
+        {featuredSkills.length ? (
+          <div className="grid gap-4">
+            {featuredSkills.map((skill) => (
+              <SkillCard key={skill.id} skill={skill} />
+            ))}
+          </div>
+        ) : (
+          <PlaceholderPanel
+            title="No skills yet"
+            description="Run migrations, create an account, and publish the first skill. The registry no longer ships with sample seed content."
+          />
+        )}
+      </section>
+
+      <section className="space-y-6">
+        <SectionHeading eyebrow="Recent" title="Latest updates" description="New versions and fresh publishes." />
+        {recentSkills.length ? (
+          <div className="grid gap-4 lg:grid-cols-3">
+            {recentSkills.map((skill) => (
+              <SkillCard key={skill.id} skill={skill} />
+            ))}
+          </div>
+        ) : (
+          <div className="border border-dashed border-zinc-300 bg-zinc-50 px-6 py-14 text-center text-sm text-zinc-600">
+            No recent updates yet.
+          </div>
+        )}
       </section>
 
       <section className="space-y-6">
         <SectionHeading
-          eyebrow="Recent"
-          title="Latest updates"
-          description="Version history is a core part of trust, so recent changes are visible on day one."
+          eyebrow="Browse"
+          title="By category"
+          description="Narrow the registry before search."
         />
-        <div className="grid gap-5 lg:grid-cols-3">
-          {recentSkills.map((skill) => (
-            <SkillCard key={skill.id} skill={skill} />
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-6">
-        <SectionHeading
-          eyebrow="Categories"
-          title="Launch taxonomy"
-          description="The first release keeps categories intentionally narrow so discovery stays clean."
-        />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid gap-px bg-zinc-200 sm:grid-cols-2 lg:grid-cols-3">
           {launchCategories.map((category) => (
-            <Link
-              key={category}
-              href={`/explore?category=${category}`}
-              className="rounded-[1.25rem] border border-line bg-panel p-5 shadow-card transition hover:border-accent/50"
-            >
-              <p className="font-mono text-xs uppercase tracking-[0.22em] text-accent">{category}</p>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Browse skills tagged for {category} workflows.
-              </p>
-            </Link>
+            <li key={category} className="bg-white">
+              <Link
+                href={`/explore?category=${category}`}
+                className="block p-5 transition-colors hover:bg-zinc-50"
+              >
+                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">{category}</p>
+                <p className="mt-2 text-sm text-zinc-600">Open in explore →</p>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
     </div>
   );
 }
-

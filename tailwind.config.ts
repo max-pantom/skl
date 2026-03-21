@@ -9,16 +9,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#101217",
-        shell: "#f6f2e8",
-        muted: "#6b7280",
-        line: "#d6cfbf",
-        accent: "#0f766e",
-        accentSoft: "#d6f0ec",
-        panel: "#fffdf7",
+        ink: "#18181b",
+        shell: "#f4f4f5",
+        muted: "#71717a",
+        line: "#e4e4e7",
+        accent: "#18181b",
+        accentSoft: "#f4f4f5",
+        panel: "#ffffff",
       },
       boxShadow: {
-        card: "0 12px 30px rgba(16, 18, 23, 0.08)",
+        card: "0 1px 2px rgba(0, 0, 0, 0.05)",
       },
       borderRadius: {
         xl: "1.25rem",

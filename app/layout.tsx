@@ -4,6 +4,8 @@ import "@/app/globals.css";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: {
     default: "SKL",
@@ -20,10 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">
-        <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
+      <body className="font-sans text-[15px] leading-relaxed text-zinc-800 antialiased">
+        <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 sm:px-6 lg:px-10">
           <SiteHeader />
-          <main className="flex-1 py-10 sm:py-12">{children}</main>
+          <main className="flex-1 py-8 sm:py-11">{children}</main>
           <SiteFooter />
         </div>
       </body>

@@ -27,34 +27,30 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
   const skills = await getExploreSkills({ query, category });
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <SectionHeading
         eyebrow="Explore"
-        title="Search the registry"
-        description="The MVP search scans title, summary, tags, and markdown content. Category filtering stays lightweight."
+        title="Registry"
+        description="Filter by category, search title, summary, tags, and body text."
       />
 
-      <section className="rounded-[1.75rem] border border-line bg-panel p-6 shadow-card">
-        <form className="grid gap-4 lg:grid-cols-[1fr_220px_140px]">
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-ink">Search</span>
+      <section className="skl-surface p-5 sm:p-6">
+        <form className="grid gap-4 lg:grid-cols-[1fr_minmax(0,200px)_minmax(0,120px)] lg:items-end">
+          <label className="block space-y-2">
+            <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Search</span>
             <input
               type="search"
               name="q"
               defaultValue={query}
-              placeholder="Search title, summary, tags, or content"
-              className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
+              placeholder="Title, tags, markdown…"
+              className="skl-input"
             />
           </label>
 
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-ink">Category</span>
-            <select
-              name="category"
-              defaultValue={category}
-              className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent"
-            >
-              <option value="all">All categories</option>
+          <label className="block space-y-2">
+            <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Category</span>
+            <select name="category" defaultValue={category} className="skl-input">
+              <option value="all">All</option>
               {launchCategories.map((entry) => (
                 <option key={entry} value={entry}>
                   {entry}
@@ -63,55 +59,59 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
             </select>
           </label>
 
-          <div className="flex items-end">
-            <button
-              type="submit"
-              className="w-full rounded-full border border-ink bg-ink px-4 py-3 text-sm font-medium text-shell transition hover:bg-slate-900"
-            >
-              Apply
-            </button>
-          </div>
+          <button type="submit" className="skl-btn skl-btn-primary h-[42px] w-full rounded-none lg:shrink-0">
+            Apply
+          </button>
         </form>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-2 border-t border-zinc-100 pt-5">
           <Link
             href="/explore"
-            className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-ink hover:text-ink"
+            className={`border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide ${
+              category === "all" && !query
+                ? "border-zinc-900 bg-zinc-900 text-white"
+                : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-400"
+            }`}
           >
             All
           </Link>
-          {launchCategories.map((entry) => (
-            <Link
-              key={entry}
-              href={`/explore?category=${entry}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
-              className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-ink hover:text-ink"
-            >
-              {entry}
-            </Link>
-          ))}
+          {launchCategories.map((entry) => {
+            const active = category === entry;
+            return (
+              <Link
+                key={entry}
+                href={`/explore?category=${entry}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
+                className={`border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide ${
+                  active
+                    ? "border-zinc-900 bg-zinc-900 text-white"
+                    : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-400"
+                }`}
+              >
+                {entry}
+              </Link>
+            );
+          })}
         </div>
       </section>
 
-      <section className="space-y-5">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-slate-600">
-            {skills.length} result{skills.length === 1 ? "" : "s"}
-          </p>
-        </div>
+      <section className="space-y-4">
+        <p className="text-sm text-zinc-600">
+          <span className="font-mono tabular-nums text-ink">{skills.length}</span> result
+          {skills.length === 1 ? "" : "s"}
+        </p>
 
         {skills.length ? (
-          <div className="grid gap-5">
+          <div className="grid gap-4">
             {skills.map((skill) => (
               <SkillCard key={skill.id} skill={skill} />
             ))}
           </div>
         ) : (
-          <div className="rounded-[1.5rem] border border-dashed border-line bg-panel p-10 text-sm text-slate-600">
-            No skills match this filter yet.
+          <div className="border border-dashed border-zinc-300 bg-zinc-50 px-6 py-14 text-center text-sm text-zinc-600">
+            No skills match. Try another category or clear search.
           </div>
         )}
       </section>
     </div>
   );
 }
-
