@@ -1,9 +1,13 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import type { AppViewer } from "@/lib/types";
 
 const baseURL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const secret = process.env.BETTER_AUTH_SECRET;
@@ -49,7 +53,7 @@ function createAuth() {
   });
 }
 
-let authSingleton: ReturnType<typeof betterAuth> | null = null;
+let authSingleton: ReturnType<typeof createAuth> | null = null;
 
 export function getAuth() {
   if (!db || !secret) {
@@ -59,4 +63,65 @@ export function getAuth() {
     authSingleton = createAuth();
   }
   return authSingleton;
+}
+
+export function isAppConfigured() {
+  return Boolean(db && secret && secret.length >= 32);
+}
+
+export async function getAuthSession() {
+  const auth = getAuth();
+
+  if (!auth) {
+    return null;
+  }
+
+  const headerList = await headers();
+  const session = await auth.api.getSession({
+    headers: headerList,
+  });
+
+  return session;
+}
+
+export async function getCurrentViewer(): Promise<AppViewer | null> {
+  if (!db) {
+    return null;
+  }
+
+  const session = await getAuthSession();
+
+  if (!session?.user) {
+    return null;
+  }
+
+  const localUser = await db.query.users.findFirst({
+    where: eq(schema.users.id, session.user.id),
+  });
+
+  if (!localUser) {
+    return null;
+  }
+
+  return {
+    id: localUser.id,
+    email: localUser.email,
+    username: localUser.username,
+    displayName: localUser.displayName,
+    bio: localUser.bio,
+    avatarUrl: localUser.avatarUrl,
+    website: localUser.website,
+    xUrl: localUser.xUrl,
+    createdAt: localUser.createdAt.toISOString(),
+  };
+}
+
+export async function requireCurrentViewer(redirectTo = "/login") {
+  const viewer = await getCurrentViewer();
+
+  if (!viewer) {
+    redirect(`/login?next=${encodeURIComponent(redirectTo)}`);
+  }
+
+  return viewer;
 }

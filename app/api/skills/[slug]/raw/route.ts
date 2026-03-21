@@ -1,3 +1,8 @@
+import { eq, sql } from "drizzle-orm";
+
+import { db } from "@/db";
+import { downloads, skills } from "@/db/schema";
+import { getCurrentViewer } from "@/lib/auth";
 import { getSkillBySlug } from "@/lib/data";
 
 type RawSkillRouteProps = {
@@ -14,6 +19,24 @@ export async function GET(_: Request, { params }: RawSkillRouteProps) {
     return new Response("Skill not found", { status: 404 });
   }
 
+  if (db) {
+    const viewer = await getCurrentViewer();
+
+    await db.transaction(async (tx) => {
+      await tx.insert(downloads).values({
+        userId: viewer?.id ?? null,
+        skillId: skill.id,
+      });
+
+      await tx
+        .update(skills)
+        .set({
+          downloadsCount: sql`${skills.downloadsCount} + 1`,
+        })
+        .where(eq(skills.id, skill.id));
+    });
+  }
+
   const filename = `${skill.slug}-${skill.currentVersion.version}.md`;
 
   return new Response(skill.currentVersion.content, {
@@ -24,4 +47,3 @@ export async function GET(_: Request, { params }: RawSkillRouteProps) {
     },
   });
 }
-

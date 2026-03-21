@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { SectionHeading } from "@/components/section-heading";
 import { SkillCard } from "@/components/skill-card";
+import { getCurrentViewer } from "@/lib/auth";
 import { getProfileByUsername } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 
@@ -30,6 +32,7 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = await params;
+  const viewer = await getCurrentViewer();
   const profile = await getProfileByUsername(username);
 
   if (!profile) {
@@ -49,6 +52,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <p className="max-w-2xl text-sm leading-7 text-slate-600">
               {profile.user.bio ?? "No bio added yet."}
             </p>
+            {viewer?.username === profile.user.username ? (
+              <Link
+                href="/settings"
+                className="inline-flex rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-ink transition hover:border-ink"
+              >
+                Edit profile
+              </Link>
+            ) : null}
           </div>
 
           <div className="grid gap-3 rounded-[1.5rem] border border-stone-300 bg-white p-5 text-sm text-slate-600 sm:grid-cols-3 lg:grid-cols-1">
@@ -85,4 +96,3 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     </div>
   );
 }
-

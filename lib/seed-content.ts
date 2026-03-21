@@ -2,6 +2,8 @@ import type { SkillCategory } from "./types";
 
 type SeedUser = {
   id: string;
+  email: string;
+  emailVerified: boolean;
   username: string;
   displayName: string;
   bio: string;
@@ -9,6 +11,7 @@ type SeedUser = {
   website: string | null;
   xUrl: string | null;
   createdAt: string;
+  updatedAt: string;
 };
 
 type SeedSkill = {
@@ -65,6 +68,8 @@ type SeedFork = {
 export const sampleUsers: SeedUser[] = [
   {
     id: "a1111111-1111-4111-8111-111111111111",
+    email: "rhea@skl.dev",
+    emailVerified: true,
     username: "rheakim",
     displayName: "Rhea Kim",
     bio: "Builds practical code-review and debugging skills for product teams.",
@@ -72,9 +77,12 @@ export const sampleUsers: SeedUser[] = [
     website: "https://skl.dev",
     xUrl: "https://x.com/rheakim",
     createdAt: "2025-11-18T09:00:00.000Z",
+    updatedAt: "2026-03-10T09:30:00.000Z",
   },
   {
     id: "b2222222-2222-4222-8222-222222222222",
+    email: "sol@skl.dev",
+    emailVerified: true,
     username: "solmartin",
     displayName: "Sol Martin",
     bio: "Writes research and strategy skills that turn scattered notes into decisions.",
@@ -82,9 +90,12 @@ export const sampleUsers: SeedUser[] = [
     website: null,
     xUrl: "https://x.com/solmartin",
     createdAt: "2025-12-02T11:30:00.000Z",
+    updatedAt: "2026-03-06T16:45:00.000Z",
   },
   {
     id: "c3333333-3333-4333-8333-333333333333",
+    email: "amira@skl.dev",
+    emailVerified: true,
     username: "amiraade",
     displayName: "Amira Ade",
     bio: "Sharpens writing and review workflows for shipping teams.",
@@ -92,6 +103,7 @@ export const sampleUsers: SeedUser[] = [
     website: "https://amira.work",
     xUrl: null,
     createdAt: "2026-01-12T08:15:00.000Z",
+    updatedAt: "2026-03-12T07:40:00.000Z",
   },
 ];
 
@@ -231,6 +243,73 @@ Audit landing-page copy for clarity, credibility, and consistency.
 - Trust gaps
 `;
 
+const uiAuditMd = `# UI Audit
+
+## Goal
+Review a screen or flow for hierarchy, affordance, and consistency.
+
+## Workflow
+1. Identify the primary user task.
+2. Map visual hierarchy (what draws the eye first, second, third).
+3. List friction: unclear labels, missing states, density issues.
+4. Suggest concrete layout or copy tweaks.
+
+## Output
+- Severity-ordered findings
+- Quick wins vs deeper fixes
+`;
+
+const bugTriageMd = `# Bug Triage
+
+## Goal
+Turn a messy bug report into a reproducible, prioritized ticket.
+
+## Workflow
+1. Extract environment, steps, expected vs actual.
+2. Classify: regression, edge case, or unclear spec.
+3. Propose severity and owner.
+4. List missing information to request.
+
+## Output
+- Triage summary
+- Recommended priority
+- Follow-up questions
+`;
+
+const designCritiqueMd = `# Design Critique
+
+## Goal
+Give structured critique of a design (mockup or product) without personal taste.
+
+## Workflow
+1. Restate the problem the design solves.
+2. Evaluate information architecture and flow.
+3. Note accessibility and contrast risks.
+4. Suggest alternatives that preserve intent.
+
+## Output
+- What works
+- Risks and gaps
+- 2–3 directional improvements
+`;
+
+const brandVoiceMd = `# Brand Voice Generator
+
+## Goal
+Produce on-brand copy from a short brief.
+
+## Inputs
+- Brand adjectives (3–5)
+- Audience
+- Channel (email, landing, in-app)
+- Draft or bullet points
+
+## Output
+- Primary copy in brand voice
+- One alternate tone (calmer or bolder)
+- Words to avoid for this brand
+`;
+
 const prReviewFastlane = `# TypeScript PR Review Fastlane
 
 ## Goal
@@ -271,8 +350,8 @@ export const sampleSkills: SeedSkill[] = [
   {
     id: "d4444444-4444-4444-8444-444444444445",
     authorId: "b2222222-2222-4222-8222-222222222222",
-    title: "Research Notes to Decision Memo",
-    slug: "research-notes-to-decision-memo",
+    title: "Research summarizer",
+    slug: "research-summarizer",
     summary: "Turns research scraps into a short memo with evidence, options, and a recommendation.",
     category: "research",
     tags: ["research", "memo", "strategy"],
@@ -287,9 +366,9 @@ export const sampleSkills: SeedSkill[] = [
   {
     id: "d4444444-4444-4444-8444-444444444446",
     authorId: "c3333333-3333-4333-8333-333333333333",
-    title: "Landing Page Tone Audit",
-    slug: "landing-page-tone-audit",
-    summary: "Audits marketing copy for clarity, credibility, and tonal consistency without hype.",
+    title: "Landing page copywriter",
+    slug: "landing-page-copywriter",
+    summary: "Audits and rewrites landing copy for clarity, credibility, and tonal consistency without hype.",
     category: "writing",
     tags: ["copywriting", "audit", "marketing"],
     visibility: "public",
@@ -444,6 +523,74 @@ export const sampleSkillVersions: SeedSkillVersion[] = [
       forkMode: "fastlane",
     },
     createdAt: "2026-03-12T07:40:00.000Z",
+  },
+  {
+    id: "e5555555-5555-4555-8555-555555555557",
+    skillId: "d4444444-4444-4444-8444-444444444448",
+    version: "1.0.0",
+    content: uiAuditMd,
+    changelog: "Initial release.",
+    compatibleWith: ["GPT-5", "Claude 4", "Codex"],
+    inputSchema: {
+      type: "object",
+      required: ["context"],
+      properties: {
+        context: { type: "string" },
+      },
+    },
+    metadata: { tone: "direct", output: "audit" },
+    createdAt: "2026-03-08T14:00:00.000Z",
+  },
+  {
+    id: "e5555555-5555-4555-8555-555555555558",
+    skillId: "d4444444-4444-4444-8444-444444444449",
+    version: "1.0.0",
+    content: bugTriageMd,
+    changelog: "Initial release.",
+    compatibleWith: ["GPT-5", "Claude 4", "Codex"],
+    inputSchema: {
+      type: "object",
+      required: ["report"],
+      properties: {
+        report: { type: "string" },
+      },
+    },
+    metadata: { tone: "technical", output: "ticket" },
+    createdAt: "2026-03-09T16:20:00.000Z",
+  },
+  {
+    id: "e5555555-5555-4555-8555-555555555559",
+    skillId: "d4444444-4444-4444-8444-444444444450",
+    version: "1.0.0",
+    content: designCritiqueMd,
+    changelog: "Initial release.",
+    compatibleWith: ["GPT-5", "Claude 4", "Codex"],
+    inputSchema: {
+      type: "object",
+      required: ["designContext"],
+      properties: {
+        designContext: { type: "string" },
+      },
+    },
+    metadata: { tone: "constructive", output: "critique" },
+    createdAt: "2026-03-11T10:00:00.000Z",
+  },
+  {
+    id: "e5555555-5555-4555-8555-555555555560",
+    skillId: "d4444444-4444-4444-8444-444444444451",
+    version: "1.0.0",
+    content: brandVoiceMd,
+    changelog: "Initial release.",
+    compatibleWith: ["GPT-5", "Claude 4", "Codex"],
+    inputSchema: {
+      type: "object",
+      required: ["brief"],
+      properties: {
+        brief: { type: "string" },
+      },
+    },
+    metadata: { tone: "brand", output: "copy" },
+    createdAt: "2026-03-13T09:00:00.000Z",
   },
 ];
 

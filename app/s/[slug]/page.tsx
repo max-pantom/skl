@@ -3,14 +3,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CopyRawButton } from "@/components/copy-raw-button";
+import { FormNotice } from "@/components/form-notice";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { TagList } from "@/components/tag-list";
-import { getSkillBySlug } from "@/lib/data";
+import { forkSkillAction, toggleStarAction } from "@/lib/actions";
+import { getCurrentViewer, isAppConfigured } from "@/lib/auth";
+import { getSkillBySlug, hasUserStarredSkill } from "@/lib/data";
 import { formatDate, formatNumber } from "@/lib/utils";
 
 type SkillPageProps = {
   params: Promise<{
     slug: string;
+  }>;
+  searchParams: Promise<{
+    error?: string;
+    message?: string;
   }>;
 };
 
@@ -30,17 +37,25 @@ export async function generateMetadata({ params }: SkillPageProps): Promise<Meta
   };
 }
 
-export default async function SkillPage({ params }: SkillPageProps) {
+export default async function SkillPage({ params, searchParams }: SkillPageProps) {
   const { slug } = await params;
+  const query = await searchParams;
+  const viewer = await getCurrentViewer();
   const skill = await getSkillBySlug(slug);
 
   if (!skill) {
     notFound();
   }
 
+  const viewerHasStarred = viewer ? await hasUserStarredSkill(viewer.id, skill.id) : false;
+  const canEdit = viewer?.id === skill.author.id;
+
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <section className="space-y-8">
+        {query.error ? <FormNotice tone="error">{query.error}</FormNotice> : null}
+        {query.message ? <FormNotice tone="success">{query.message}</FormNotice> : null}
+
         <div className="rounded-[2rem] border border-line bg-panel p-8 shadow-card sm:p-10">
           <div className="space-y-6">
             <div className="space-y-4">
@@ -81,20 +96,58 @@ export default async function SkillPage({ params }: SkillPageProps) {
       <aside className="space-y-5">
         <section className="rounded-[1.75rem] border border-line bg-panel p-6 shadow-card">
           <div className="space-y-3">
-            <button
-              type="button"
-              disabled
-              className="w-full rounded-full border border-stone-300 bg-stone-100 px-4 py-2 text-sm text-slate-500"
-            >
-              Star action lands in next phase
-            </button>
-            <button
-              type="button"
-              disabled
-              className="w-full rounded-full border border-stone-300 bg-stone-100 px-4 py-2 text-sm text-slate-500"
-            >
-              Fork action lands in next phase
-            </button>
+            {viewer ? (
+              <form action={toggleStarAction}>
+                <input type="hidden" name="skillId" value={skill.id} />
+                <input type="hidden" name="skillSlug" value={skill.slug} />
+                <input type="hidden" name="redirectTo" value={`/s/${skill.slug}`} />
+                <button
+                  type="submit"
+                  className="w-full rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-ink transition hover:border-ink"
+                >
+                  {viewerHasStarred ? "Unstar skill" : "Star skill"}
+                </button>
+              </form>
+            ) : isAppConfigured() ? (
+              <Link
+                href={`/login?next=${encodeURIComponent(`/s/${skill.slug}`)}`}
+                className="block w-full rounded-full border border-stone-300 bg-white px-4 py-2 text-center text-sm font-medium text-ink transition hover:border-ink"
+              >
+                Login to star
+              </Link>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="w-full rounded-full border border-stone-300 bg-stone-100 px-4 py-2 text-sm text-slate-500"
+              >
+                Configure auth to star
+              </button>
+            )}
+
+            {viewer && !canEdit ? (
+              <form action={forkSkillAction}>
+                <input type="hidden" name="parentSkillId" value={skill.id} />
+                <input type="hidden" name="parentSlug" value={skill.slug} />
+                <input type="hidden" name="redirectTo" value={`/s/${skill.slug}`} />
+                <button
+                  type="submit"
+                  className="w-full rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-ink transition hover:border-ink"
+                >
+                  Fork skill
+                </button>
+              </form>
+            ) : null}
+
+            {canEdit ? (
+              <Link
+                href={`/s/${skill.slug}/edit`}
+                className="block w-full rounded-full border border-stone-300 bg-white px-4 py-2 text-center text-sm font-medium text-ink transition hover:border-ink"
+              >
+                Edit skill
+              </Link>
+            ) : null}
+
             <Link
               href={`/api/skills/${skill.slug}/raw`}
               className="block w-full rounded-full border border-ink bg-ink px-4 py-2 text-center text-sm font-medium text-shell transition hover:bg-slate-900"
@@ -159,4 +212,3 @@ export default async function SkillPage({ params }: SkillPageProps) {
     </div>
   );
 }
-

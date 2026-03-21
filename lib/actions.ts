@@ -6,15 +6,8 @@ import { redirect } from "next/navigation";
 
 import { db, isDatabaseConfigured } from "@/db";
 import { forks, skillVersions, skills, stars, users } from "@/db/schema";
-import {
-  getAuthCallbackUrl,
-  getCurrentViewer,
-  isAppConfigured,
-  requireCurrentViewer,
-  syncViewerFromAuth,
-} from "@/lib/auth";
+import { isAppConfigured, requireCurrentViewer } from "@/lib/auth";
 import { launchCategories, type SkillCategory } from "@/lib/types";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   getString,
   parseCommaSeparatedList,
@@ -23,17 +16,17 @@ import {
   withQuery,
 } from "@/lib/utils";
 
-function redirectWithError(path: string, message: string) {
+function redirectWithError(path: string, message: string): never {
   redirect(withQuery(path, { error: message }));
 }
 
-function redirectWithMessage(path: string, message: string) {
+function redirectWithMessage(path: string, message: string): never {
   redirect(withQuery(path, { message }));
 }
 
 function ensureConfigured(path: string) {
   if (!isAppConfigured() || !db || !isDatabaseConfigured) {
-    redirectWithError(path, "Supabase auth and the database must be configured first.");
+    redirectWithError(path, "Better Auth and the database must be configured first.");
   }
 }
 
@@ -115,94 +108,7 @@ function revalidateSkillSurfaces(skillSlug: string, username: string) {
   revalidatePath("/");
   revalidatePath("/explore");
   revalidatePath(`/s/${skillSlug}`);
-  revalidatePath(`/s/${skillSlug}/versions`);
   revalidatePath(`/u/${username}`);
-}
-
-export async function signInAction(formData: FormData) {
-  const next = getString(formData.get("next")) || "/explore";
-
-  ensureConfigured(`/login?next=${encodeURIComponent(next)}`);
-
-  const email = getString(formData.get("email"));
-  const password = getString(formData.get("password"));
-
-  if (!email || !password) {
-    redirectWithError(withQuery("/login", { next }), "Email and password are required.");
-  }
-
-  const supabase = await createSupabaseServerClient();
-
-  if (!supabase) {
-    redirectWithError(withQuery("/login", { next }), "Supabase is not configured.");
-  }
-
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    redirectWithError(withQuery("/login", { next }), error.message);
-  }
-
-  await syncViewerFromAuth();
-  revalidatePath("/");
-  redirect(next);
-}
-
-export async function signUpAction(formData: FormData) {
-  ensureConfigured("/signup");
-
-  const email = getString(formData.get("email"));
-  const password = getString(formData.get("password"));
-  const username = sanitizeUsername(getString(formData.get("username")));
-  const displayName = getString(formData.get("displayName"));
-
-  if (!email || !password || !username || !displayName) {
-    redirectWithError("/signup", "Email, password, username, and display name are required.");
-  }
-
-  const supabase = await createSupabaseServerClient();
-
-  if (!supabase) {
-    redirectWithError("/signup", "Supabase is not configured.");
-  }
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: getAuthCallbackUrl("/settings"),
-      data: {
-        username,
-        display_name: displayName,
-      },
-    },
-  });
-
-  if (error) {
-    redirectWithError("/signup", error.message);
-  }
-
-  if (data.session) {
-    await syncViewerFromAuth();
-    revalidatePath("/");
-    redirect("/settings?message=Account created.");
-  }
-
-  redirectWithMessage("/login", "Check your email to confirm your account.");
-}
-
-export async function signOutAction() {
-  const supabase = await createSupabaseServerClient();
-
-  if (supabase) {
-    await supabase.auth.signOut();
-  }
-
-  revalidatePath("/");
-  redirect("/");
 }
 
 export async function updateSettingsAction(formData: FormData) {
@@ -240,6 +146,7 @@ export async function updateSettingsAction(formData: FormData) {
           .map((entry) => entry[0]?.toUpperCase() ?? "")
           .join("")
           .slice(0, 2),
+      updatedAt: new Date(),
     })
     .where(eq(users.id, viewer.id));
 
@@ -264,6 +171,7 @@ export async function createSkillAction(formData: FormData) {
     redirectWithError("/new", "Choose a valid category.");
   }
 
+  const category: SkillCategory = fields.category;
   const slug = await getUniqueSkillSlug(fields.slug);
 
   const createdSkill = await db!.transaction(async (tx) => {
@@ -274,7 +182,7 @@ export async function createSkillAction(formData: FormData) {
         title: fields.title,
         slug,
         summary: fields.summary,
-        category: fields.category,
+        category,
         tags: fields.tags,
         visibility: fields.visibility === "unlisted" ? "unlisted" : "public",
       })
@@ -301,10 +209,7 @@ export async function createSkillAction(formData: FormData) {
       })
       .where(eq(skills.id, skill.id));
 
-    return {
-      id: skill.id,
-      slug: skill.slug,
-    };
+    return skill;
   });
 
   revalidateSkillSurfaces(createdSkill.slug, viewer.username);
@@ -327,6 +232,7 @@ export async function updateSkillAction(formData: FormData) {
     redirectWithError(`/s/${currentSlug}/edit`, "Choose a valid category.");
   }
 
+  const category: SkillCategory = fields.category;
   const existingSkill = await db!.query.skills.findFirst({
     where: eq(skills.id, skillId),
   });
@@ -365,7 +271,7 @@ export async function updateSkillAction(formData: FormData) {
         title: fields.title,
         slug,
         summary: fields.summary,
-        category: fields.category,
+        category,
         tags: fields.tags,
         visibility: fields.visibility === "unlisted" ? "unlisted" : "public",
         currentVersionId: version.id,
@@ -443,17 +349,19 @@ export async function forkSkillAction(formData: FormData) {
 
   const viewer = await requireCurrentViewer(redirectTo);
 
-  const parentSkill = await db!.query.skills.findFirst({
+  const sourceSkill = await db!.query.skills.findFirst({
     where: eq(skills.id, parentSkillId),
     with: {
       currentVersion: true,
     },
   });
 
-  if (!parentSkill || !parentSkill.currentVersion) {
+  if (!sourceSkill || !sourceSkill.currentVersion) {
     redirectWithError(redirectTo, "The source skill could not be loaded.");
   }
 
+  const parentSkill = sourceSkill;
+  const parentVersion = sourceSkill.currentVersion;
   const childSlug = await getUniqueSkillSlug(`${parentSkill.slug}-${viewer.username}`);
 
   const childSkill = await db!.transaction(async (tx) => {
@@ -474,12 +382,12 @@ export async function forkSkillAction(formData: FormData) {
       .insert(skillVersions)
       .values({
         skillId: skill.id,
-        version: parentSkill.currentVersion.version,
-        content: parentSkill.currentVersion.content,
+        version: parentVersion.version,
+        content: parentVersion.content,
         changelog: `Forked from ${parentSkill.slug}.`,
-        compatibleWith: parentSkill.currentVersion.compatibleWith,
-        inputSchema: parentSkill.currentVersion.inputSchema,
-        metadata: parentSkill.currentVersion.metadata,
+        compatibleWith: parentVersion.compatibleWith,
+        inputSchema: parentVersion.inputSchema,
+        metadata: parentVersion.metadata,
       })
       .returning();
 

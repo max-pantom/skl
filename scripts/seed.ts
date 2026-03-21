@@ -29,6 +29,7 @@ async function main() {
       sampleUsers.map((user) => ({
         ...user,
         createdAt: new Date(user.createdAt),
+        updatedAt: new Date(user.updatedAt),
       })),
     );
 
@@ -89,4 +90,3 @@ main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
-
