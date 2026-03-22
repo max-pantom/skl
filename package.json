@@ -11,7 +11,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
-    "email:send-profile": "tsx scripts/send-profile-emails.ts"
+    "email:send-profile": "tsx scripts/send-profile-emails.ts",
+    "email:sync-audience": "tsx scripts/sync-resend-audience.ts"
   },
   "dependencies": {
     "@mdxeditor/editor": "^3.52.5",

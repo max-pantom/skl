@@ -1,29 +1,14 @@
 import "./load-env";
 
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { db, isDatabaseConfigured } from "@/db";
 import { users } from "@/db/schema";
-import { sendUserProfileEmail } from "@/lib/email/send-user-profile-email";
-
-/** Same logic as `getEarlyBelieverRank` in `lib/data.ts` (avoid importing server-only there from tsx). */
-async function earlyBelieverRankFor(userId: string, createdAt: Date): Promise<number | null> {
-  if (!db) return null;
-  try {
-    const result = await db
-      .select({
-        rank: sql<number>`count(*)::int`,
-      })
-      .from(users)
-      .where(
-        sql`${users.createdAt} < ${createdAt.toISOString()}::timestamptz OR (${users.createdAt} = ${createdAt.toISOString()}::timestamptz AND ${users.id} <= ${userId})`,
-      );
-    const rank = result[0]?.rank ?? null;
-    return rank && rank <= 50 ? rank : null;
-  } catch {
-    return null;
-  }
-}
+import {
+  PROFILE_WELCOME_EVENT,
+  ensureUserProfileWelcomeEmailSent,
+  getUserEmailEvent,
+} from "@/lib/email/user-lifecycle";
 
 function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
@@ -44,6 +29,7 @@ function sleep(ms: number) {
 async function main() {
   const args = process.argv.slice(2).filter((a) => a !== "--");
   const dryRun = args.includes("--dry-run");
+  const force = args.includes("--force");
   const limitArg = args.find((a) => a.startsWith("--limit="));
   const limit = limitArg ? Math.max(1, parseInt(limitArg.split("=")[1] ?? "0", 10) || 0) : undefined;
   const userIdArg = args.find((a) => a.startsWith("--user-id="))?.split("=")[1]?.trim();
@@ -92,27 +78,18 @@ async function main() {
   let fail = 0;
 
   for (const u of list) {
-    const rank = await earlyBelieverRankFor(u.id, u.createdAt);
-
-    const payload = {
-      to: u.email,
-      displayName: u.displayName,
-      username: u.username,
-      userId: u.id,
-      avatarUrl: u.avatarUrl,
-      earlyBelieverRank: rank,
-    };
-
     if (dryRun) {
-      console.log("[dry-run]", u.email, u.username, rank ?? "—");
+      const existing = await getUserEmailEvent(u.id, PROFILE_WELCOME_EVENT);
+      const wouldSkip = Boolean(existing) && !force;
+      console.log(wouldSkip ? "[dry-run][skip]" : "[dry-run][send]", u.email, u.username);
       ok++;
       continue;
     }
 
-    const result = await sendUserProfileEmail(payload);
+    const result = await ensureUserProfileWelcomeEmailSent(u.id, { force });
     if (result.ok) {
       ok++;
-      console.log("sent:", u.email);
+      console.log(result.skipped ? "skip:" : "sent:", u.email);
     } else {
       fail++;
       console.error("fail:", u.email, result.error);
@@ -125,18 +102,6 @@ async function main() {
 }
 
 main().catch((e) => {
-  const cause = e && typeof e === "object" && "cause" in e ? (e as { cause: unknown }).cause : null;
-  const code = cause && typeof cause === "object" && "code" in cause ? String((cause as { code: string }).code) : "";
-  if (code === "ENOTFOUND") {
-    const msg =
-      cause && typeof cause === "object" && "hostname" in cause
-        ? String((cause as { hostname: string }).hostname)
-        : "unknown host";
-    console.error(
-      `Database DNS failed (ENOTFOUND: ${msg}). Fix DATABASE_URL or network — see script header.`,
-    );
-    process.exit(1);
-  }
   console.error(e);
   process.exit(1);
 });

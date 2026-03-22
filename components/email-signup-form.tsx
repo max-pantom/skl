@@ -55,6 +55,14 @@ export function EmailSignupForm({ googleAuthEnabled = false }: { googleAuthEnabl
       return;
     }
 
+    try {
+      await fetch("/api/account/bootstrap", {
+        method: "POST",
+      });
+    } catch {
+      // Keep signup successful even if the follow-up email bootstrap fails.
+    }
+
     router.push(nextPath);
     router.refresh();
   }

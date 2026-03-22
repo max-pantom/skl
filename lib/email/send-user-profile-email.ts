@@ -11,7 +11,9 @@ export type SendUserProfileEmailInput = UserProfileEmailContent & {
  * Sends a transactional profile email via Resend (avatar image, @username, early-believer rank, CTA).
  * Requires `RESEND_API_KEY`. Set `EMAIL_FROM` to your verified domain sender.
  */
-export async function sendUserProfileEmail(input: SendUserProfileEmailInput): Promise<{ ok: true } | { ok: false; error: string }> {
+export async function sendUserProfileEmail(
+  input: SendUserProfileEmailInput,
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const resend = getResend();
   if (!resend) {
     return { ok: false, error: "RESEND_API_KEY is not set" };
@@ -35,5 +37,5 @@ export async function sendUserProfileEmail(input: SendUserProfileEmailInput): Pr
     return { ok: false, error: "Resend returned no message id" };
   }
 
-  return { ok: true };
+  return { ok: true, id: data.id };
 }

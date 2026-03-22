@@ -14,13 +14,13 @@ export function SkillCard({
   return (
     <article
       className={cn(
-        "group relative py-6 transition-colors hover:bg-[rgba(36,36,36,0.04)]",
+        "group relative py-4 transition-colors hover:bg-[rgba(36,36,36,0.04)] sm:py-6",
         dividers && "border-b border-zinc-200",
       )}
     >
       <Link href={`/s/${skill.slug}`} className="absolute inset-0 z-10 block sm:hidden" aria-label={`Open ${skill.title}`} />
-      <div className="flex flex-col gap-4 px-2 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
-        <div className="min-w-0 flex-1 space-y-4">
+      <div className="relative flex flex-col gap-3 px-0 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:px-2">
+        <div className="min-w-0 flex-1 space-y-3 sm:space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[16px] font-medium text-[#8f8f8f]">v{skill.currentVersion.version}</span>
             <span className="profile-pill">{skill.category}</span>
@@ -49,8 +49,8 @@ export function SkillCard({
           ) : null}
         </div>
 
-        <div className="flex shrink-0 flex-col items-start gap-3 text-[16px] font-medium text-[#8f8f8f] sm:items-end">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="flex shrink-0 flex-col items-start gap-2 text-[16px] font-medium text-[#8f8f8f] sm:items-end sm:gap-3">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 sm:gap-3">
             <span className="sm:hidden">
               @{skill.author.username} · {formatDate(skill.updatedAt)}
             </span>
@@ -60,7 +60,7 @@ export function SkillCard({
             <span className="hidden sm:inline">{skill.author.displayName}</span>
             <span className="hidden sm:inline">{formatDate(skill.updatedAt)}</span>
           </div>
-          <div className="flex flex-wrap gap-4 text-[16px] font-medium text-[#8f8f8f]">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[16px] font-medium text-[#8f8f8f] sm:gap-4">
             <span>{formatNumber(skill.starsCount)} stars</span>
             <span>{formatNumber(skill.downloadsCount)} dl</span>
             <span>{formatNumber(skill.forksCount)} forks</span>

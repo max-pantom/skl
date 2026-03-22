@@ -1,0 +1,16 @@
+---
+description: Run Drizzle migration generate + migrate after database schema changes
+globs: db/schema.ts,drizzle/**/*
+alwaysApply: false
+---
+
+# Drizzle / Postgres schema
+
+When you change **`db/schema.ts`** (or anything that should alter the live database):
+
+1. **`pnpm db:generate`** — writes a new SQL migration under `drizzle/` from the schema diff. Review the generated file.
+2. **`pnpm db:migrate`** — applies pending migrations (requires `DATABASE_URL` in `.env`).
+
+Do not stop at editing TypeScript only: the database must stay in sync with the schema. If a change does not need a new migration (e.g. comment-only), say so explicitly.
+
+For reference: migrations live in `drizzle/`, runner is `scripts/migrate.ts`, script is `pnpm db:migrate`.

@@ -3,12 +3,12 @@
 import type { CSSProperties } from "react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
+import { AdminAvatarCircle } from "@/components/admin-avatar-circle";
 import {
   DEFAULT_SHIELD_LAYOUT,
   DEFAULT_TOP_STAR_SCALE,
   ShieldAvatar,
 } from "@/components/shield-avatar";
-import { ADMIN_DEFAULT_AVATAR_PATH } from "@/lib/admin-avatar";
 import { HERO_PROFILE_PARALLAX_PARAMS } from "@/lib/profile-hero-parallax-params";
 import type { UserRole } from "@/lib/types";
 
@@ -17,7 +17,7 @@ type ProfileAvatarProps = {
   displayName: string;
   /** Stable id — deterministic generated shield (PRNG from this string). */
   userId: string;
-  /** Admins without an uploaded photo use {@link ADMIN_DEFAULT_AVATAR_PATH}. */
+  /** Admins without an uploaded photo use {@link AdminAvatarCircle}. */
   role?: UserRole;
   /** Square edge length in px (default 100). */
   size?: number;
@@ -70,20 +70,8 @@ export function ProfileAvatar({
 
   if (role === "admin") {
     return (
-      <span
-        className="inline-flex shrink-0 overflow-hidden rounded-full bg-[#f4f4f4]"
-        style={{ width: size, height: size }}
-        role="img"
-        aria-label={`${displayName} avatar`}
-      >
-        <img
-          src={ADMIN_DEFAULT_AVATAR_PATH}
-          alt=""
-          width={size}
-          height={size}
-          className="h-full w-full object-contain p-[6%]"
-          draggable={false}
-        />
+      <span className="inline-flex shrink-0" role="img" aria-label={`${displayName} avatar`}>
+        <AdminAvatarCircle size={size} includeOuterDisc />
       </span>
     );
   }
@@ -199,15 +187,8 @@ function ProfileAvatarParallaxHero({
               />
             </div>
           ) : adminDefault ? (
-            <div className="pointer-events-none h-full w-full bg-[#f4f4f4]" style={artLayerStyle}>
-              <img
-                src={ADMIN_DEFAULT_AVATAR_PATH}
-                alt=""
-                width={avatarPx}
-                height={avatarPx}
-                className="block h-full w-full rounded-full object-contain p-[6%]"
-                draggable={false}
-              />
+            <div className="pointer-events-none inline-flex" style={artLayerStyle}>
+              <AdminAvatarCircle size={avatarPx} includeOuterDisc={false} />
             </div>
           ) : (
             <div className="pointer-events-none inline-flex" style={artLayerStyle}>

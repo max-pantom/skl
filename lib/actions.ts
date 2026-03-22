@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { db, isDatabaseConfigured } from "@/db";
 import { forks, skillVersionFiles, skillVersions, skills, stars, users } from "@/db/schema";
 import { isAppConfigured, requireCurrentViewer } from "@/lib/auth";
+import { bootstrapUserEmailLifecycle, syncUserToResendAudience } from "@/lib/email/user-lifecycle";
 import {
   PRIMARY_SKILL_FILE,
   getPrimarySkillFile,
@@ -190,6 +191,8 @@ export async function updateProfileAction(formData: FormData) {
     })
     .where(eq(users.id, viewer.id));
 
+  await syncUserToResendAudience(viewer.id, { force: true });
+
   revalidatePath(`/u/${viewer.username}`);
   revalidatePath("/settings");
   redirect(withQuery("/settings", { ok: "1" }));
@@ -229,6 +232,8 @@ export async function completeProfileSetupAction(formData: FormData) {
       updatedAt: new Date(),
     })
     .where(eq(users.id, viewer.id));
+
+  await bootstrapUserEmailLifecycle(viewer.id);
 
   revalidatePath("/welcome");
   revalidatePath(`/u/${previousUsername}`);

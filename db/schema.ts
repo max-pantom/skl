@@ -24,6 +24,7 @@ export const skillCategoryEnum = pgEnum("skill_category", [
 
 export const skillVisibilityEnum = pgEnum("skill_visibility", ["public", "unlisted"]);
 export const userRoleEnum = pgEnum("user_role", ["user", "pro", "admin"]);
+export const userEmailEventKindEnum = pgEnum("user_email_event_kind", ["profile_welcome", "resend_audience_sync"]);
 
 export const users = pgTable(
   "users",
@@ -102,6 +103,26 @@ export const verifications = pgTable(
   },
   (table) => ({
     identifierIdx: index("verifications_identifier_idx").on(table.identifier),
+  }),
+);
+
+export const userEmailEvents = pgTable(
+  "user_email_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: userEmailEventKindEnum("kind").notNull(),
+    externalId: text("external_id"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
+    sentAt: timestamp("sent_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userKindIdx: uniqueIndex("user_email_events_user_kind_idx").on(table.userId, table.kind),
+    kindLookupIdx: index("user_email_events_kind_idx").on(table.kind),
   }),
 );
 
@@ -230,10 +251,18 @@ export const forks = pgTable(
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   accounts: many(accounts),
+  emailEvents: many(userEmailEvents),
   skills: many(skills),
   stars: many(stars),
   downloads: many(downloads),
   forks: many(forks),
+}));
+
+export const userEmailEventsRelations = relations(userEmailEvents, ({ one }) => ({
+  user: one(users, {
+    fields: [userEmailEvents.userId],
+    references: [users.id],
+  }),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({

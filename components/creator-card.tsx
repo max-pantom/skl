@@ -18,11 +18,11 @@ export function CreatorCard({
   return (
     <article
       className={cn(
-        "group py-5 transition-colors hover:bg-[rgba(36,36,36,0.04)]",
+        "group py-4 transition-colors hover:bg-[rgba(36,36,36,0.04)] sm:py-5",
         dividers && "border-b border-zinc-200 last:border-b-0",
       )}
     >
-      <Link href={`/u/${user.username}`} className="flex items-center gap-4 px-2">
+      <Link href={`/u/${user.username}`} className="flex items-center gap-3 px-0 sm:gap-4 sm:px-2">
         <ProfileAvatar
           avatarUrl={user.avatarUrl}
           displayName={user.displayName}

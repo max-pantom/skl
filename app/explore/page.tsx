@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ExploreCategorySelect } from "@/components/explore-category-select";
 import { PageIntro } from "@/components/page-intro";
 import { SectionHeading } from "@/components/section-heading";
 import { SkillCard } from "@/components/skill-card";
@@ -50,19 +51,7 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
 
           <label className="profile-field-row block">
             <span className="profile-field-label">Category</span>
-            <div className="skl-select-shell">
-              <select name="category" defaultValue={category} className="skl-select">
-                <option value="all">All</option>
-                {launchCategories.map((entry) => (
-                  <option key={entry} value={entry}>
-                    {entry}
-                  </option>
-                ))}
-              </select>
-              <svg viewBox="0 0 16 16" aria-hidden className="skl-select-icon">
-                <path d="M4 6.5 8 10.5l4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
+            <ExploreCategorySelect defaultValue={category} />
           </label>
 
           <button type="submit" className="skl-btn skl-btn-primary h-[46px] w-full lg:shrink-0">
