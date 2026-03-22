@@ -35,7 +35,7 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
         description="Filter by category, search title, summary, tags, and body text."
       />
 
-      <section className="border-t border-zinc-200 pt-8">
+      <section className="pt-2">
         <form className="grid gap-4 lg:grid-cols-[1fr_minmax(0,200px)_minmax(0,120px)] lg:items-end">
           <label className="profile-field-row block">
             <span className="profile-field-label">Search</span>
@@ -44,7 +44,7 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
               name="q"
               defaultValue={query}
               placeholder="Title, tags, markdown…"
-              className="skl-input"
+              className="skl-search-input"
             />
           </label>
 
@@ -65,12 +65,12 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
             </div>
           </label>
 
-          <button type="submit" className="skl-btn skl-btn-primary w-full lg:shrink-0">
+          <button type="submit" className="skl-btn skl-btn-primary h-[46px] w-full lg:shrink-0">
             Apply
           </button>
         </form>
 
-        <div className="mt-6 flex flex-wrap gap-2 border-t border-zinc-200 pt-6">
+        <div className="mt-6 flex flex-wrap gap-2">
           <Link
             href="/explore"
             className={`profile-pill ${

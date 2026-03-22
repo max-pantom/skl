@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { FormNotice } from "@/components/form-notice";
 import { PageIntro } from "@/components/page-intro";
+import { SignOutButton } from "@/components/sign-out-button";
 import { updateProfileAction } from "@/lib/actions";
 import { requireCurrentViewer } from "@/lib/auth";
 
@@ -79,9 +80,12 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           />
         </label>
 
-        <button type="submit" className="skl-btn skl-btn-primary">
-          Save profile
-        </button>
+        <div className="flex justify-end gap-3 pt-2">
+          <SignOutButton className="px-4 py-2 text-[15px] font-medium" />
+          <button type="submit" className="skl-btn skl-btn-secondary">
+            Save profile
+          </button>
+        </div>
       </form>
     </div>
   );

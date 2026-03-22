@@ -125,6 +125,8 @@ function createAuth() {
                 ...u,
                 username,
                 name,
+                image: null,
+                avatarUrl: null,
               },
             };
           },
