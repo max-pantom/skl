@@ -5,10 +5,7 @@ const auth = getAuth();
 const handlers = auth ? toNextJsHandler(auth) : null;
 
 function unavailable() {
-  return new Response(
-    "Authentication is not configured. Set DATABASE_URL and BETTER_AUTH_SECRET in your environment.",
-    { status: 503 },
-  );
+  return new Response("Authentication is unavailable right now.", { status: 503 });
 }
 
 export const GET = handlers?.GET ?? (async () => unavailable());

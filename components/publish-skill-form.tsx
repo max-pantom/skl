@@ -12,8 +12,7 @@ export async function PublishSkillForm() {
   if (!configured) {
     return (
       <div className="border border-dashed border-zinc-300 px-6 py-8 text-[16px] font-medium text-[#8f8f8f]">
-        Publishing needs PostgreSQL and <code className="font-mono text-xs">BETTER_AUTH_SECRET</code> in your environment.
-        Explore still works in demo mode without a database.
+        Publishing is not available right now. You can still browse the registry.
       </div>
     );
   }

@@ -154,7 +154,7 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
                 </Link>
               ) : (
                 <button type="button" disabled className="skl-btn w-full cursor-not-allowed justify-center bg-zinc-100 text-zinc-400">
-                  Auth not configured
+                  Unavailable right now
                 </button>
               )}
 

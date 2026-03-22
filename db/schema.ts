@@ -23,6 +23,7 @@ export const skillCategoryEnum = pgEnum("skill_category", [
 ]);
 
 export const skillVisibilityEnum = pgEnum("skill_visibility", ["public", "unlisted"]);
+export const userRoleEnum = pgEnum("user_role", ["user", "pro", "admin"]);
 
 export const users = pgTable(
   "users",
@@ -32,6 +33,7 @@ export const users = pgTable(
     emailVerified: boolean("email_verified").notNull().default(false),
     username: varchar("username", { length: 32 }).notNull(),
     displayName: varchar("display_name", { length: 64 }).notNull(),
+    role: userRoleEnum("role").notNull().default("user"),
     bio: text("bio"),
     avatarUrl: text("avatar_url"),
     website: text("website"),

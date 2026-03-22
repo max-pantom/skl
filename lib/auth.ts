@@ -15,6 +15,29 @@ const baseURL =
   process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const secret = process.env.BETTER_AUTH_SECRET;
 
+/** Origins allowed for CORS / CSRF; includes apex ↔ www when `baseURL` is a single production host. */
+function buildTrustedOrigins(primary: string): string[] {
+  const extra = process.env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const set = new Set<string>([primary, ...(extra ?? [])]);
+  try {
+    const u = new URL(primary);
+    const host = u.hostname;
+    if (host === "localhost" || host === "127.0.0.1") {
+      return [...set];
+    }
+    if (host.startsWith("www.")) {
+      set.add(`${u.protocol}//${host.slice(4)}`);
+    } else {
+      set.add(`${u.protocol}//www.${host}`);
+    }
+  } catch {
+    // keep primary + extra only
+  }
+  return [...set];
+}
+
 /**
  * In development, disable Better Auth logging unless AUTH_VERBOSE=1. Use stderr (not console.*) so Next.js does
  * not mirror verbose traces into the browser devtools.
@@ -78,7 +101,7 @@ function createAuth() {
     session: { modelName: "sessions" },
     account: { modelName: "accounts" },
     verification: { modelName: "verifications" },
-    trustedOrigins: [baseURL],
+    trustedOrigins: buildTrustedOrigins(baseURL),
     plugins: [nextCookies()],
   });
 }
@@ -148,6 +171,7 @@ export async function getCurrentViewer(): Promise<AppViewer | null> {
     email: localUser.email,
     username: localUser.username,
     displayName: localUser.displayName,
+    role: localUser.role,
     bio: localUser.bio,
     avatarUrl: localUser.avatarUrl,
     website: localUser.website,

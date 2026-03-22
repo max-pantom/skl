@@ -25,6 +25,7 @@ export default function StudioTestPage() {
       authoredSkills={PROFILE_PREVIEW_AUTHORED}
       starredSkills={PROFILE_PREVIEW_STARRED}
       isOwnProfile
+      earlyBelieverRank={1}
       totalStars={PROFILE_PREVIEW_TOTAL_STARS}
       totalForks={PROFILE_PREVIEW_TOTAL_FORKS}
       totalDownloads={PROFILE_PREVIEW_TOTAL_DOWNLOADS}

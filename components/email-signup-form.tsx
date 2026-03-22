@@ -25,11 +25,24 @@ export function EmailSignupForm() {
     setPending(true);
 
     const cleanUser = sanitizeUsername(username);
+    const cleanDisplayName = displayName.trim();
+
+    if (cleanUser.length < 3) {
+      setError("Username must be at least 3 characters.");
+      setPending(false);
+      return;
+    }
+
+    if (cleanDisplayName.length < 3) {
+      setError("Display name must be at least 3 characters.");
+      setPending(false);
+      return;
+    }
 
     const { error: signError } = await authClient.signUp.email({
       email,
       password,
-      name: displayName.trim() || cleanUser,
+      name: cleanDisplayName,
       // `username` is configured as an additional field on the user model in `lib/auth.ts`
       username: cleanUser,
     } as Parameters<typeof authClient.signUp.email>[0]);
@@ -58,6 +71,7 @@ export function EmailSignupForm() {
           name="username"
           autoComplete="username"
           required
+          minLength={3}
           value={username}
           onChange={(ev) => setUsername(ev.target.value)}
           className="skl-input"
@@ -72,6 +86,7 @@ export function EmailSignupForm() {
           name="displayName"
           autoComplete="name"
           required
+          minLength={3}
           value={displayName}
           onChange={(ev) => setDisplayName(ev.target.value)}
           className="skl-input"

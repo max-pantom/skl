@@ -178,6 +178,8 @@ export type ShieldAvatarProps = {
    * Omit to use seed (or manual) paint values.
    */
   topStarScale?: number;
+  /** When false, omit the light gray outer disc — use when a parent provides the circular frame (e.g. parallax shell). */
+  includeOuterDisc?: boolean;
 };
 
 export function ShieldAvatar({
@@ -189,6 +191,7 @@ export function ShieldAvatar({
   avatarOffsetX = DEFAULT_SHIELD_LAYOUT.avatarOffsetX,
   avatarOffsetY = DEFAULT_SHIELD_LAYOUT.avatarOffsetY,
   topStarScale: topStarScaleProp,
+  includeOuterDisc = true,
 }: ShieldAvatarProps) {
   const instanceId = useId().replace(/:/g, "");
   const base = useMemo(() => paramsFromSeed(seed), [seed]);
@@ -287,9 +290,11 @@ export function ShieldAvatar({
         )}
       </defs>
 
-      <g filter={`url(#${uid}-frameFilter)`}>
-        <rect width={FRAME_VB} height={FRAME_VB} rx={FRAME_VB / 2} fill="#F0F0F0" />
-      </g>
+      {includeOuterDisc ? (
+        <g filter={`url(#${uid}-frameFilter)`}>
+          <rect width={FRAME_VB} height={FRAME_VB} rx={FRAME_VB / 2} fill="#F0F0F0" />
+        </g>
+      ) : null}
 
       <g clipPath={`url(#${uid}-avatarClip)`}>
         <g transform={avatarContentTransform}>

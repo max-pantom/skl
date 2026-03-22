@@ -8,6 +8,7 @@ export const launchCategories = [
 ] as const;
 
 export type SkillCategory = (typeof launchCategories)[number];
+export type UserRole = "user" | "pro" | "admin";
 
 export type SkillVersionFileRecord = {
   id: string;
@@ -22,6 +23,7 @@ export type PublicUser = {
   id: string;
   username: string;
   displayName: string;
+  role: UserRole;
   bio: string | null;
   avatarUrl: string | null;
   website: string | null;

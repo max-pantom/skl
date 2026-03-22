@@ -14,13 +14,16 @@ const linkClass = {
     "inline-flex h-8 items-center justify-center rounded-[20px] px-3 text-base font-medium leading-none transition bg-[rgba(228,228,228,0.2)] text-[#8f8f8f] hover:bg-[rgba(228,228,228,0.32)] hover:text-[#5f5f5f]",
 } as const;
 
-function isUserDashPath(pathname: string) {
-  return pathname === "/settings" || pathname.startsWith("/settings/");
+/** Settings in the header instead of the avatar: on /settings or on your own profile. */
+function showSettingsInsteadOfAvatar(pathname: string, viewer: AppViewer | null) {
+  if (!viewer) return false;
+  if (pathname === "/settings" || pathname.startsWith("/settings/")) return true;
+  return pathname === `/u/${viewer.username}`;
 }
 
 export function HeaderAccountNav({ viewer }: { viewer: AppViewer | null }) {
   const pathname = usePathname() ?? "";
-  const onUserDash = isUserDashPath(pathname);
+  const settingsSlot = showSettingsInsteadOfAvatar(pathname, viewer);
 
   const createHref = viewer ? "/new" : "/login?next=%2Fnew";
   const settingsHref = "/settings";
@@ -32,7 +35,7 @@ export function HeaderAccountNav({ viewer }: { viewer: AppViewer | null }) {
         Create
       </Link>
       {viewer ? (
-        onUserDash ? (
+        settingsSlot ? (
           <Link href={settingsHref} className={linkClass.settings}>
             Settings
           </Link>

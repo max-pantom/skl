@@ -33,7 +33,7 @@ function redirectWithError(path: string, message: string): never {
 
 function ensureConfigured(path: string) {
   if (!isAppConfigured() || !db || !isDatabaseConfigured) {
-    redirectWithError(path, "Better Auth and the database must be configured first.");
+    redirectWithError(path, "This action is not available right now.");
   }
 }
 

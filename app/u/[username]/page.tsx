@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ProfileView } from "@/components/profile-view";
 import { getCurrentViewer } from "@/lib/auth";
-import { getProfileByUsername, getStarredSkillsForUser } from "@/lib/data";
+import { getEarlyBelieverRank, getProfileByUsername, getStarredSkillsForUser } from "@/lib/data";
 
 const appBase = () => new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000");
 
@@ -88,7 +88,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     notFound();
   }
 
-  const starredSkills = await getStarredSkillsForUser(profile.user.id);
+  const [starredSkills, earlyBelieverRank] = await Promise.all([
+    getStarredSkillsForUser(profile.user.id),
+    getEarlyBelieverRank(profile.user.id, profile.user.createdAt),
+  ]);
   const isOwnProfile = viewer?.id === profile.user.id;
 
   const totalStars = profile.skills.reduce((sum, skill) => sum + skill.starsCount, 0);
@@ -101,6 +104,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       authoredSkills={profile.skills}
       starredSkills={starredSkills}
       isOwnProfile={isOwnProfile}
+      earlyBelieverRank={earlyBelieverRank}
       totalStars={totalStars}
       totalForks={totalForks}
       totalDownloads={totalDownloads}

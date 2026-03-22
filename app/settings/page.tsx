@@ -22,7 +22,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       <PageIntro
         eyebrow="Account"
         title="Settings"
-        description="These fields appear on your public profile. Email and password are managed through Better Auth; change password flows can be added later."
+        description="These fields appear on your public profile."
       />
 
       {sp.error ? <FormNotice tone="error">{sp.error}</FormNotice> : null}
@@ -35,6 +35,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             /u/{viewer.username}
           </span>{" "}
           — username is fixed after signup.
+        </p>
+
+        <p className="text-[16px] font-medium text-[#8f8f8f]">
+          Role: <span className="font-medium uppercase text-[#242424]">{viewer.role}</span>
         </p>
 
         <label className="profile-field-row block">

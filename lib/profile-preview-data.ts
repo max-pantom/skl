@@ -7,6 +7,7 @@ export const PROFILE_PREVIEW_USER: PublicUser = {
   id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
   username: "m",
   displayName: "Max",
+  role: "admin",
   bio: "Hi am the creator of what your looking at right now",
   avatarUrl: null,
   website: "https://pantom.design",

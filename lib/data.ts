@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 import { db, isDatabaseConfigured } from "@/db";
 import { skills, stars, users } from "@/db/schema";
@@ -14,12 +14,14 @@ import type {
   SkillListItem,
   SkillVersionRecord,
   TopCreator,
+  UserRole,
 } from "@/lib/types";
 
 type AuthorRecord = {
   id: string;
   username: string;
   displayName: string;
+  role: UserRole;
   bio: string | null;
   avatarUrl: string | null;
   website: string | null;
@@ -84,6 +86,7 @@ function mapAuthor(author: NonNullable<AuthorRecord>): PublicUser {
     id: author.id,
     username: author.username,
     displayName: author.displayName,
+    role: author.role,
     bio: author.bio,
     avatarUrl: author.avatarUrl,
     website: author.website,
@@ -470,6 +473,7 @@ export async function getProfileByUsername(username: string): Promise<ProfileDat
       id: user.id,
       username: user.username,
       displayName: user.displayName,
+      role: user.role,
       bio: user.bio,
       avatarUrl: user.avatarUrl,
       website: user.website,
@@ -497,6 +501,29 @@ export async function getUserById(userId: string) {
     return await db.query.users.findFirst({
       where: eq(users.id, userId),
     });
+  } catch {
+    return null;
+  }
+}
+
+export async function getEarlyBelieverRank(userId: string, createdAt: string): Promise<number | null> {
+  if (!db || !isDatabaseConfigured) {
+    return null;
+  }
+
+  try {
+    const result = await db
+      .select({
+        rank: sql<number>`count(*)::int`,
+      })
+      .from(users)
+      .where(
+        sql`${users.createdAt} < ${createdAt}::timestamptz OR (${users.createdAt} = ${createdAt}::timestamptz AND ${users.id} <= ${userId})`,
+      );
+
+    const rank = result[0]?.rank ?? null;
+
+    return rank && rank <= 50 ? rank : null;
   } catch {
     return null;
   }

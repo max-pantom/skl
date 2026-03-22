@@ -9,7 +9,7 @@ export default function LoginPage() {
       <PageIntro
         eyebrow="Account"
         title="Sign in"
-        description="Email and password. Sessions are stored in your PostgreSQL database via Better Auth."
+        description="Use your email and password to continue."
       />
       <Suspense fallback={<p className="text-[16px] font-medium text-[#8f8f8f]">Loading…</p>}>
         <EmailLoginForm />
