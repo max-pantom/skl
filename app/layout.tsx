@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Agentation } from "agentation";
+import { Analytics } from "@vercel/analytics/next";
 
 import "@/app/globals.css";
 import { openRunde } from "@/app/fonts";
@@ -43,6 +44,7 @@ export default function RootLayout({
           <SiteFooter />
         </div>
         {process.env.NODE_ENV === "development" && <Agentation />}
+        <Analytics />
       </body>
     </html>
   );
