@@ -1,25 +1,26 @@
 import Link from "next/link";
 
+import { IconMetricDownload } from "@/components/profile-metric-icons";
 import type { SkillListItem } from "@/lib/types";
 import { formatNumber } from "@/lib/utils";
 
-const downloadsIcon = "https://www.figma.com/api/mcp/asset/1682e85e-ad8d-448d-a80a-7ca919d6e151";
-
 export function ProfileSkillRow({ skill }: { skill: SkillListItem }) {
   return (
-    <article className="text-base text-[#242424]">
-      <div className="grid gap-3 sm:grid-cols-[10.92%_49.91%_max-content_max-content_4.6%] sm:items-center sm:justify-between">
+    <article className="text-[16px] text-[#242424]">
+      <div className="grid gap-3 sm:grid-cols-[10.92%_49.91%_max-content_max-content_4.6%] sm:items-center sm:justify-between sm:gap-x-7 sm:gap-y-0">
         <div className="min-w-0">
           <Link
             href={`/s/${skill.slug}`}
-            className="font-medium text-[#242424] transition hover:opacity-70"
+            className="text-[16px] font-semibold text-[#242424] transition hover:opacity-70"
           >
             {skill.title}
           </Link>
         </div>
 
-        <div className="min-w-0 text-[#242424] sm:pr-4">
-          <p className="truncate sm:text-center">{skill.summary}</p>
+        <div className="min-w-0 sm:pr-4">
+          <p className="truncate text-[16px] font-medium text-[#242424] opacity-80 sm:text-center">
+            {skill.summary}
+          </p>
         </div>
 
         <div className="flex sm:justify-center">
@@ -29,7 +30,7 @@ export function ProfileSkillRow({ skill }: { skill: SkillListItem }) {
         </div>
 
         <div className="flex items-center gap-1.5 text-[#919191] sm:justify-center">
-          <img src={downloadsIcon} alt="" className="size-[18px]" />
+          <IconMetricDownload className="size-[18px] shrink-0" />
           <span>{formatNumber(skill.downloadsCount)}</span>
         </div>
 

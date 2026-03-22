@@ -11,19 +11,23 @@ type ProfileAvatarProps = {
   displayName: string;
   /** Stable id — deterministic generated shield (PRNG from this string). */
   userId: string;
+  /** Square edge length in px (default 100). */
+  size?: number;
 };
 
 /**
- * 100×100 circular slot: uploaded photo when set, otherwise seeded shield (same 100×100 viewBox + layout as /test).
+ * Circular slot: uploaded photo when set, otherwise seeded shield (same viewBox + layout as /test).
  * Colors/shape come from a deterministic PRNG keyed by `userId` only so the avatar stays stable if the handle changes.
  */
-export function ProfileAvatar({ avatarUrl, displayName, userId }: ProfileAvatarProps) {
+export function ProfileAvatar({ avatarUrl, displayName, userId, size = 100 }: ProfileAvatarProps) {
   if (avatarUrl) {
     return (
       <img
         src={avatarUrl}
         alt={displayName}
-        className="size-[100px] rounded-full object-cover"
+        width={size}
+        height={size}
+        className="rounded-full object-cover"
       />
     );
   }
@@ -31,10 +35,10 @@ export function ProfileAvatar({ avatarUrl, displayName, userId }: ProfileAvatarP
   const seed = userId;
 
   return (
-    <span className="inline-flex" role="img" aria-label={`${displayName} avatar`}>
+    <span className="inline-flex shrink-0" role="img" aria-label={`${displayName} avatar`}>
       <ShieldAvatar
         seed={seed}
-        size={100}
+        size={size}
         showDebug={false}
         avatarScale={DEFAULT_SHIELD_LAYOUT.avatarScale}
         avatarOffsetX={DEFAULT_SHIELD_LAYOUT.avatarOffsetX}

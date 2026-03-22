@@ -1,3 +1,5 @@
+import { inspect } from "node:util";
+
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -13,9 +15,24 @@ const baseURL =
   process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const secret = process.env.BETTER_AUTH_SECRET;
 
-/** In dev, Better Auth’s console.error is forwarded to the browser by Next — noisy when Postgres is down. */
-const useDefaultBetterAuthLogger =
-  process.env.NODE_ENV === "production" || process.env.AUTH_VERBOSE === "1";
+/**
+ * In development, disable Better Auth logging unless AUTH_VERBOSE=1. Use stderr (not console.*) so Next.js does
+ * not mirror verbose traces into the browser devtools.
+ */
+const betterAuthLogger =
+  process.env.NODE_ENV === "development"
+    ? {
+        disabled: process.env.AUTH_VERBOSE !== "1",
+        log(
+          level: "debug" | "info" | "success" | "warn" | "error",
+          message: string,
+          ...args: unknown[]
+        ) {
+          const detail = args.length ? inspect(args, { depth: 6, colors: true, breakLength: 120 }) : "";
+          process.stderr.write(`[better-auth:${level}] ${message}${detail ? ` ${detail}` : ""}\n`);
+        },
+      }
+    : undefined;
 
 function createAuth() {
   if (!db) {
@@ -29,15 +46,8 @@ function createAuth() {
   return betterAuth({
     baseURL,
     secret,
-    ...(useDefaultBetterAuthLogger
-      ? {}
-      : {
-          logger: {
-            log() {
-              /* no-op — set AUTH_VERBOSE=1 in .env to restore Better Auth logs locally */
-            },
-          },
-        }),
+    ...(betterAuthLogger ? { logger: betterAuthLogger } : {}),
+    // experimental.joins breaks session lookup: adapter maps boolean `{ user: true }` to `with.users` instead of `with.user`.
     // Schema uses uuid columns; Better Auth’s default ids are nanoid strings and Postgres rejects them.
     advanced: {
       database: {

@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ProfileAvatar } from "@/components/profile-avatar";
-import { ProfileSkillRow } from "@/components/profile-skill-row";
-import { getProfileByUsername } from "@/lib/data";
+import { IconMetricDownload, IconMetricFork, IconMetricStar } from "@/components/profile-metric-icons";
+import { ProfileSkillsPanel } from "@/components/profile-skills-panel";
+import { getCurrentViewer } from "@/lib/auth";
+import { getProfileByUsername, getStarredSkillsForUser } from "@/lib/data";
 import { formatNumber } from "@/lib/utils";
 
 type ProfilePageProps = {
@@ -11,11 +13,6 @@ type ProfilePageProps = {
     username: string;
   }>;
 };
-
-const starsIcon = "https://www.figma.com/api/mcp/asset/2ffa58f1-6a0f-4916-be5e-6ed23ada98fc";
-const forksIcon = "https://www.figma.com/api/mcp/asset/18f338b6-8865-4541-978e-67cfd7b6268a";
-const downloadsIcon = "https://www.figma.com/api/mcp/asset/1682e85e-ad8d-448d-a80a-7ca919d6e151";
-const linkIcon = "https://www.figma.com/api/mcp/asset/0b52e0d1-621b-4ac4-99af-312d39b6cc40";
 
 export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
   const { username } = await params;
@@ -35,18 +32,21 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = await params;
-  const profile = await getProfileByUsername(username);
+  const [profile, viewer] = await Promise.all([getProfileByUsername(username), getCurrentViewer()]);
 
   if (!profile) {
     notFound();
   }
+
+  const starredSkills = await getStarredSkillsForUser(profile.user.id);
+  const isOwnProfile = viewer?.id === profile.user.id;
 
   const totalStars = profile.skills.reduce((sum, skill) => sum + skill.starsCount, 0);
   const totalForks = profile.skills.reduce((sum, skill) => sum + skill.forksCount, 0);
   const totalDownloads = profile.skills.reduce((sum, skill) => sum + skill.downloadsCount, 0);
 
   return (
-    <div className="mx-auto max-w-[1056px] pb-[92px]">
+    <div className="mx-auto flex min-h-0 w-full max-w-[1056px] flex-1 flex-col">
       <section className="flex flex-col items-center text-center">
         <div className="relative mb-6 size-[100px]">
           <ProfileAvatar
@@ -69,21 +69,21 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             </p>
           </div>
 
-          <p className="text-[16px] leading-[1.15] text-[#242424]">
+          <p className="text-[16px] font-medium leading-[1.15] text-[#242424] opacity-80">
             {profile.user.bio ?? "Hi am the creator of what your looking at right now"}
           </p>
 
           <div className="flex w-full items-center justify-center gap-6 text-[16px] text-[rgba(36,36,36,0.6)]">
             <div className="flex items-center gap-1.5">
-              <img src={starsIcon} alt="" className="size-[18px]" />
+              <IconMetricStar className="size-[18px] shrink-0 text-[rgba(36,36,36,0.6)]" />
               <span>{formatNumber(totalStars)}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <img src={forksIcon} alt="" className="size-[18px]" />
+              <IconMetricFork className="size-[18px] shrink-0 text-[rgba(36,36,36,0.6)]" />
               <span>{formatNumber(totalForks)}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <img src={downloadsIcon} alt="" className="size-[18px]" />
+              <IconMetricDownload className="size-[18px] shrink-0 text-[rgba(36,36,36,0.6)]" />
               <span>{formatNumber(totalDownloads)}</span>
             </div>
           </div>
@@ -93,35 +93,20 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               href={profile.user.website}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-2 text-base text-[#919191] underline decoration-dotted underline-offset-4"
+              className="text-base text-[#919191] underline decoration-dotted underline-offset-4"
             >
-              <img src={linkIcon} alt="" className="size-[18px]" />
-              <span>{profile.user.website.replace(/^https?:\/\//, "")}</span>
+              {profile.user.website.replace(/^https?:\/\//, "")}
             </a>
-          ) : (
-            <div className="flex items-center gap-2 text-base text-[#919191] underline decoration-dotted underline-offset-4">
-              <img src={linkIcon} alt="" className="size-[18px]" />
-              <span>{profile.user.username}.design</span>
-            </div>
-          )}
+          ) : null}
         </div>
       </section>
 
-      <section className="mt-[90px]">
-        <div className="flex flex-col gap-4">
-          <div className="h-px w-full bg-[#e7e7e7]" />
-          {profile.skills.map((skill) => (
-            <div key={skill.id} className="contents">
-              <ProfileSkillRow skill={skill} />
-              <div className="h-px w-full bg-[#e7e7e7]" />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-[148px] flex items-center justify-center gap-9 text-[16px] uppercase">
-        <span className="font-medium text-black">All skill</span>
-        <span className="font-medium text-[#8f8f8f]">Stared</span>
+      <section className="mt-[90px] flex min-h-0 flex-1 flex-col">
+        <ProfileSkillsPanel
+          authoredSkills={profile.skills}
+          starredSkills={starredSkills}
+          isOwnProfile={isOwnProfile}
+        />
       </section>
     </div>
   );

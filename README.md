@@ -29,11 +29,15 @@ BETTER_AUTH_SECRET=your-long-random-secret
 
 ## Local Setup
 
+Use any Postgres you already run (Homebrew, Postgres.app, a cloud URL from Supabase, etc.). Point **`DATABASE_URL`** at it, then:
+
 ```bash
 pnpm install
 pnpm db:migrate
 pnpm dev
 ```
+
+Optional: set **`AUTH_VERBOSE=1`** in `.env` to print Better Auth logs in the terminal (see `.env.example`).
 
 ### After migrations are applied
 

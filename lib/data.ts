@@ -297,6 +297,43 @@ export async function getViewerStar(skillId: string, userId: string) {
   }
 }
 
+/** Skills this user has starred (not necessarily authored). */
+export async function getStarredSkillsForUser(userId: string): Promise<SkillListItem[]> {
+  if (!db || !isDatabaseConfigured) {
+    return [];
+  }
+
+  try {
+    const rows = await db.query.stars.findMany({
+      where: eq(stars.userId, userId),
+      with: {
+        skill: {
+          with: {
+            author: true,
+            currentVersion: true,
+            parentFork: {
+              with: {
+                parentSkill: {
+                  with: {
+                    author: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: (starsTable, { desc }) => [desc(starsTable.createdAt)],
+    });
+
+    return rows
+      .map((row) => mapSkill(row.skill as SkillRecord))
+      .filter((skill): skill is SkillListItem => Boolean(skill));
+  } catch {
+    return [];
+  }
+}
+
 export async function getProfileByUsername(username: string): Promise<ProfileData | null> {
   if (!db || !isDatabaseConfigured) {
     return null;
