@@ -24,7 +24,7 @@ const config: Config = {
         xl: "1.25rem",
       },
       fontFamily: {
-        sans: ["var(--font-plex-sans)"],
+        sans: ["var(--font-open-runde)", "system-ui", "sans-serif"],
         mono: ["var(--font-plex-mono)"],
       },
     },

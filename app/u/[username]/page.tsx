@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { ProfileAvatar } from "@/components/profile-avatar";
 import { ProfileSkillRow } from "@/components/profile-skill-row";
 import { getProfileByUsername } from "@/lib/data";
 import { formatNumber } from "@/lib/utils";
@@ -11,7 +12,6 @@ type ProfilePageProps = {
   }>;
 };
 
-const heroImage = "https://www.figma.com/api/mcp/asset/982ad128-a746-4a1e-aa1d-581c123d53e2";
 const starsIcon = "https://www.figma.com/api/mcp/asset/2ffa58f1-6a0f-4916-be5e-6ed23ada98fc";
 const forksIcon = "https://www.figma.com/api/mcp/asset/18f338b6-8865-4541-978e-67cfd7b6268a";
 const downloadsIcon = "https://www.figma.com/api/mcp/asset/1682e85e-ad8d-448d-a80a-7ca919d6e151";
@@ -49,10 +49,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     <div className="mx-auto max-w-[1056px] pb-[92px]">
       <section className="flex flex-col items-center text-center">
         <div className="relative mb-6 size-[100px]">
-          <img
-            src={profile.user.avatarUrl || heroImage}
-            alt={profile.user.displayName}
-            className="size-[100px] rounded-full object-cover"
+          <ProfileAvatar
+            avatarUrl={profile.user.avatarUrl}
+            displayName={profile.user.displayName}
+            userId={profile.user.id}
           />
           <span className="absolute left-[89px] top-[-8px] rotate-[-23.45deg] text-xs font-semibold text-black/20">
             #1

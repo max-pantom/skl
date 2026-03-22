@@ -1,23 +1,19 @@
 import type { Metadata } from "next";
 
 import "@/app/globals.css";
+import { openRunde } from "@/app/fonts";
 import { SiteHeader } from "@/components/site-header";
 
 export const dynamic = "force-dynamic";
 
-const themeScript = `
+/** Light UI only — strip legacy `dark` class / preference. */
+const lightOnlyScript = `
 (() => {
-  const storageKey = "skl-theme";
-  const stored = window.localStorage.getItem(storageKey);
-  const theme =
-    stored === "light" || stored === "dark"
-      ? stored
-      : window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-
-  document.documentElement.classList.toggle("dark", theme === "dark");
-  document.documentElement.dataset.theme = theme;
+  document.documentElement.classList.remove("dark");
+  document.documentElement.dataset.theme = "light";
+  try {
+    localStorage.setItem("skl-theme", "light");
+  } catch (_) {}
 })();
 `;
 
@@ -36,9 +32,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={openRunde.variable} suppressHydrationWarning>
       <body className="font-sans text-[15px] leading-relaxed text-zinc-800 antialiased">
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: lightOnlyScript }} />
         <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 sm:px-6 lg:px-10">
           <SiteHeader />
           <main className="flex-1 py-8 sm:py-11">{children}</main>

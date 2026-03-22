@@ -13,6 +13,10 @@ const baseURL =
   process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const secret = process.env.BETTER_AUTH_SECRET;
 
+/** In dev, Better Auth’s console.error is forwarded to the browser by Next — noisy when Postgres is down. */
+const useDefaultBetterAuthLogger =
+  process.env.NODE_ENV === "production" || process.env.AUTH_VERBOSE === "1";
+
 function createAuth() {
   if (!db) {
     throw new Error("DATABASE_URL is required for authentication.");
@@ -25,6 +29,15 @@ function createAuth() {
   return betterAuth({
     baseURL,
     secret,
+    ...(useDefaultBetterAuthLogger
+      ? {}
+      : {
+          logger: {
+            log() {
+              /* no-op — set AUTH_VERBOSE=1 in .env to restore Better Auth logs locally */
+            },
+          },
+        }),
     // Schema uses uuid columns; Better Auth’s default ids are nanoid strings and Postgres rejects them.
     advanced: {
       database: {
