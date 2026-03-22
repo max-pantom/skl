@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import "@/app/globals.css";
-import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +42,6 @@ export default function RootLayout({
         <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 sm:px-6 lg:px-10">
           <SiteHeader />
           <main className="flex-1 py-8 sm:py-11">{children}</main>
-          <SiteFooter />
         </div>
       </body>
     </html>

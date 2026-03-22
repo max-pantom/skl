@@ -3,34 +3,37 @@ import Link from "next/link";
 import type { SkillListItem } from "@/lib/types";
 import { formatNumber } from "@/lib/utils";
 
+const downloadsIcon = "https://www.figma.com/api/mcp/asset/1682e85e-ad8d-448d-a80a-7ca919d6e151";
+
 export function ProfileSkillRow({ skill }: { skill: SkillListItem }) {
   return (
-    <article className="border-t border-zinc-200 py-4 first:border-t dark:border-zinc-800">
-      <div className="grid gap-3 text-sm sm:grid-cols-[160px_minmax(0,1fr)_112px_80px_88px] sm:items-center sm:gap-4">
+    <article className="text-base text-[#242424]">
+      <div className="grid gap-3 sm:grid-cols-[10.92%_49.91%_max-content_max-content_4.6%] sm:items-center sm:justify-between">
         <div className="min-w-0">
           <Link
             href={`/s/${skill.slug}`}
-            className="font-medium text-ink transition hover:opacity-70"
+            className="font-medium text-[#242424] transition hover:opacity-70"
           >
             {skill.title}
           </Link>
         </div>
 
-        <div className="min-w-0 text-zinc-600 dark:text-zinc-300">
-          <p className="truncate sm:pr-4">{skill.summary}</p>
+        <div className="min-w-0 text-[#242424] sm:pr-4">
+          <p className="truncate sm:text-center">{skill.summary}</p>
         </div>
 
-        <div className="flex sm:justify-start">
-          <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs text-zinc-500 dark:bg-zinc-900 dark:text-zinc-300">
+        <div className="flex sm:justify-center">
+          <span className="rounded-[90px] bg-[rgba(228,228,228,0.8)] px-[6px] py-[2px] text-base leading-none text-[#8f8f8f]">
             {skill.category}
           </span>
         </div>
 
-        <div className="font-medium text-zinc-500 dark:text-zinc-300">
-          {formatNumber(skill.downloadsCount)}
+        <div className="flex items-center gap-1.5 text-[#919191] sm:justify-center">
+          <img src={downloadsIcon} alt="" className="size-[18px]" />
+          <span>{formatNumber(skill.downloadsCount)}</span>
         </div>
 
-        <div className="font-mono text-xs text-zinc-400 dark:text-zinc-500">
+        <div className="text-left text-[#242424]/50 sm:text-center">
           v{skill.currentVersion.version}
         </div>
       </div>

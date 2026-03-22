@@ -14,17 +14,25 @@ html.dark {
 }
 
 html {
-  background: #f4f4f5;
+  background: #ffffff;
 }
 
 body {
   min-height: 100vh;
-  background: #f4f4f5;
+  background: #ffffff;
   color: #18181b;
+  font-family: var(--font-plex-sans);
 }
 
 a {
   text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
 ::selection {

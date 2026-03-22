@@ -43,12 +43,22 @@ const STAR_CX = 35.4971;
 const STAR_CY = 31.5;
 const STAR_OUTER_R = 31;
 
+/** ~3.5% of seeds get 4 tips; otherwise 5–10 (4 is the hard minimum everywhere). */
+const RARE_FOUR_TIP_PROBABILITY = 0.035;
+
 /**
  * Layout target: Figma node 1636:464 — avatar sits in the recessed circle with ~60–70% of the
  * circle height, centered horizontally, bottom of the collar aligned to the bottom arc of the clip.
  */
 const FRAME_VB = 100;
 const FRAME_CLIP_R = 50;
+
+/** Default shield position/scale inside the circle (matches design tuning: 1.51×, 0, −13 viewBox units). */
+const DEFAULT_SHIELD_LAYOUT = {
+  avatarScale: 1.51,
+  avatarOffsetX: 0,
+  avatarOffsetY: -13,
+} as const;
 
 /** Combined path bounds in shield space (bottom path extends below 91; matches design SVG extent) */
 const SHIELD_BBOX = {
@@ -78,7 +88,7 @@ function buildIrregularStarPath(
   innerRatio: number,
   tips: number,
 ): string {
-  const tipsN = Math.max(3, Math.min(10, Math.round(tips)));
+  const tipsN = Math.max(4, Math.min(10, Math.round(tips)));
   const n = tipsN * 2;
   const rnd = mulberry32(hashString(seed) ^ 0x2f6a3d1d);
   const parts: string[] = [];
@@ -98,6 +108,8 @@ function buildIrregularStarPath(
 type ShieldPaint = {
   points: number;
   innerRatio: number;
+  /** Multiplier on star outer radius (1 = legacy design size). */
+  topStarScale: number;
   unifiedGradient: boolean;
   /** Unified (or top when split): gradient stops */
   topStop0: string;
@@ -113,8 +125,10 @@ function paramsFromSeed(seed: string): ShieldPaint {
   const h = hashString(seed.trim() || "anonymous");
   const rnd = mulberry32(h);
 
-  const points = 3 + Math.floor(rnd() * 8);
+  const points =
+    rnd() < RARE_FOUR_TIP_PROBABILITY ? 4 : 5 + Math.floor(rnd() * 6);
   const innerRatio = 0.28 + rnd() * 0.22;
+  const topStarScale = 1.06 + rnd() * 0.1;
   const unifiedGradient = rnd() > 0.35;
 
   const th0 = rnd() * 360;
@@ -136,6 +150,7 @@ function paramsFromSeed(seed: string): ShieldPaint {
   return {
     points,
     innerRatio,
+    topStarScale,
     unifiedGradient,
     topStop0,
     topStop1,
@@ -148,12 +163,33 @@ function paramsFromSeed(seed: string): ShieldPaint {
 
 type ShieldAvatarProps = {
   seed: string;
+  /** Outer diameter in CSS pixels (the circular frame). */
   size: number;
   showDebug: boolean;
   manual?: Partial<ShieldPaint> | undefined;
+  /** Scale of the shield artwork inside the clip (1 = default fit). Does not resize the circle. */
+  avatarScale?: number;
+  /** Horizontal offset of the shield in viewBox units (0–100 frame). */
+  avatarOffsetX?: number;
+  /** Vertical offset of the shield in viewBox units. */
+  avatarOffsetY?: number;
+  /**
+   * Outer-radius multiplier for the top star only (collar unchanged).
+   * Omit to use seed (or manual) paint values.
+   */
+  topStarScale?: number;
 };
 
-function ShieldAvatar({ seed, size, showDebug, manual }: ShieldAvatarProps) {
+function ShieldAvatar({
+  seed,
+  size,
+  showDebug,
+  manual,
+  avatarScale = DEFAULT_SHIELD_LAYOUT.avatarScale,
+  avatarOffsetX = DEFAULT_SHIELD_LAYOUT.avatarOffsetX,
+  avatarOffsetY = DEFAULT_SHIELD_LAYOUT.avatarOffsetY,
+  topStarScale: topStarScaleProp,
+}: ShieldAvatarProps) {
   const instanceId = useId().replace(/:/g, "");
   const base = useMemo(() => paramsFromSeed(seed), [seed]);
   const p: ShieldPaint = {
@@ -161,6 +197,7 @@ function ShieldAvatar({ seed, size, showDebug, manual }: ShieldAvatarProps) {
     ...manual,
     points: manual?.points ?? base.points,
     innerRatio: manual?.innerRatio ?? base.innerRatio,
+    topStarScale: manual?.topStarScale ?? topStarScaleProp ?? base.topStarScale,
     unifiedGradient: manual?.unifiedGradient ?? base.unifiedGradient,
     topStop0: manual?.topStop0 ?? base.topStop0,
     topStop1: manual?.topStop1 ?? base.topStop1,
@@ -172,8 +209,16 @@ function ShieldAvatar({ seed, size, showDebug, manual }: ShieldAvatarProps) {
 
   const uid = `${instanceId}-${hashString(seed)}`;
   const topPath = useMemo(
-    () => buildIrregularStarPath(seed, STAR_CX, STAR_CY, STAR_OUTER_R, p.innerRatio, p.points),
-    [seed, p.points, p.innerRatio],
+    () =>
+      buildIrregularStarPath(
+        seed,
+        STAR_CX,
+        STAR_CY,
+        STAR_OUTER_R * p.topStarScale,
+        p.innerRatio,
+        p.points,
+      ),
+    [seed, p.points, p.innerRatio, p.topStarScale],
   );
 
   const botFill = p.unifiedGradient ? `url(#${uid}-g-top)` : `url(#${uid}-g-bot)`;
@@ -189,6 +234,13 @@ function ShieldAvatar({ seed, size, showDebug, manual }: ShieldAvatarProps) {
     const ty = FRAME_VB - SHIELD_BOTTOM_INSET - s * SHIELD_BBOX.maxY;
     return `translate(${tx} ${ty}) scale(${s})`;
   }, []);
+
+  /** Shield position/size inside the circle — does not change the outer frame. */
+  const avatarContentTransform = useMemo(() => {
+    const cx = FRAME_VB / 2;
+    const cy = FRAME_VB / 2;
+    return `translate(${avatarOffsetX} ${avatarOffsetY}) translate(${cx} ${cy}) scale(${avatarScale}) translate(${-cx} ${-cy})`;
+  }, [avatarScale, avatarOffsetX, avatarOffsetY]);
 
   return (
     <svg
@@ -245,15 +297,17 @@ function ShieldAvatar({ seed, size, showDebug, manual }: ShieldAvatarProps) {
       </g>
 
       <g clipPath={`url(#${uid}-avatarClip)`}>
-        <g transform={shieldTransform}>
-          <path d={BOTTOM_PATH} fill={botFill} stroke={p.stroke} strokeWidth={p.strokeWidth} strokeLinejoin="round" />
-          <path d={topPath} fill={topFill} stroke={p.stroke} strokeWidth={p.strokeWidth} strokeLinejoin="round" />
-          {showDebug && (
-            <g opacity={0.55} pointerEvents="none">
-              <line x1={GRAD_X1} y1={0} x2={GRAD_X1} y2={VB_H} stroke="#a1a1aa" strokeWidth={0.35} />
-              <circle cx={STAR_CX} cy={STAR_CY} r={2} fill="#f472b6" />
-            </g>
-          )}
+        <g transform={avatarContentTransform}>
+          <g transform={shieldTransform}>
+            <path d={BOTTOM_PATH} fill={botFill} stroke={p.stroke} strokeWidth={p.strokeWidth} strokeLinejoin="round" />
+            <path d={topPath} fill={topFill} stroke={p.stroke} strokeWidth={p.strokeWidth} strokeLinejoin="round" />
+            {showDebug && (
+              <g opacity={0.55} pointerEvents="none">
+                <line x1={GRAD_X1} y1={0} x2={GRAD_X1} y2={VB_H} stroke="#a1a1aa" strokeWidth={0.35} />
+                <circle cx={STAR_CX} cy={STAR_CY} r={2} fill="#f472b6" />
+              </g>
+            )}
+          </g>
         </g>
       </g>
 
@@ -321,6 +375,14 @@ export default function TestAvatarPage() {
   const [seed, setSeed] = useState("debug-seed-1");
   const [showDebug, setShowDebug] = useState(true);
   const [overrideEnabled, setOverrideEnabled] = useState(false);
+  /** Shield inside the circle — shared by every preview on this page. */
+  const [avatarScale, setAvatarScale] = useState(DEFAULT_SHIELD_LAYOUT.avatarScale);
+  const [avatarOffsetX, setAvatarOffsetX] = useState(DEFAULT_SHIELD_LAYOUT.avatarOffsetX);
+  const [avatarOffsetY, setAvatarOffsetY] = useState(DEFAULT_SHIELD_LAYOUT.avatarOffsetY);
+  const [copiedLayoutKey, setCopiedLayoutKey] = useState<string>("");
+
+  const [topStarPlayground, setTopStarPlayground] = useState(1.1);
+  const [topStarManual, setTopStarManual] = useState(1.1);
 
   const [points, setPoints] = useState(5);
   const [innerRatio, setInnerRatio] = useState(0.38);
@@ -333,6 +395,12 @@ export default function TestAvatarPage() {
   const [strokeWidth, setStrokeWidth] = useState(2);
 
   const derived = useMemo(() => paramsFromSeed(seed), [seed]);
+
+  const topStarValue = overrideEnabled ? topStarManual : topStarPlayground;
+  const setTopStarValue = useCallback((v: number) => {
+    if (overrideEnabled) setTopStarManual(v);
+    else setTopStarPlayground(v);
+  }, [overrideEnabled]);
 
   const pointsDisp = overrideEnabled ? points : derived.points;
   const innerRatioDisp = overrideEnabled ? innerRatio : derived.innerRatio;
@@ -355,6 +423,7 @@ export default function TestAvatarPage() {
     ? {
         points,
         innerRatio,
+        topStarScale: topStarManual,
         unifiedGradient,
         topStop0,
         topStop1,
@@ -376,7 +445,20 @@ export default function TestAvatarPage() {
     setBottomStop1(hslStringToHex(d.bottomStop1));
     setStroke(hslStringToHex(d.stroke));
     setStrokeWidth(d.strokeWidth);
+    setTopStarManual(d.topStarScale);
   }, [seed]);
+
+  const layoutProps = {
+    avatarScale,
+    avatarOffsetX,
+    avatarOffsetY,
+  } as const;
+
+  const copyLayoutValue = useCallback((key: string, text: string) => {
+    void navigator.clipboard.writeText(text);
+    setCopiedLayoutKey(key);
+    window.setTimeout(() => setCopiedLayoutKey(""), 2000);
+  }, []);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -402,16 +484,37 @@ export default function TestAvatarPage() {
         <section className="skl-surface space-y-6 p-6">
           <div className="flex flex-wrap items-end gap-6">
             <div className="flex flex-col items-center gap-2">
-              <ShieldAvatar seed={seed} size={160} showDebug={showDebug} manual={manual} />
-              <span className="font-mono text-[10px] text-zinc-500">160px</span>
+              <ShieldAvatar
+                seed={seed}
+                size={160}
+                showDebug={showDebug}
+                manual={manual}
+                topStarScale={overrideEnabled ? undefined : topStarPlayground}
+                {...layoutProps}
+              />
+              <span className="font-mono text-[10px] text-zinc-500">160px frame</span>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <ShieldAvatar seed={seed} size={48} showDebug={false} manual={manual} />
-              <span className="font-mono text-[10px] text-zinc-500">48px</span>
+              <ShieldAvatar
+                seed={seed}
+                size={48}
+                showDebug={false}
+                manual={manual}
+                topStarScale={overrideEnabled ? undefined : topStarPlayground}
+                {...layoutProps}
+              />
+              <span className="font-mono text-[10px] text-zinc-500">48px frame</span>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <ShieldAvatar seed={seed} size={32} showDebug={false} manual={manual} />
-              <span className="font-mono text-[10px] text-zinc-500">32px</span>
+              <ShieldAvatar
+                seed={seed}
+                size={32}
+                showDebug={false}
+                manual={manual}
+                topStarScale={overrideEnabled ? undefined : topStarPlayground}
+                {...layoutProps}
+              />
+              <span className="font-mono text-[10px] text-zinc-500">32px frame</span>
             </div>
           </div>
 
@@ -438,7 +541,14 @@ export default function TestAvatarPage() {
                 const s = `${seed}::${i}`;
                 return (
                   <div key={i} className="flex flex-col items-center gap-1">
-                    <ShieldAvatar seed={s} size={56} showDebug={false} manual={manual} />
+                    <ShieldAvatar
+                      seed={s}
+                      size={56}
+                      showDebug={false}
+                      manual={manual}
+                      topStarScale={overrideEnabled ? undefined : topStarPlayground}
+                      {...layoutProps}
+                    />
                     <span className="font-mono text-[9px] text-zinc-400">{i}</span>
                   </div>
                 );
@@ -505,10 +615,145 @@ export default function TestAvatarPage() {
           </div>
 
           <div className="skl-surface space-y-3 p-4">
+            <h2 className="mb-1 font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">Top star</h2>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400">
+              Scales the <strong className="font-medium text-zinc-800 dark:text-zinc-200">star only</strong> (collar
+              unchanged). Manual mode off: slider overrides seed size. Manual on: same slider edits the manual preset.
+            </p>
+            <Slider
+              label="Top size (radius ×)"
+              min={75}
+              max={140}
+              value={Math.round(topStarValue * 100)}
+              onChange={(n) => setTopStarValue(n / 100)}
+              format={(n) => `${(n / 100).toFixed(2)}×`}
+            />
+          </div>
+
+          <div className="skl-surface space-y-3 p-4">
+            <h2 className="mb-1 font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">Shield in circle</h2>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400">
+              Adjusts the <strong className="font-medium text-zinc-800 dark:text-zinc-200">shield only</strong> inside the
+              fixed circular frame. Values use the 100×100 SVG viewBox for X/Y. Applied to every preview on this page.
+            </p>
+            <Slider
+              label="Shield scale"
+              min={25}
+              max={200}
+              value={Math.round(avatarScale * 100)}
+              onChange={(n) => setAvatarScale(n / 100)}
+              format={(n) => `${(n / 100).toFixed(2)}×`}
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                Exact
+                <input
+                  type="number"
+                  min={0.25}
+                  max={2}
+                  step={0.01}
+                  value={avatarScale}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    if (!Number.isFinite(v)) return;
+                    setAvatarScale(Math.min(2, Math.max(0.25, v)));
+                  }}
+                  className="skl-input w-[4.5rem] font-mono text-xs tabular-nums"
+                />
+              </label>
+              <button
+                type="button"
+                className="skl-btn skl-btn-secondary rounded-none text-xs"
+                onClick={() => copyLayoutValue("scale", String(avatarScale))}
+              >
+                {copiedLayoutKey === "scale" ? "Copied" : "Copy"}
+              </button>
+            </div>
+            <Slider
+              label="Offset X"
+              min={-50}
+              max={50}
+              value={Math.round(avatarOffsetX)}
+              onChange={(n) => setAvatarOffsetX(n)}
+              format={(n) => `${n}`}
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                Exact
+                <input
+                  type="number"
+                  min={-50}
+                  max={50}
+                  step={1}
+                  value={avatarOffsetX}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    if (!Number.isFinite(v)) return;
+                    setAvatarOffsetX(Math.min(50, Math.max(-50, Math.round(v))));
+                  }}
+                  className="skl-input w-[4.5rem] font-mono text-xs tabular-nums"
+                />
+              </label>
+              <button
+                type="button"
+                className="skl-btn skl-btn-secondary rounded-none text-xs"
+                onClick={() => copyLayoutValue("x", String(avatarOffsetX))}
+              >
+                {copiedLayoutKey === "x" ? "Copied" : "Copy"}
+              </button>
+            </div>
+            <Slider
+              label="Offset Y"
+              min={-50}
+              max={50}
+              value={Math.round(avatarOffsetY)}
+              onChange={(n) => setAvatarOffsetY(n)}
+              format={(n) => `${n}`}
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                Exact
+                <input
+                  type="number"
+                  min={-50}
+                  max={50}
+                  step={1}
+                  value={avatarOffsetY}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    if (!Number.isFinite(v)) return;
+                    setAvatarOffsetY(Math.min(50, Math.max(-50, Math.round(v))));
+                  }}
+                  className="skl-input w-[4.5rem] font-mono text-xs tabular-nums"
+                />
+              </label>
+              <button
+                type="button"
+                className="skl-btn skl-btn-secondary rounded-none text-xs"
+                onClick={() => copyLayoutValue("y", String(avatarOffsetY))}
+              >
+                {copiedLayoutKey === "y" ? "Copied" : "Copy"}
+              </button>
+            </div>
+            <button
+              type="button"
+              className="skl-btn skl-btn-primary w-full rounded-none text-xs"
+              onClick={() =>
+                copyLayoutValue(
+                  "all",
+                  `${avatarScale}\t${avatarOffsetX}\t${avatarOffsetY}`,
+                )
+              }
+            >
+              {copiedLayoutKey === "all" ? "Copied scale, X, Y (tab-separated)" : "Copy scale + X + Y"}
+            </button>
+          </div>
+
+          <div className="skl-surface space-y-3 p-4">
             <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">Shape (top star)</h2>
             <Slider
-              label="Points (tips)"
-              min={3}
+              label="Points (tips, min 4)"
+              min={4}
               max={10}
               value={pointsDisp}
               onChange={setPoints}
@@ -571,6 +816,10 @@ export default function TestAvatarPage() {
               <div className="flex justify-between gap-2">
                 <dt>innerRatio</dt>
                 <dd>{derived.innerRatio.toFixed(2)}</dd>
+              </div>
+              <div className="flex justify-between gap-2">
+                <dt>topStarScale</dt>
+                <dd>{derived.topStarScale.toFixed(2)}×</dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt>unified grad</dt>
