@@ -1,11 +1,10 @@
-import { renderToStaticMarkup } from "react-dom/server";
 import { NextResponse } from "next/server";
 
+import { buildShieldAvatarSvgString } from "@/lib/shield-avatar-svg-string";
 import {
   DEFAULT_SHIELD_LAYOUT,
   DEFAULT_TOP_STAR_SCALE,
-  ShieldAvatar,
-} from "@/components/shield-avatar";
+} from "@/lib/shield-avatar-core";
 
 export const runtime = "nodejs";
 
@@ -18,6 +17,7 @@ type RouteProps = {
 /**
  * Public SVG avatar for a user (deterministic shield from `userId`).
  * Used in emails when the user has no uploaded photo — img src must be an absolute HTTPS URL.
+ * Built as a string (no react-dom/server) so Next.js can compile the route.
  */
 export async function GET(_request: Request, { params }: RouteProps) {
   const { userId } = await params;
@@ -25,17 +25,14 @@ export async function GET(_request: Request, { params }: RouteProps) {
     return new NextResponse("Invalid user id", { status: 400 });
   }
 
-  const svg = renderToStaticMarkup(
-    <ShieldAvatar
-      seed={userId}
-      size={200}
-      showDebug={false}
-      avatarScale={DEFAULT_SHIELD_LAYOUT.avatarScale}
-      avatarOffsetX={DEFAULT_SHIELD_LAYOUT.avatarOffsetX}
-      avatarOffsetY={DEFAULT_SHIELD_LAYOUT.avatarOffsetY}
-      topStarScale={DEFAULT_TOP_STAR_SCALE}
-    />,
-  );
+  const svg = buildShieldAvatarSvgString(userId, 200, {
+    avatarScale: DEFAULT_SHIELD_LAYOUT.avatarScale,
+    avatarOffsetX: DEFAULT_SHIELD_LAYOUT.avatarOffsetX,
+    avatarOffsetY: DEFAULT_SHIELD_LAYOUT.avatarOffsetY,
+    topStarScale: DEFAULT_TOP_STAR_SCALE,
+    includeOuterDisc: true,
+    clipToCircle: true,
+  });
 
   return new NextResponse(svg, {
     status: 200,

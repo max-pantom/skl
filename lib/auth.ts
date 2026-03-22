@@ -10,6 +10,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import type { AppViewer } from "@/lib/types";
+import { pickUniqueUsername } from "@/lib/oauth-username";
 
 const baseURL =
   process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -62,9 +63,15 @@ function createAuth() {
     throw new Error("DATABASE_URL is required for authentication.");
   }
 
+  const database = db;
+
   if (!secret || secret.length < 32) {
     throw new Error("BETTER_AUTH_SECRET must be set to a random string of at least 32 characters.");
   }
+
+  const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim();
+  const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
+  const googleOAuthConfigured = Boolean(googleClientId && googleClientSecret);
 
   return betterAuth({
     baseURL,
@@ -77,13 +84,52 @@ function createAuth() {
         generateId: "uuid",
       },
     },
-    database: drizzleAdapter(db, {
+    database: drizzleAdapter(database, {
       provider: "pg",
       schema,
       camelCase: true,
     }),
     emailAndPassword: {
       enabled: true,
+    },
+    ...(googleOAuthConfigured
+      ? {
+          socialProviders: {
+            google: {
+              clientId: googleClientId!,
+              clientSecret: googleClientSecret!,
+            },
+          },
+        }
+      : {}),
+    databaseHooks: {
+      user: {
+        create: {
+          before: async (user) => {
+            const u = user as Record<string, unknown>;
+            const email = typeof u.email === "string" ? u.email : "";
+            const existingUsername =
+              typeof u.username === "string" && u.username.trim() ? u.username.trim() : "";
+
+            let username = existingUsername;
+            if (!username) {
+              const local = email.split("@")[0] || "user";
+              username = await pickUniqueUsername(database, local);
+            }
+
+            const nameFromProvider = typeof u.name === "string" ? u.name.trim() : "";
+            const name = nameFromProvider || username;
+
+            return {
+              data: {
+                ...u,
+                username,
+                name,
+              },
+            };
+          },
+        },
+      },
     },
     user: {
       modelName: "users",
