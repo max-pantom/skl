@@ -35,7 +35,12 @@ export function ProfileView({
     <div className="mx-auto flex min-h-0 w-full max-w-[1056px] flex-1 flex-col">
       <section className="flex flex-col items-center text-center">
         <div className="relative mb-6 size-[100px]">
-          <ProfileAvatar avatarUrl={user.avatarUrl} displayName={user.displayName} userId={user.id} />
+          <ProfileAvatar
+            avatarUrl={user.avatarUrl}
+            displayName={user.displayName}
+            userId={user.id}
+            parallax
+          />
           {earlyBelieverRank ? (
             <span
               className="absolute left-[89px] top-[-8px] rotate-[-23.45deg] text-xs font-semibold text-black/20"
