@@ -44,7 +44,7 @@ export function ThemeToggle() {
         applyTheme(nextTheme);
         window.localStorage.setItem(storageKey, nextTheme);
       }}
-      className="skl-btn rounded-none border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 hover:border-zinc-900 hover:bg-zinc-50 hover:text-ink dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-zinc-500 dark:hover:bg-zinc-900"
+      className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-zinc-100/70 px-3 py-2 text-sm text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-100 hover:text-ink dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
       aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
     >
       {theme === "dark" ? "Light" : "Dark"}

@@ -70,4 +70,4 @@ Core tables:
 ## Docs
 
 - [docs/how-it-works.md](/Users/macbook/Desktop/code/skill/docs/how-it-works.md) — stack, env, Supabase vs pooler, auth.
-- [docs/roadmap.md](/Users/macbook/Desktop/code/skill/docs/roadmap.md) — planned work (e.g. optional `supabase-js`, production checklist ideas).
+- [docs/roadmap.md](/Users/macbook/Desktop/code/skill/docs/roadmap.md) — phased product roadmap (foundation → trust/clarity) and platform notes.
