@@ -39,6 +39,7 @@ export function ProfileView({
             avatarUrl={user.avatarUrl}
             displayName={user.displayName}
             userId={user.id}
+            role={user.role}
             parallax
           />
           {earlyBelieverRank ? (

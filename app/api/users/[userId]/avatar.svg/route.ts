@@ -1,5 +1,11 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
+import { db } from "@/db";
+import * as schema from "@/db/schema";
 import { buildShieldAvatarSvgString } from "@/lib/shield-avatar-svg-string";
 import {
   DEFAULT_SHIELD_LAYOUT,
@@ -15,7 +21,7 @@ type RouteProps = {
 };
 
 /**
- * Public SVG avatar for a user (deterministic shield from `userId`).
+ * Public SVG avatar for a user (deterministic shield from `userId`, or static admin asset).
  * Used in emails when the user has no uploaded photo — img src must be an absolute HTTPS URL.
  * Built as a string (no react-dom/server) so Next.js can compile the route.
  */
@@ -23,6 +29,23 @@ export async function GET(_request: Request, { params }: RouteProps) {
   const { userId } = await params;
   if (!UUID_RE.test(userId)) {
     return new NextResponse("Invalid user id", { status: 400 });
+  }
+
+  if (db) {
+    const row = await db.query.users.findFirst({
+      columns: { role: true, avatarUrl: true },
+      where: eq(schema.users.id, userId),
+    });
+    if (row?.role === "admin" && !row.avatarUrl) {
+      const svg = await readFile(join(process.cwd(), "public", "admin-avatar.svg"), "utf8");
+      return new NextResponse(svg, {
+        status: 200,
+        headers: {
+          "Content-Type": "image/svg+xml; charset=utf-8",
+          "Cache-Control": "public, max-age=86400, s-maxage=86400",
+        },
+      });
+    }
   }
 
   const svg = buildShieldAvatarSvgString(userId, 200, {

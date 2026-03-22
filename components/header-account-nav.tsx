@@ -51,6 +51,7 @@ export function HeaderAccountNav({ viewer }: { viewer: AppViewer | null }) {
               avatarUrl={viewer.avatarUrl}
               displayName={viewer.displayName}
               userId={viewer.id}
+              role={viewer.role}
               size={32}
             />
           </Link>

@@ -8,13 +8,17 @@ import {
   DEFAULT_TOP_STAR_SCALE,
   ShieldAvatar,
 } from "@/components/shield-avatar";
+import { ADMIN_DEFAULT_AVATAR_PATH } from "@/lib/admin-avatar";
 import { HERO_PROFILE_PARALLAX_PARAMS } from "@/lib/profile-hero-parallax-params";
+import type { UserRole } from "@/lib/types";
 
 type ProfileAvatarProps = {
   avatarUrl: string | null;
   displayName: string;
   /** Stable id — deterministic generated shield (PRNG from this string). */
   userId: string;
+  /** Admins without an uploaded photo use {@link ADMIN_DEFAULT_AVATAR_PATH}. */
+  role?: UserRole;
   /** Square edge length in px (default 100). */
   size?: number;
   /**
@@ -32,13 +36,21 @@ function clamp(n: number, min: number, max: number) {
  * Circular slot: uploaded photo when set, otherwise seeded shield (same viewBox + layout as /test).
  * Colors/shape come from a deterministic PRNG keyed by `userId` only so the avatar stays stable if the handle changes.
  */
-export function ProfileAvatar({ avatarUrl, displayName, userId, size = 100, parallax = false }: ProfileAvatarProps) {
+export function ProfileAvatar({
+  avatarUrl,
+  displayName,
+  userId,
+  role,
+  size = 100,
+  parallax = false,
+}: ProfileAvatarProps) {
   if (parallax) {
     return (
       <ProfileAvatarParallaxHero
         avatarUrl={avatarUrl}
         displayName={displayName}
         userId={userId}
+        role={role}
         size={size ?? 100}
       />
     );
@@ -53,6 +65,26 @@ export function ProfileAvatar({ avatarUrl, displayName, userId, size = 100, para
         height={size}
         className="rounded-full object-cover"
       />
+    );
+  }
+
+  if (role === "admin") {
+    return (
+      <span
+        className="inline-flex shrink-0 overflow-hidden rounded-full bg-[#f4f4f4]"
+        style={{ width: size, height: size }}
+        role="img"
+        aria-label={`${displayName} avatar`}
+      >
+        <img
+          src={ADMIN_DEFAULT_AVATAR_PATH}
+          alt=""
+          width={size}
+          height={size}
+          className="h-full w-full object-contain p-[6%]"
+          draggable={false}
+        />
+      </span>
     );
   }
 
@@ -77,15 +109,18 @@ function ProfileAvatarParallaxHero({
   avatarUrl,
   displayName,
   userId,
+  role,
   size,
 }: {
   avatarUrl: string | null;
   displayName: string;
   userId: string;
+  role?: UserRole;
   size: number;
 }) {
   const p = HERO_PROFILE_PARALLAX_PARAMS;
   const hasPhoto = Boolean(avatarUrl);
+  const adminDefault = role === "admin" && !avatarUrl;
 
   const rootRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState(false);
@@ -125,7 +160,7 @@ function ProfileAvatarParallaxHero({
   const artLayerStyle: CSSProperties = useMemo(
     () => ({
       transform,
-      transformOrigin: hasPhoto ? "50% 50%" : "50% 48%",
+      transformOrigin: hasPhoto || adminDefault ? "50% 50%" : "50% 48%",
       transformStyle: "preserve-3d",
       transition: tracking
         ? "none"
@@ -133,7 +168,7 @@ function ProfileAvatarParallaxHero({
       boxShadow: shadow,
       willChange: "transform",
     }),
-    [transform, hasPhoto, tracking, p.transitionMs, p.easing, shadow],
+    [transform, hasPhoto, adminDefault, tracking, p.transitionMs, p.easing, shadow],
   );
 
   const seed = userId;
@@ -160,6 +195,17 @@ function ProfileAvatarParallaxHero({
                 width={avatarPx}
                 height={avatarPx}
                 className="block h-full w-full rounded-full object-cover"
+                draggable={false}
+              />
+            </div>
+          ) : adminDefault ? (
+            <div className="pointer-events-none h-full w-full bg-[#f4f4f4]" style={artLayerStyle}>
+              <img
+                src={ADMIN_DEFAULT_AVATAR_PATH}
+                alt=""
+                width={avatarPx}
+                height={avatarPx}
+                className="block h-full w-full rounded-full object-contain p-[6%]"
                 draggable={false}
               />
             </div>
