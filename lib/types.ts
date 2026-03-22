@@ -93,4 +93,5 @@ export type TopCreator = {
 
 export type AppViewer = PublicUser & {
   email: string | null;
+  needsProfileSetup: boolean;
 };

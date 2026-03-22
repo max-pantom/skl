@@ -195,6 +195,48 @@ export async function updateProfileAction(formData: FormData) {
   redirect(withQuery("/settings", { ok: "1" }));
 }
 
+export async function completeProfileSetupAction(formData: FormData) {
+  ensureConfigured("/welcome");
+  const viewer = await requireCurrentViewer("/welcome");
+  const nextPath = getString(formData.get("next")) || "/explore";
+  const username = sanitizeUsername(getString(formData.get("username")));
+  const displayName = getString(formData.get("displayName"));
+
+  if (username.length < 3) {
+    redirectWithError(withQuery("/welcome", { next: nextPath }), "Username must be at least 3 characters.");
+  }
+
+  if (displayName.length < 3) {
+    redirectWithError(withQuery("/welcome", { next: nextPath }), "Display name must be at least 3 characters.");
+  }
+
+  const existingUser = await db!.query.users.findFirst({
+    where: eq(users.username, username),
+  });
+
+  if (existingUser && existingUser.id !== viewer.id) {
+    redirectWithError(withQuery("/welcome", { next: nextPath }), "That username is already taken.");
+  }
+
+  const previousUsername = viewer.username;
+
+  await db!
+    .update(users)
+    .set({
+      username,
+      displayName,
+      needsProfileSetup: false,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, viewer.id));
+
+  revalidatePath("/welcome");
+  revalidatePath(`/u/${previousUsername}`);
+  revalidatePath(`/u/${username}`);
+  revalidatePath("/settings");
+  redirect(nextPath);
+}
+
 export async function createSkillAction(formData: FormData) {
   ensureConfigured("/new");
 

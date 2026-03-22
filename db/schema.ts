@@ -34,6 +34,7 @@ export const users = pgTable(
     username: varchar("username", { length: 32 }).notNull(),
     displayName: varchar("display_name", { length: 64 }).notNull(),
     role: userRoleEnum("role").notNull().default("user"),
+    needsProfileSetup: boolean("needs_profile_setup").notNull().default(false),
     bio: text("bio"),
     avatarUrl: text("avatar_url"),
     website: text("website"),

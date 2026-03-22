@@ -112,6 +112,7 @@ function createAuth() {
               typeof u.username === "string" && u.username.trim() ? u.username.trim() : "";
 
             let username = existingUsername;
+            const needsProfileSetup = !existingUsername;
             if (!username) {
               const local = email.split("@")[0] || "user";
               username = await pickUniqueUsername(database, local);
@@ -127,6 +128,7 @@ function createAuth() {
                 name,
                 image: null,
                 avatarUrl: null,
+                needsProfileSetup,
               },
             };
           },
@@ -220,6 +222,7 @@ export async function getCurrentViewer(): Promise<AppViewer | null> {
     username: localUser.username,
     displayName: localUser.displayName,
     role: localUser.role,
+    needsProfileSetup: localUser.needsProfileSetup,
     bio: localUser.bio,
     avatarUrl: localUser.avatarUrl,
     website: localUser.website,
