@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Agentation } from "agentation";
 
-import "@mdxeditor/editor/style.css";
 import "@/app/globals.css";
 import { openRunde } from "@/app/fonts";
 import { SiteFooter } from "@/components/site-footer";

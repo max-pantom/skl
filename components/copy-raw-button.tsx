@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 
-export function CopyRawButton({ content }: { content: string }) {
+export function CopyRawButton({
+  content,
+  label = "Copy raw",
+}: {
+  content: string;
+  label?: string;
+}) {
   const [status, setStatus] = useState<"idle" | "copied" | "error">("idle");
 
   async function handleCopy() {
@@ -22,7 +28,7 @@ export function CopyRawButton({ content }: { content: string }) {
       onClick={handleCopy}
       className="skl-btn skl-btn-secondary w-full justify-center"
     >
-      {status === "idle" ? "Copy raw" : status === "copied" ? "Copied" : "Copy failed"}
+      {status === "idle" ? label : status === "copied" ? "Copied" : "Copy failed"}
     </button>
   );
 }

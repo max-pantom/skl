@@ -150,6 +150,24 @@ export const skillVersions = pgTable(
   }),
 );
 
+export const skillVersionFiles = pgTable(
+  "skill_version_files",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    skillVersionId: uuid("skill_version_id")
+      .notNull()
+      .references(() => skillVersions.id, { onDelete: "cascade" }),
+    path: varchar("path", { length: 255 }).notNull(),
+    content: text("content").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    versionPathIdx: uniqueIndex("skill_version_files_version_path_idx").on(table.skillVersionId, table.path),
+    versionLookupIdx: index("skill_version_files_version_lookup_idx").on(table.skillVersionId),
+  }),
+);
+
 export const stars = pgTable(
   "stars",
   {
@@ -247,10 +265,18 @@ export const skillsRelations = relations(skills, ({ one, many }) => ({
   }),
 }));
 
-export const skillVersionsRelations = relations(skillVersions, ({ one }) => ({
+export const skillVersionsRelations = relations(skillVersions, ({ one, many }) => ({
   skill: one(skills, {
     fields: [skillVersions.skillId],
     references: [skills.id],
+  }),
+  files: many(skillVersionFiles),
+}));
+
+export const skillVersionFilesRelations = relations(skillVersionFiles, ({ one }) => ({
+  skillVersion: one(skillVersions, {
+    fields: [skillVersionFiles.skillVersionId],
+    references: [skillVersions.id],
   }),
 }));
 
@@ -290,4 +316,3 @@ export const forksRelations = relations(forks, ({ one }) => ({
     references: [users.id],
   }),
 }));
-

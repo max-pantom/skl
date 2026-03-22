@@ -19,7 +19,17 @@ function versionFor(skillId: string, ver: string): SkillVersionRecord {
     id: `${skillId}-cv`,
     skillId,
     version: ver.replace(/^v/, ""),
-    content: "",
+    content: "# Preview skill\n\nDemo content.",
+    files: [
+      {
+        id: `${skillId}-file`,
+        skillVersionId: `${skillId}-cv`,
+        path: "SKILL.md",
+        content: "# Preview skill\n\nDemo content.",
+        sortOrder: 0,
+        createdAt: iso,
+      },
+    ],
     changelog: null,
     compatibleWith: [],
     metadata: {},

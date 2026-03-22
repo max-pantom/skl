@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 
 import { db, isDatabaseConfigured } from "@/db";
 import { skills, stars, users } from "@/db/schema";
+import { createFallbackSkillFile, sortSkillFiles } from "@/lib/skill-files";
 import type {
   ExploreFilters,
   ForkReference,
@@ -12,6 +13,7 @@ import type {
   SkillDetail,
   SkillListItem,
   SkillVersionRecord,
+  TopCreator,
 } from "@/lib/types";
 
 type AuthorRecord = {
@@ -30,6 +32,14 @@ type VersionRecord = {
   skillId: string;
   version: string;
   content: string;
+  files?: Array<{
+    id: string;
+    skillVersionId: string;
+    path: string;
+    content: string;
+    sortOrder: number;
+    createdAt: Date | string;
+  }>;
   changelog: string | null;
   compatibleWith: string[];
   metadata: Record<string, unknown>;
@@ -83,11 +93,25 @@ function mapAuthor(author: NonNullable<AuthorRecord>): PublicUser {
 }
 
 function mapVersion(version: NonNullable<VersionRecord>): SkillVersionRecord {
+  const files = version.files?.length
+    ? sortSkillFiles(
+        version.files.map((file) => ({
+          id: file.id,
+          skillVersionId: file.skillVersionId,
+          path: file.path,
+          content: file.content,
+          sortOrder: file.sortOrder,
+          createdAt: toIso(file.createdAt),
+        })),
+      )
+    : [createFallbackSkillFile(version.content)];
+
   return {
     id: version.id,
     skillId: version.skillId,
     version: version.version,
     content: version.content,
+    files,
     changelog: version.changelog,
     compatibleWith: version.compatibleWith,
     metadata: version.metadata,
@@ -151,7 +175,7 @@ function filterSkills(skillsList: SkillListItem[], filters: ExploreFilters) {
       skill.title,
       skill.summary,
       skill.tags.join(" "),
-      skill.currentVersion.content,
+      skill.currentVersion.files.map((file) => `${file.path} ${file.content}`).join(" "),
     ]
       .join(" ")
       .toLowerCase();
@@ -169,7 +193,11 @@ async function fetchAllSkillRows() {
     return await db.query.skills.findMany({
       with: {
         author: true,
-        currentVersion: true,
+        currentVersion: {
+          with: {
+            files: true,
+          },
+        },
         parentFork: {
           with: {
             parentSkill: {
@@ -191,14 +219,42 @@ async function fetchAllSkillRows() {
   }
 }
 
-export async function getFeaturedSkills(limit = 4) {
+function trendingScore(skill: SkillListItem) {
+  return skill.starsCount * 3 + skill.downloadsCount + skill.forksCount * 2;
+}
+
+/** Engagement-weighted ordering (stars, downloads, forks). */
+export async function getTrendingSkills(limit = 4) {
   const rows = await fetchAllSkillRows();
 
   if (!rows) {
     return [];
   }
 
-  return rows.map(mapSkill).filter((skill): skill is SkillListItem => Boolean(skill)).slice(0, limit);
+  return rows
+    .map(mapSkill)
+    .filter((skill): skill is SkillListItem => Boolean(skill))
+    .sort((a, b) => trendingScore(b) - trendingScore(a))
+    .slice(0, limit);
+}
+
+export async function getFeaturedSkills(limit = 4) {
+  return getTrendingSkills(limit);
+}
+
+/** Most recently published skills (by first publish / `createdAt`). */
+export async function getNewestSkills(limit = 4) {
+  const rows = await fetchAllSkillRows();
+
+  if (!rows) {
+    return [];
+  }
+
+  return rows
+    .map(mapSkill)
+    .filter((skill): skill is SkillListItem => Boolean(skill))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, limit);
 }
 
 export async function getRecentSkills(limit = 4) {
@@ -216,6 +272,41 @@ export async function getRecentSkills(limit = 4) {
         new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
     )
     .slice(0, limit);
+}
+
+/** Authors ranked by total stars across their public skills. */
+export async function getTopCreators(limit = 5): Promise<TopCreator[]> {
+  const rows = await fetchAllSkillRows();
+
+  if (!rows) {
+    return [];
+  }
+
+  const skillsList = rows.map(mapSkill).filter((skill): skill is SkillListItem => Boolean(skill));
+  const byAuthor = new Map<
+    string,
+    { user: PublicUser; skills: SkillListItem[] }
+  >();
+
+  for (const skill of skillsList) {
+    const id = skill.author.id;
+    const existing = byAuthor.get(id);
+    if (existing) {
+      existing.skills.push(skill);
+    } else {
+      byAuthor.set(id, { user: skill.author, skills: [skill] });
+    }
+  }
+
+  const aggregated: TopCreator[] = [...byAuthor.values()].map(({ user, skills }) => ({
+    user,
+    skillCount: skills.length,
+    totalStars: skills.reduce((sum, s) => sum + s.starsCount, 0),
+  }));
+
+  aggregated.sort((a, b) => b.totalStars - a.totalStars || b.skillCount - a.skillCount);
+
+  return aggregated.slice(0, limit);
 }
 
 export async function getExploreSkills(filters: ExploreFilters = {}) {
@@ -239,7 +330,11 @@ export async function getSkillBySlug(slug: string): Promise<SkillDetail | null> 
       where: eq(skills.slug, slug),
       with: {
         author: true,
-        currentVersion: true,
+        currentVersion: {
+          with: {
+            files: true,
+          },
+        },
         parentFork: {
           with: {
             parentSkill: {
@@ -250,6 +345,9 @@ export async function getSkillBySlug(slug: string): Promise<SkillDetail | null> 
           },
         },
         versions: {
+          with: {
+            files: true,
+          },
           orderBy: (skillVersions, { desc: orderDesc }) => [orderDesc(skillVersions.createdAt)],
         },
       },
@@ -267,16 +365,7 @@ export async function getSkillBySlug(slug: string): Promise<SkillDetail | null> 
 
     return {
       ...baseSkill,
-      versions: skill.versions.map((version) => ({
-        id: version.id,
-        skillId: version.skillId,
-        version: version.version,
-        content: version.content,
-        changelog: version.changelog,
-        compatibleWith: version.compatibleWith,
-        metadata: version.metadata,
-        createdAt: toIso(version.createdAt),
-      })),
+      versions: skill.versions.map((version) => mapVersion(version)),
     };
   } catch {
     return null;
@@ -310,7 +399,11 @@ export async function getStarredSkillsForUser(userId: string): Promise<SkillList
         skill: {
           with: {
             author: true,
-            currentVersion: true,
+            currentVersion: {
+              with: {
+                files: true,
+              },
+            },
             parentFork: {
               with: {
                 parentSkill: {
@@ -346,7 +439,11 @@ export async function getProfileByUsername(username: string): Promise<ProfileDat
         skills: {
           with: {
             author: true,
-            currentVersion: true,
+            currentVersion: {
+              with: {
+                files: true,
+              },
+            },
             parentFork: {
               with: {
                 parentSkill: {

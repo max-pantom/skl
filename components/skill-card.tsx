@@ -2,11 +2,22 @@ import Link from "next/link";
 
 import { TagList } from "@/components/tag-list";
 import type { SkillListItem } from "@/lib/types";
-import { formatDate, formatNumber } from "@/lib/utils";
+import { cn, formatDate, formatNumber } from "@/lib/utils";
 
-export function SkillCard({ skill }: { skill: SkillListItem }) {
+export function SkillCard({
+  skill,
+  dividers = true,
+}: {
+  skill: SkillListItem;
+  dividers?: boolean;
+}) {
   return (
-    <article className="group border-b border-zinc-200 py-6 transition-colors hover:bg-[rgba(36,36,36,0.04)]">
+    <article
+      className={cn(
+        "group py-6 transition-colors hover:bg-[rgba(36,36,36,0.04)]",
+        dividers && "border-b border-zinc-200",
+      )}
+    >
       <div className="flex flex-col gap-4 px-2 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
         <div className="min-w-0 flex-1 space-y-4">
           <div className="flex flex-wrap items-center gap-3">

@@ -103,12 +103,16 @@ This is not feature dumping. It is staged to match how the product should evolve
 
 **Goal:** SKL becomes a system, not just a registry.
 
+## Phase 6 - Cli
+
 ### Add later
 
 - Multi-step skills (chains)
 - Tool usage (APIs, actions)
 - Agent compatibility
 - Install to external agents
+
+
 
 ## What NOT to build yet
 

@@ -118,7 +118,9 @@ export async function PublishSkillForm() {
 
           <div className="border-t border-zinc-200 pt-6">
             <p className="text-[16px] font-medium text-[#8f8f8f]">
-              Public metadata should read like the profile page: short, clear, and scannable.
+              Public metadata should stay short and scannable. The version bundle below always needs a
+              <code className="mx-1 font-mono text-xs">SKILL.md</code>
+              file, and you can add more text files beside it.
             </p>
           </div>
         </div>

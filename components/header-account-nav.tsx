@@ -24,6 +24,7 @@ export function HeaderAccountNav({ viewer }: { viewer: AppViewer | null }) {
 
   const createHref = viewer ? "/new" : "/login?next=%2Fnew";
   const settingsHref = "/settings";
+  const profileHref = viewer ? `/u/${viewer.username}` : "/settings";
 
   return (
     <div className="flex items-center gap-2">
@@ -37,12 +38,12 @@ export function HeaderAccountNav({ viewer }: { viewer: AppViewer | null }) {
           </Link>
         ) : (
           <Link
-            href={settingsHref}
+            href={profileHref}
             className={cn(
               "size-8 shrink-0 overflow-hidden rounded-full ring-offset-2 transition hover:opacity-90",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400",
             )}
-            aria-label="Settings"
+            aria-label="Your profile"
           >
             <ProfileAvatar
               avatarUrl={viewer.avatarUrl}

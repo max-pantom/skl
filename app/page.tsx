@@ -1,16 +1,18 @@
 import Link from "next/link";
 
+import { CreatorCard } from "@/components/creator-card";
 import { PageIntro } from "@/components/page-intro";
 import { PlaceholderPanel } from "@/components/placeholder-panel";
 import { SectionHeading } from "@/components/section-heading";
 import { SkillCard } from "@/components/skill-card";
-import { getExploreSkills, getFeaturedSkills, getRecentSkills } from "@/lib/data";
+import { getExploreSkills, getNewestSkills, getTopCreators, getTrendingSkills } from "@/lib/data";
 import { launchCategories } from "@/lib/types";
 
 export default async function HomePage() {
-  const [featuredSkills, recentSkills, allSkills] = await Promise.all([
-    getFeaturedSkills(3),
-    getRecentSkills(3),
+  const [trendingSkills, newestSkills, topCreators, allSkills] = await Promise.all([
+    getTrendingSkills(3),
+    getNewestSkills(3),
+    getTopCreators(5),
     getExploreSkills(),
   ]);
 
@@ -39,16 +41,16 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="border-t border-zinc-200 pt-8">
+      <section>
         <SectionHeading
-          eyebrow="Featured"
-          title="Popular skills"
-          description="Sorted by engagement. Sign in to star, fork, or publish your own."
+          eyebrow="Trending"
+          title="Trending skills"
+          description="Weighted by stars, downloads, and forks. Sign in to star, fork, or publish your own."
         />
-        {featuredSkills.length ? (
+        {trendingSkills.length ? (
           <div className="mt-6">
-            {featuredSkills.map((skill) => (
-              <SkillCard key={skill.id} skill={skill} />
+            {trendingSkills.map((skill) => (
+              <SkillCard key={skill.id} skill={skill} dividers={false} />
             ))}
           </div>
         ) : (
@@ -60,21 +62,44 @@ export default async function HomePage() {
       </section>
 
       <section className="border-t border-zinc-200 pt-8">
-        <SectionHeading eyebrow="Recent" title="Latest updates" description="New versions and fresh publishes." />
-        {recentSkills.length ? (
+        <SectionHeading
+          eyebrow="Newest"
+          title="Newest skills"
+          description="Recently published to the registry (by first publish date)."
+        />
+        {newestSkills.length ? (
           <div className="mt-6">
-            {recentSkills.map((skill) => (
-              <SkillCard key={skill.id} skill={skill} />
+            {newestSkills.map((skill) => (
+              <SkillCard key={skill.id} skill={skill} dividers={false} />
             ))}
           </div>
         ) : (
-          <div className="border-t border-zinc-200 py-12 text-center text-[16px] font-medium text-[#8f8f8f]">
-            No recent updates yet.
+          <div className="py-12 text-center text-[16px] font-medium text-[#8f8f8f]">
+            No new publishes yet.
           </div>
         )}
       </section>
 
       <section className="border-t border-zinc-200 pt-8">
+        <SectionHeading
+          eyebrow="Creators"
+          title="Top creators"
+          description="Authors ranked by total stars across their skills."
+        />
+        {topCreators.length ? (
+          <div className="mt-6">
+            {topCreators.map((creator) => (
+              <CreatorCard key={creator.user.id} creator={creator} dividers={false} />
+            ))}
+          </div>
+        ) : (
+          <div className="py-12 text-center text-[16px] font-medium text-[#8f8f8f]">
+            No creators yet.
+          </div>
+        )}
+      </section>
+
+      <section>
         <SectionHeading
           eyebrow="Browse"
           title="By category"

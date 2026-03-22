@@ -5,8 +5,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { db, isDatabaseConfigured } from "@/db";
-import { forks, skillVersions, skills, stars, users } from "@/db/schema";
+import { forks, skillVersionFiles, skillVersions, skills, stars, users } from "@/db/schema";
 import { isAppConfigured, requireCurrentViewer } from "@/lib/auth";
+import {
+  PRIMARY_SKILL_FILE,
+  getPrimarySkillFile,
+  isValidSkillFilePath,
+  normalizeSkillFilePath,
+} from "@/lib/skill-files";
 import { launchCategories, type SkillCategory } from "@/lib/types";
 import {
   getString,
@@ -15,6 +21,11 @@ import {
   slugify,
   withQuery,
 } from "@/lib/utils";
+
+type SubmittedSkillFile = {
+  path: string;
+  content: string;
+};
 
 function redirectWithError(path: string, message: string): never {
   redirect(withQuery(path, { error: message }));
@@ -28,6 +39,74 @@ function ensureConfigured(path: string) {
 
 function isCategory(value: string): value is SkillCategory {
   return launchCategories.includes(value as SkillCategory);
+}
+
+function normalizeSubmittedFiles(files: SubmittedSkillFile[]) {
+  return files.map((file, index) => ({
+    path: normalizeSkillFilePath(file.path),
+    content: typeof file.content === "string" ? file.content : "",
+    sortOrder: index,
+  }));
+}
+
+function readSubmittedFiles(formData: FormData) {
+  const rawFiles = getString(formData.get("files"));
+  const legacyContent = getString(formData.get("content"));
+  let parsedFiles: SubmittedSkillFile[] = [];
+
+  if (rawFiles) {
+    try {
+      const value = JSON.parse(rawFiles);
+
+      if (!Array.isArray(value)) {
+        throw new Error("Publish the skill again. The file payload is invalid.");
+      }
+
+      parsedFiles = value.map((file) => ({
+        path: typeof file?.path === "string" ? file.path : "",
+        content: typeof file?.content === "string" ? file.content : "",
+      }));
+    } catch {
+      throw new Error("Publish the skill again. The file payload is invalid.");
+    }
+  } else if (legacyContent) {
+    parsedFiles = [{ path: PRIMARY_SKILL_FILE, content: legacyContent }];
+  }
+
+  const files = normalizeSubmittedFiles(parsedFiles);
+
+  if (!files.length) {
+    throw new Error("Add at least one file before publishing.");
+  }
+
+  const seenPaths = new Set<string>();
+
+  for (const file of files) {
+    if (!file.path) {
+      throw new Error("Every file needs a path.");
+    }
+
+    if (!isValidSkillFilePath(file.path)) {
+      throw new Error(`"${file.path}" is not a valid relative file path.`);
+    }
+
+    if (seenPaths.has(file.path)) {
+      throw new Error(`"${file.path}" is listed more than once.`);
+    }
+
+    seenPaths.add(file.path);
+  }
+
+  const primaryFile = getPrimarySkillFile(files);
+
+  if (!primaryFile || primaryFile.path !== PRIMARY_SKILL_FILE) {
+    throw new Error("SKILL.md is required for every version.");
+  }
+
+  return {
+    files,
+    content: primaryFile.content,
+  };
 }
 
 async function getUniqueSkillSlug(baseSlug: string, excludeSkillId?: string) {
@@ -53,6 +132,7 @@ async function getUniqueSkillSlug(baseSlug: string, excludeSkillId?: string) {
 }
 
 function readSkillFields(formData: FormData) {
+  const { files, content } = readSubmittedFiles(formData);
   const title = getString(formData.get("title"));
   const explicitSlug = getString(formData.get("slug"));
   const summary = getString(formData.get("summary"));
@@ -60,7 +140,6 @@ function readSkillFields(formData: FormData) {
   const visibility = getString(formData.get("visibility")) || "public";
   const version = getString(formData.get("version"));
   const changelog = getString(formData.get("changelog"));
-  const content = getString(formData.get("content"));
   const tags = parseCommaSeparatedList(formData.get("tags"));
   const compatibleWith = parseCommaSeparatedList(formData.get("compatibleWith"));
 
@@ -73,6 +152,7 @@ function readSkillFields(formData: FormData) {
     version,
     changelog,
     content,
+    files,
     tags,
     compatibleWith,
   };
@@ -120,7 +200,13 @@ export async function createSkillAction(formData: FormData) {
   ensureConfigured("/new");
 
   const viewer = await requireCurrentViewer("/new");
-  const fields = readSkillFields(formData);
+  let fields: ReturnType<typeof readSkillFields>;
+
+  try {
+    fields = readSkillFields(formData);
+  } catch (error) {
+    redirectWithError("/new", error instanceof Error ? error.message : "The skill files could not be read.");
+  }
 
   if (!fields.title || !fields.summary || !fields.version || !fields.content) {
     redirectWithError("/new", "Title, summary, version, and content are required.");
@@ -160,6 +246,15 @@ export async function createSkillAction(formData: FormData) {
       })
       .returning();
 
+    await tx.insert(skillVersionFiles).values(
+      fields.files.map((file) => ({
+        skillVersionId: version.id,
+        path: file.path,
+        content: file.content,
+        sortOrder: file.sortOrder,
+      })),
+    );
+
     await tx
       .update(skills)
       .set({
@@ -181,7 +276,16 @@ export async function updateSkillAction(formData: FormData) {
 
   const viewer = await requireCurrentViewer(`/s/${currentSlug}/edit`);
   const skillId = getString(formData.get("skillId"));
-  const fields = readSkillFields(formData);
+  let fields: ReturnType<typeof readSkillFields>;
+
+  try {
+    fields = readSkillFields(formData);
+  } catch (error) {
+    redirectWithError(
+      `/s/${currentSlug}/edit`,
+      error instanceof Error ? error.message : "The skill files could not be read.",
+    );
+  }
 
   if (!skillId || !fields.title || !fields.summary || !fields.version || !fields.content) {
     redirectWithError(`/s/${currentSlug}/edit`, "All primary fields are required.");
@@ -223,6 +327,15 @@ export async function updateSkillAction(formData: FormData) {
         metadata: {},
       })
       .returning();
+
+    await tx.insert(skillVersionFiles).values(
+      fields.files.map((file) => ({
+        skillVersionId: version.id,
+        path: file.path,
+        content: file.content,
+        sortOrder: file.sortOrder,
+      })),
+    );
 
     const [skill] = await tx
       .update(skills)
@@ -311,7 +424,11 @@ export async function forkSkillAction(formData: FormData) {
   const sourceSkill = await db!.query.skills.findFirst({
     where: eq(skills.id, parentSkillId),
     with: {
-      currentVersion: true,
+      currentVersion: {
+        with: {
+          files: true,
+        },
+      },
     },
   });
 
@@ -321,6 +438,10 @@ export async function forkSkillAction(formData: FormData) {
 
   const parentSkill = sourceSkill;
   const parentVersion = sourceSkill.currentVersion;
+  const parentFiles =
+    parentVersion.files.length > 0
+      ? parentVersion.files
+      : [{ path: PRIMARY_SKILL_FILE, content: parentVersion.content, sortOrder: 0 }];
   const childSlug = await getUniqueSkillSlug(`${parentSkill.slug}-${sanitizeUsername(viewer.username)}`);
 
   const childSkill = await db!.transaction(async (tx) => {
@@ -349,6 +470,15 @@ export async function forkSkillAction(formData: FormData) {
         metadata: parentVersion.metadata,
       })
       .returning();
+
+    await tx.insert(skillVersionFiles).values(
+      parentFiles.map((file, index) => ({
+        skillVersionId: version.id,
+        path: file.path,
+        content: file.content,
+        sortOrder: file.sortOrder ?? index,
+      })),
+    );
 
     await tx
       .update(skills)

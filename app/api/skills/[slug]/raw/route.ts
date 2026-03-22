@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { downloads, skills } from "@/db/schema";
 import { getCurrentViewer } from "@/lib/auth";
 import { getSkillBySlug } from "@/lib/data";
+import { selectSkillFile } from "@/lib/skill-files";
 
 type RawSkillRouteProps = {
   params: Promise<{
@@ -11,7 +12,7 @@ type RawSkillRouteProps = {
   }>;
 };
 
-export async function GET(_: Request, { params }: RawSkillRouteProps) {
+export async function GET(request: Request, { params }: RawSkillRouteProps) {
   const { slug } = await params;
   const skill = await getSkillBySlug(slug);
 
@@ -41,11 +42,19 @@ export async function GET(_: Request, { params }: RawSkillRouteProps) {
     }
   }
 
-  const filename = `${skill.slug}-${skill.currentVersion.version}.md`;
+  const requestedPath = new URL(request.url).searchParams.get("path");
+  const selectedFile = selectSkillFile(skill.currentVersion.files, requestedPath);
 
-  return new Response(skill.currentVersion.content, {
+  if (!selectedFile || (requestedPath && selectedFile.path !== requestedPath)) {
+    return new Response("File not found", { status: 404 });
+  }
+
+  const filename = `${skill.slug}-${skill.currentVersion.version}-${selectedFile.path.replace(/\//g, "-")}`;
+  const contentType = /\.md$/i.test(selectedFile.path) ? "text/markdown; charset=utf-8" : "text/plain; charset=utf-8";
+
+  return new Response(selectedFile.content, {
     headers: {
-      "content-type": "text/markdown; charset=utf-8",
+      "content-type": contentType,
       "content-disposition": `attachment; filename="${filename}"`,
       "cache-control": "no-store",
     },

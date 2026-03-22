@@ -9,6 +9,15 @@ export const launchCategories = [
 
 export type SkillCategory = (typeof launchCategories)[number];
 
+export type SkillVersionFileRecord = {
+  id: string;
+  skillVersionId: string;
+  path: string;
+  content: string;
+  sortOrder: number;
+  createdAt: string;
+};
+
 export type PublicUser = {
   id: string;
   username: string;
@@ -25,6 +34,7 @@ export type SkillVersionRecord = {
   skillId: string;
   version: string;
   content: string;
+  files: SkillVersionFileRecord[];
   changelog: string | null;
   compatibleWith: string[];
   metadata: Record<string, unknown>;
@@ -70,6 +80,13 @@ export type ExploreFilters = {
 export type ProfileData = {
   user: PublicUser;
   skills: SkillListItem[];
+};
+
+/** Aggregated for discovery (e.g. home “Top creators”). */
+export type TopCreator = {
+  user: PublicUser;
+  skillCount: number;
+  totalStars: number;
 };
 
 export type AppViewer = PublicUser & {
