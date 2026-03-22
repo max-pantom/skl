@@ -173,7 +173,6 @@ export async function updateProfileAction(formData: FormData) {
   const bio = getString(formData.get("bio"));
   const website = getString(formData.get("website"));
   const xUrl = getString(formData.get("xUrl"));
-  const avatarUrl = getString(formData.get("avatarUrl"));
 
   if (!displayName) {
     redirectWithError("/settings", "Display name is required.");
@@ -186,7 +185,7 @@ export async function updateProfileAction(formData: FormData) {
       bio: bio || null,
       website: website || null,
       xUrl: xUrl || null,
-      avatarUrl: avatarUrl || null,
+      avatarUrl: viewer.avatarUrl,
       updatedAt: new Date(),
     })
     .where(eq(users.id, viewer.id));

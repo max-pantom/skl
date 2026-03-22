@@ -58,9 +58,9 @@ export function ProfileView({
             </div>
           </div>
 
-          <p className="text-[16px] font-medium leading-[1.15] text-[#242424] opacity-80">
-            {user.bio ?? "Hi am the creator of what your looking at right now"}
-          </p>
+          {user.bio ? (
+            <p className="text-[16px] font-medium leading-[1.15] text-[#242424] opacity-80">{user.bio}</p>
+          ) : null}
 
           <div className="flex w-full items-center justify-center gap-6 text-[16px] text-[rgba(36,36,36,0.6)]">
             <div className="flex items-center gap-1.5">

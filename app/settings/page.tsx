@@ -37,10 +37,6 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           — username is fixed after signup.
         </p>
 
-        <p className="text-[16px] font-medium text-[#8f8f8f]">
-          Role: <span className="font-medium uppercase text-[#242424]">{viewer.role}</span>
-        </p>
-
         <label className="profile-field-row block">
           <span className="profile-field-label">Display name</span>
           <input
@@ -79,17 +75,6 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             type="url"
             placeholder="https://x.com/…"
             defaultValue={viewer.xUrl ?? ""}
-            className="skl-input"
-          />
-        </label>
-
-        <label className="profile-field-row block">
-          <span className="profile-field-label">Avatar image URL</span>
-          <input
-            name="avatarUrl"
-            type="url"
-            placeholder="https://"
-            defaultValue={viewer.avatarUrl ?? ""}
             className="skl-input"
           />
         </label>

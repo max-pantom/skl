@@ -8,13 +8,16 @@ import {
   ShieldAvatar,
 } from "@/components/shield-avatar";
 
-/** Tunable 2D tilt (skew) — use on `/test2`; copy JSON to port into `ProfileAvatar` wrapper later. */
+/** Tunable 3D hover — use on `/test2`; copy JSON to port into `ProfileAvatar` wrapper later. */
 export const DEFAULT_PARALLAX_PARAMS = {
-  maxTiltX: 12,
-  maxTiltY: 14,
+  perspective: 900,
+  maxRotateX: 14,
+  maxRotateY: 18,
   tiltSensitivity: 1,
   idleScale: 1,
-  hoverScale: 0.96,
+  hoverScale: 0.94,
+  idleTranslateZ: 0,
+  hoverTranslateZ: -14,
   transitionMs: 180,
   easing: "cubic-bezier(0.22, 1, 0.36, 1)",
   shadowIdle: "0 8px 24px rgba(36, 36, 36, 0.12)",
@@ -22,11 +25,14 @@ export const DEFAULT_PARALLAX_PARAMS = {
 } as const;
 
 export type ParallaxParams = {
-  maxTiltX: number;
-  maxTiltY: number;
+  perspective: number;
+  maxRotateX: number;
+  maxRotateY: number;
   tiltSensitivity: number;
   idleScale: number;
   hoverScale: number;
+  idleTranslateZ: number;
+  hoverTranslateZ: number;
   transitionMs: number;
   easing: string;
   shadowIdle: string;
@@ -104,11 +110,11 @@ export function ProfileAvatarParallaxExperiment() {
       const x = (e.clientX - r.left) / r.width - 0.5;
       const y = (e.clientY - r.top) / r.height - 0.5;
       const sens = p.tiltSensitivity;
-      setRy(clamp(x * 2 * p.maxTiltY * sens, -p.maxTiltY * 1.25, p.maxTiltY * 1.25));
-      setRx(clamp(-y * 2 * p.maxTiltX * sens, -p.maxTiltX * 1.25, p.maxTiltX * 1.25));
+      setRy(clamp(x * 2 * p.maxRotateY * sens, -p.maxRotateY * 1.25, p.maxRotateY * 1.25));
+      setRx(clamp(-y * 2 * p.maxRotateX * sens, -p.maxRotateX * 1.25, p.maxRotateX * 1.25));
       setTracking(true);
     },
-    [p.maxTiltX, p.maxTiltY, p.tiltSensitivity],
+    [p.maxRotateX, p.maxRotateY, p.tiltSensitivity],
   );
 
   const onLeave = useCallback(() => {
@@ -118,11 +124,12 @@ export function ProfileAvatarParallaxExperiment() {
     setTracking(false);
   }, []);
 
+  const translateZ = hover ? p.hoverTranslateZ : p.idleTranslateZ;
   const scale = hover ? p.hoverScale : p.idleScale;
   const shadow = hover ? p.shadowHover : p.shadowIdle;
 
-  /** 2D skew only — pointer vertical → skewY (top/bottom), horizontal → skewX. No 3D / perspective. */
-  const transform = `skewY(${rx}deg) skewX(${ry}deg) scale(${scale})`;
+  /** perspective() on the transformed layer avoids flattening from overflow-hidden ancestors in Chrome. */
+  const transform = `perspective(${p.perspective}px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(${translateZ}px) scale(${scale})`;
 
   const avatarPx = Math.max(48, size);
 
@@ -170,9 +177,11 @@ export function ProfileAvatarParallaxExperiment() {
 
           <Slider label="Avatar size (px)" value={size} onChange={setSize} min={64} max={200} step={1} />
 
-          <Slider label="Max tilt vertical (skewY °)" value={p.maxTiltX} onChange={(v) => setP((s) => ({ ...s, maxTiltX: v }))} min={0} max={24} step={0.5} />
+          <Slider label="Perspective" value={p.perspective} onChange={(v) => setP((s) => ({ ...s, perspective: v }))} min={400} max={1600} step={10} />
 
-          <Slider label="Max tilt horizontal (skewX °)" value={p.maxTiltY} onChange={(v) => setP((s) => ({ ...s, maxTiltY: v }))} min={0} max={28} step={0.5} />
+          <Slider label="Max rotate X (deg)" value={p.maxRotateX} onChange={(v) => setP((s) => ({ ...s, maxRotateX: v }))} min={0} max={28} step={0.5} />
+
+          <Slider label="Max rotate Y (deg)" value={p.maxRotateY} onChange={(v) => setP((s) => ({ ...s, maxRotateY: v }))} min={0} max={32} step={0.5} />
 
           <Slider
             label="Tilt sensitivity"
@@ -185,7 +194,18 @@ export function ProfileAvatarParallaxExperiment() {
 
           <Slider label="Idle scale" value={p.idleScale} onChange={(v) => setP((s) => ({ ...s, idleScale: v }))} min={0.85} max={1} step={0.005} />
 
-          <Slider label="Hover scale" value={p.hoverScale} onChange={(v) => setP((s) => ({ ...s, hoverScale: v }))} min={0.8} max={1} step={0.005} />
+          <Slider label="Hover scale (inset)" value={p.hoverScale} onChange={(v) => setP((s) => ({ ...s, hoverScale: v }))} min={0.8} max={1} step={0.005} />
+
+          <Slider label="Idle translateZ (px)" value={p.idleTranslateZ} onChange={(v) => setP((s) => ({ ...s, idleTranslateZ: v }))} min={-40} max={40} step={1} />
+
+          <Slider
+            label="Hover translateZ (px)"
+            value={p.hoverTranslateZ}
+            onChange={(v) => setP((s) => ({ ...s, hoverTranslateZ: v }))}
+            min={-60}
+            max={20}
+            step={1}
+          />
 
           <Slider label="Transition (ms)" value={p.transitionMs} onChange={(v) => setP((s) => ({ ...s, transitionMs: v }))} min={0} max={500} step={10} />
 
@@ -251,6 +271,7 @@ export function ProfileAvatarParallaxExperiment() {
                 className="flex h-full w-full items-center justify-center rounded-full"
                 style={{
                   transform,
+                  transformOrigin: "center center",
                   transformStyle: "preserve-3d",
                   transition: tracking
                     ? "none"
@@ -286,7 +307,7 @@ export function ProfileAvatarParallaxExperiment() {
             </div>
           </div>
           <p className="max-w-sm text-center text-[13px] font-medium text-[#8f8f8f]">
-            Move the pointer — skew tilt follows; leave to reset.
+            Move the pointer for tilt; leave to reset. Hover adds depth (scale + translateZ).
           </p>
         </div>
       </div>

@@ -14,10 +14,9 @@ const linkClass = {
     "inline-flex h-8 items-center justify-center rounded-[20px] px-3 text-base font-medium leading-none transition bg-[rgba(228,228,228,0.2)] text-[#8f8f8f] hover:bg-[rgba(228,228,228,0.32)] hover:text-[#5f5f5f]",
 } as const;
 
-/** Settings in the header instead of the avatar: on /settings or on your own profile. */
+/** “Settings” pill on your own profile; everywhere else (including /settings) use the avatar → profile. */
 function showSettingsInsteadOfAvatar(pathname: string, viewer: AppViewer | null) {
   if (!viewer) return false;
-  if (pathname === "/settings" || pathname.startsWith("/settings/")) return true;
   return pathname === `/u/${viewer.username}`;
 }
 
