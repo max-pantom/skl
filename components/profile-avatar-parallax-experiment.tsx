@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import {
@@ -133,13 +134,29 @@ export function ProfileAvatarParallaxExperiment() {
 
   const avatarPx = Math.max(48, size);
 
+  /** 3D applies only to the art layer; the circular mask is an untransformed ancestor (shield uses clipToCircle=false). */
+  const artLayerStyle: CSSProperties = useMemo(
+    () => ({
+      transform,
+      transformOrigin: mode === "shield" ? "50% 48%" : "50% 50%",
+      transformStyle: "preserve-3d",
+      transition: tracking
+        ? "none"
+        : `transform ${p.transitionMs}ms ${p.easing}, box-shadow ${p.transitionMs}ms ${p.easing}`,
+      boxShadow: shadow,
+      willChange: "transform",
+    }),
+    [transform, mode, tracking, p.transitionMs, p.easing, shadow],
+  );
+
   return (
     <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-10 px-4 pb-16">
       <div className="flex flex-col gap-2">
-        <h1 className="text-[22px] font-semibold text-[#242424]">Profile avatar — tilt hover (experiment)</h1>
+        <h1 className="text-[22px] font-semibold text-[#242424]">Profile avatar — 3D parallax (experiment)</h1>
         <p className="max-w-2xl text-[15px] font-medium leading-relaxed text-[#5f5f5f]">
-          2D tilt via CSS <code className="rounded bg-[#f4f4f4] px-1 font-mono text-[13px]">skew</code> (no 3D). Move
-          the pointer over the avatar; hover slightly scales it.
+          Perspective and rotation apply to the <strong className="font-semibold text-[#242424]">artwork only</strong>{" "}
+          (photo or SVG paths). The circular mask stays fixed in screen space so the shield&apos;s top and bottom read in
+          depth; hover adds scale + translateZ.
         </p>
         <p className="text-[14px] font-medium text-[#8f8f8f]">
           <a href="/test/playground" className="text-[#242424] underline decoration-dotted underline-offset-4">
@@ -266,36 +283,28 @@ export function ProfileAvatarParallaxExperiment() {
             onPointerLeave={onLeave}
             onPointerMove={onMove}
           >
+            {/* Fixed porthole — not transformed. 3D lives on the child so shield paths tilt inside the circle. */}
             <div className="absolute inset-0 overflow-hidden rounded-full">
-              <div
-                className="flex h-full w-full items-center justify-center rounded-full"
-                style={{
-                  transform,
-                  transformOrigin: "center center",
-                  transformStyle: "preserve-3d",
-                  transition: tracking
-                    ? "none"
-                    : `transform ${p.transitionMs}ms ${p.easing}, box-shadow ${p.transitionMs}ms ${p.easing}`,
-                  boxShadow: shadow,
-                  willChange: "transform",
-                }}
-              >
+              <div className="flex h-full w-full items-center justify-center">
                 {mode === "photo" ? (
-                  <img
-                    src={SAMPLE_USER.photoUrl}
-                    alt={SAMPLE_USER.displayName}
-                    width={avatarPx}
-                    height={avatarPx}
-                    className="pointer-events-none block h-full w-full rounded-full object-cover"
-                    draggable={false}
-                  />
+                  <div className="pointer-events-none h-full w-full" style={artLayerStyle}>
+                    <img
+                      src={SAMPLE_USER.photoUrl}
+                      alt={SAMPLE_USER.displayName}
+                      width={avatarPx}
+                      height={avatarPx}
+                      className="block h-full w-full rounded-full object-cover"
+                      draggable={false}
+                    />
+                  </div>
                 ) : (
-                  <div className="pointer-events-none flex h-full w-full items-center justify-center [&_svg]:h-full [&_svg]:max-h-full [&_svg]:w-full [&_svg]:max-w-full">
+                  <div className="pointer-events-none inline-flex" style={artLayerStyle}>
                     <ShieldAvatar
                       seed={SAMPLE_USER.userId}
                       size={avatarPx}
                       showDebug={false}
                       includeOuterDisc={false}
+                      clipToCircle={false}
                       avatarScale={DEFAULT_SHIELD_LAYOUT.avatarScale}
                       avatarOffsetX={DEFAULT_SHIELD_LAYOUT.avatarOffsetX}
                       avatarOffsetY={DEFAULT_SHIELD_LAYOUT.avatarOffsetY}
@@ -307,7 +316,7 @@ export function ProfileAvatarParallaxExperiment() {
             </div>
           </div>
           <p className="max-w-sm text-center text-[13px] font-medium text-[#8f8f8f]">
-            Move the pointer for tilt; leave to reset. Hover adds depth (scale + translateZ).
+            3D applies to the art only; the circle is a fixed mask. Leave to reset.
           </p>
         </div>
       </div>

@@ -180,6 +180,11 @@ export type ShieldAvatarProps = {
   topStarScale?: number;
   /** When false, omit the light gray outer disc — use when a parent provides the circular frame (e.g. parallax shell). */
   includeOuterDisc?: boolean;
+  /**
+   * When false, omit the inner SVG circular clip. Use when a parent masks with CSS (e.g. overflow-hidden
+   * rounded-full) so the mask stays in screen space while the SVG tilts in 3D — only the paths move.
+   */
+  clipToCircle?: boolean;
 };
 
 export function ShieldAvatar({
@@ -192,6 +197,7 @@ export function ShieldAvatar({
   avatarOffsetY = DEFAULT_SHIELD_LAYOUT.avatarOffsetY,
   topStarScale: topStarScaleProp,
   includeOuterDisc = true,
+  clipToCircle = true,
 }: ShieldAvatarProps) {
   const instanceId = useId().replace(/:/g, "");
   const base = useMemo(() => paramsFromSeed(seed), [seed]);
@@ -240,6 +246,21 @@ export function ShieldAvatar({
     return `translate(${avatarOffsetX} ${avatarOffsetY}) translate(${cx} ${cy}) scale(${avatarScale}) translate(${-cx} ${-cy})`;
   }, [avatarScale, avatarOffsetX, avatarOffsetY]);
 
+  const shieldArt = (
+    <g transform={avatarContentTransform}>
+      <g transform={shieldTransform}>
+        <path d={BOTTOM_PATH} fill={botFill} stroke={p.stroke} strokeWidth={p.strokeWidth} strokeLinejoin="round" />
+        <path d={topPath} fill={topFill} stroke={p.stroke} strokeWidth={p.strokeWidth} strokeLinejoin="round" />
+        {showDebug && (
+          <g opacity={0.55} pointerEvents="none">
+            <line x1={GRAD_X1} y1={0} x2={GRAD_X1} y2={VB_H} stroke="#a1a1aa" strokeWidth={0.35} />
+            <circle cx={STAR_CX} cy={STAR_CY} r={2} fill="#f472b6" />
+          </g>
+        )}
+      </g>
+    </g>
+  );
+
   return (
     <svg
       width={size}
@@ -247,7 +268,7 @@ export function ShieldAvatar({
       viewBox={`0 0 ${FRAME_VB} ${FRAME_VB}`}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="shrink-0 overflow-hidden rounded-full"
+      className={clipToCircle ? "shrink-0 overflow-hidden rounded-full" : "shrink-0 overflow-visible"}
       aria-hidden
     >
       <defs>
@@ -275,9 +296,11 @@ export function ShieldAvatar({
           <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0" />
           <feBlend mode="normal" in2="shape" result="effect1_innerShadow" />
         </filter>
-        <clipPath id={`${uid}-avatarClip`} clipPathUnits="userSpaceOnUse">
-          <circle cx={FRAME_VB / 2} cy={FRAME_VB / 2} r={FRAME_CLIP_R} />
-        </clipPath>
+        {clipToCircle ? (
+          <clipPath id={`${uid}-avatarClip`} clipPathUnits="userSpaceOnUse">
+            <circle cx={FRAME_VB / 2} cy={FRAME_VB / 2} r={FRAME_CLIP_R} />
+          </clipPath>
+        ) : null}
         <linearGradient id={`${uid}-g-top`} x1={GRAD_X1} y1={GRAD_Y1} x2={GRAD_X2} y2={GRAD_Y2} gradientUnits="userSpaceOnUse">
           <stop stopColor={p.topStop0} />
           <stop offset="1" stopColor={p.topStop1} />
@@ -296,20 +319,7 @@ export function ShieldAvatar({
         </g>
       ) : null}
 
-      <g clipPath={`url(#${uid}-avatarClip)`}>
-        <g transform={avatarContentTransform}>
-          <g transform={shieldTransform}>
-            <path d={BOTTOM_PATH} fill={botFill} stroke={p.stroke} strokeWidth={p.strokeWidth} strokeLinejoin="round" />
-            <path d={topPath} fill={topFill} stroke={p.stroke} strokeWidth={p.strokeWidth} strokeLinejoin="round" />
-            {showDebug && (
-              <g opacity={0.55} pointerEvents="none">
-                <line x1={GRAD_X1} y1={0} x2={GRAD_X1} y2={VB_H} stroke="#a1a1aa" strokeWidth={0.35} />
-                <circle cx={STAR_CX} cy={STAR_CY} r={2} fill="#f472b6" />
-              </g>
-            )}
-          </g>
-        </g>
-      </g>
+      {clipToCircle ? <g clipPath={`url(#${uid}-avatarClip)`}>{shieldArt}</g> : shieldArt}
 
       {showDebug && (
         <circle
