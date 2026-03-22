@@ -88,6 +88,7 @@ export function MarkdownEditorPreview({
 }: MarkdownEditorPreviewProps) {
   const [files, setFiles] = useState(() => createInitialFiles(defaultFiles));
   const [activeFileId, setActiveFileId] = useState(() => createInitialFiles(defaultFiles)[0]?.id ?? "file-1");
+  const [activePane, setActivePane] = useState<"write" | "preview">("write");
   const nextIdRef = useRef(files.length + 1);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -282,49 +283,9 @@ export function MarkdownEditorPreview({
       <input type="hidden" name="files" value={serializedFiles} />
       <input type="hidden" name="content" value={primaryFile?.content ?? ""} />
 
-      <div className="space-y-3 border-y border-zinc-200 py-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => insertText("## ")} className="skl-btn skl-btn-secondary">
-            Heading
-          </button>
-          <button type="button" onClick={() => wrapSelection("**", "**", "bold")} className="skl-btn skl-btn-secondary">
-            Bold
-          </button>
-          <button type="button" onClick={() => wrapSelection("*", "*", "italic")} className="skl-btn skl-btn-secondary">
-            Italic
-          </button>
-          <button type="button" onClick={() => prefixLines("- ", "List item")} className="skl-btn skl-btn-secondary">
-            Bullet
-          </button>
-          <button type="button" onClick={() => prefixLines("1. ", "List item")} className="skl-btn skl-btn-secondary">
-            Numbered
-          </button>
-          <button type="button" onClick={() => prefixLines("> ", "Quoted text")} className="skl-btn skl-btn-secondary">
-            Quote
-          </button>
-          <button
-            type="button"
-            onClick={() => wrapSelection("```txt\n", "\n```", "code")}
-            className="skl-btn skl-btn-secondary"
-          >
-            Code block
-          </button>
-          <button
-            type="button"
-            onClick={() => wrapSelection("[", "](https://example.com)", "link text")}
-            className="skl-btn skl-btn-secondary"
-          >
-            Link
-          </button>
-          <button type="button" onClick={() => insertText("\n---\n")} className="skl-btn skl-btn-secondary">
-            Divider
-          </button>
-        </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="space-y-3">
-          <label className="profile-field-row block">
+      <div className="space-y-4 border-y border-zinc-200 py-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <label className="profile-field-row block lg:min-w-[320px] lg:max-w-[420px]">
             <span className="profile-field-label">File path</span>
             <input
               id="skill-file-path"
@@ -335,25 +296,86 @@ export function MarkdownEditorPreview({
             />
           </label>
 
-          <label className="profile-field-row block">
-            <span className="profile-field-label">Raw text</span>
-            <textarea
-              ref={textareaRef}
-              value={activeFile.content}
-              onChange={(event) => updateActiveFile({ content: event.target.value })}
-              rows={20}
-              className="min-h-[26rem] w-full resize-y rounded-[28px] border border-zinc-200 px-5 py-4 font-mono text-[14px] leading-6 text-[#242424] outline-none transition focus:border-[#242424]"
-              spellCheck={false}
-              placeholder={
-                normalizeSkillFilePath(activeFile.path) === PRIMARY_SKILL_FILE
-                  ? "# Skill\n\nWrite with normal markdown syntax here."
-                  : "Plain text file contents"
-              }
-            />
-          </label>
+          <div className="inline-flex w-full rounded-full bg-[rgba(228,228,228,0.45)] p-1 lg:w-auto">
+            <button
+              type="button"
+              onClick={() => setActivePane("write")}
+              className={`flex-1 rounded-full px-4 py-2 text-[15px] font-medium transition lg:flex-none ${
+                activePane === "write" ? "bg-[#242424] text-white" : "text-[#6f6f6f]"
+              }`}
+            >
+              Write
+            </button>
+            <button
+              type="button"
+              onClick={() => setActivePane("preview")}
+              className={`flex-1 rounded-full px-4 py-2 text-[15px] font-medium transition lg:flex-none ${
+                activePane === "preview" ? "bg-[#242424] text-white" : "text-[#6f6f6f]"
+              }`}
+            >
+              Preview
+            </button>
+          </div>
         </div>
 
-        <div className="space-y-3">
+        {activePane === "write" ? (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" onClick={() => insertText("## ")} className="skl-btn skl-btn-secondary">
+                Heading
+              </button>
+              <button type="button" onClick={() => wrapSelection("**", "**", "bold")} className="skl-btn skl-btn-secondary">
+                Bold
+              </button>
+              <button type="button" onClick={() => wrapSelection("*", "*", "italic")} className="skl-btn skl-btn-secondary">
+                Italic
+              </button>
+              <button type="button" onClick={() => prefixLines("- ", "List item")} className="skl-btn skl-btn-secondary">
+                Bullet
+              </button>
+              <button type="button" onClick={() => prefixLines("1. ", "List item")} className="skl-btn skl-btn-secondary">
+                Numbered
+              </button>
+              <button type="button" onClick={() => prefixLines("> ", "Quoted text")} className="skl-btn skl-btn-secondary">
+                Quote
+              </button>
+              <button
+                type="button"
+                onClick={() => wrapSelection("```txt\n", "\n```", "code")}
+                className="skl-btn skl-btn-secondary"
+              >
+                Code block
+              </button>
+              <button
+                type="button"
+                onClick={() => wrapSelection("[", "](https://example.com)", "link text")}
+                className="skl-btn skl-btn-secondary"
+              >
+                Link
+              </button>
+              <button type="button" onClick={() => insertText("\n---\n")} className="skl-btn skl-btn-secondary">
+                Divider
+              </button>
+            </div>
+
+            <label className="profile-field-row block">
+              <span className="profile-field-label">Raw text</span>
+              <textarea
+                ref={textareaRef}
+                value={activeFile.content}
+                onChange={(event) => updateActiveFile({ content: event.target.value })}
+                rows={20}
+                className="min-h-[26rem] w-full resize-y rounded-[28px] border border-zinc-200 px-5 py-4 font-mono text-[14px] leading-6 text-[#242424] outline-none transition focus:border-[#242424]"
+                spellCheck={false}
+                placeholder={
+                  normalizeSkillFilePath(activeFile.path) === PRIMARY_SKILL_FILE
+                    ? "# Skill\n\nWrite with normal markdown syntax here."
+                    : "Plain text file contents"
+                }
+              />
+            </label>
+          </>
+        ) : (
           <div className="profile-field-row">
             <div className="flex items-center justify-between gap-3">
               <span className="profile-field-label">Preview</span>
@@ -371,7 +393,7 @@ export function MarkdownEditorPreview({
               )}
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -61,23 +61,33 @@ export async function PublishSkillForm() {
               <label className="publish-form-label" htmlFor="category">
                 Category
               </label>
-              <select id="category" name="category" required className="publish-form-input">
-                {launchCategories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+              <div className="skl-select-shell">
+                <select id="category" name="category" required className="skl-select">
+                  {launchCategories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                <svg viewBox="0 0 16 16" aria-hidden className="skl-select-icon">
+                  <path d="M4 6.5 8 10.5l4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
             </div>
 
             <div className="publish-form-row">
               <label className="publish-form-label" htmlFor="visibility">
                 Visibility
               </label>
-              <select id="visibility" name="visibility" className="publish-form-input">
-                <option value="public">public</option>
-                <option value="unlisted">unlisted</option>
-              </select>
+              <div className="skl-select-shell">
+                <select id="visibility" name="visibility" className="skl-select">
+                  <option value="public">public</option>
+                  <option value="unlisted">unlisted</option>
+                </select>
+                <svg viewBox="0 0 16 16" aria-hidden className="skl-select-icon">
+                  <path d="M4 6.5 8 10.5l4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
             </div>
           </div>
 

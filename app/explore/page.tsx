@@ -50,14 +50,19 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
 
           <label className="profile-field-row block">
             <span className="profile-field-label">Category</span>
-            <select name="category" defaultValue={category} className="skl-input">
-              <option value="all">All</option>
-              {launchCategories.map((entry) => (
-                <option key={entry} value={entry}>
-                  {entry}
-                </option>
-              ))}
-            </select>
+            <div className="skl-select-shell">
+              <select name="category" defaultValue={category} className="skl-select">
+                <option value="all">All</option>
+                {launchCategories.map((entry) => (
+                  <option key={entry} value={entry}>
+                    {entry}
+                  </option>
+                ))}
+              </select>
+              <svg viewBox="0 0 16 16" aria-hidden className="skl-select-icon">
+                <path d="M4 6.5 8 10.5l4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
           </label>
 
           <button type="submit" className="skl-btn skl-btn-primary w-full lg:shrink-0">
@@ -96,7 +101,7 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
       </section>
 
       <section className="border-t border-zinc-200 pt-8">
-        <SectionHeading eyebrow="Results" title="Matches" description="Filtered live from title, summary, tags, and markdown body." />
+        <SectionHeading eyebrow="Results" title="Matches" />
         <p className="mt-6 text-[16px] font-medium text-[#8f8f8f]">
           <span className="tabular-nums text-[#242424]">{skills.length}</span> result
           {skills.length === 1 ? "" : "s"}

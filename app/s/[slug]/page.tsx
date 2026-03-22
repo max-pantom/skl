@@ -67,10 +67,8 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
       </section>
 
       <section className="mt-10 flex flex-col items-center text-center">
-        <div className="flex max-w-[720px] flex-col items-center gap-4">
-          <div className="w-full max-w-md">
-            <SkillAuthorCard author={skill.author} />
-          </div>
+        <div className="flex max-w-[720px] flex-col items-center gap-3">
+          <SkillAuthorCard author={skill.author} />
           <p className="page-kicker">{skill.category}</p>
           <div className="space-y-3">
             <h1 className="page-title">{skill.title}</h1>

@@ -21,33 +21,34 @@ const versionClass =
 /** Stacked layout — mobile and fallback. */
 export function ProfileSkillRow({ skill }: { skill: SkillListItem }) {
   return (
-    <article
+    <Link
+      href={`/s/${skill.slug}`}
       className={cn(
-        "grid grid-cols-1 gap-3 rounded-lg px-2 py-2 text-[16px] text-[#242424] sm:hidden",
+        "grid grid-cols-1 gap-3 rounded-[22px] px-3 py-3 text-[16px] text-[#242424] sm:hidden",
         rowHover,
       )}
     >
-      <div className="flex min-w-0 flex-col gap-9">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div className="text-left text-[16px] font-medium tabular-nums text-[#242424]/50">v{skill.currentVersion.version}</div>
+          <span className="rounded-[90px] bg-[rgba(228,228,228,0.8)] px-[6px] py-[2px] text-base font-medium leading-none text-[#8f8f8f] transition-colors group-hover:bg-[rgba(228,228,228,0.95)]">
+            {skill.category}
+          </span>
+        </div>
+        <div className={cn("flex items-center gap-1.5", metricMuted)}>
+          <IconMetricDownload className="size-[18px] shrink-0" />
+          <span>{formatNumber(skill.downloadsCount)}</span>
+        </div>
+      </div>
+      <div className="flex min-w-0 flex-col gap-3">
         <div className="min-w-0">
-          <Link href={`/s/${skill.slug}`} className={titleLinkClass}>
-            {skill.title}
-          </Link>
+          <span className={titleLinkClass}>{skill.title}</span>
         </div>
         <div className="min-w-0">
           <p className={summaryClass}>{skill.summary}</p>
         </div>
       </div>
-      <div className="flex justify-start">
-        <span className="rounded-[90px] bg-[rgba(228,228,228,0.8)] px-[6px] py-[2px] text-base font-medium leading-none text-[#8f8f8f] transition-colors group-hover:bg-[rgba(228,228,228,0.95)]">
-          {skill.category}
-        </span>
-      </div>
-      <div className={cn("flex items-center justify-end gap-1.5", metricMuted)}>
-        <IconMetricDownload className="size-[18px] shrink-0" />
-        <span>{formatNumber(skill.downloadsCount)}</span>
-      </div>
-      <div className={versionClass}>v{skill.currentVersion.version}</div>
-    </article>
+    </Link>
   );
 }
 
