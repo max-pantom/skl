@@ -6,3 +6,5 @@ node_modules
 dist
 coverage
 *.log
+generated-avatars/
+.DS_Store

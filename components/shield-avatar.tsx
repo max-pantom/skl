@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo } from "react";
+import React, { useId, useMemo } from "react";
 
 /** FNV-1a 32-bit — stable hash for any seed string */
 export function hashString(input: string): number {

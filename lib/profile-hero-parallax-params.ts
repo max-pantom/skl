@@ -1,20 +1,20 @@
 /**
  * Default 3D tilt for the hero profile avatar (`ProfileAvatar` with `parallax`).
- * Hover uses no box-shadow (see profile-avatar); idle keeps shadowIdle.
+ * Box-shadow is cleared while hovering (see profile-avatar); idle uses shadowIdle.
  */
 export const HERO_PROFILE_PARALLAX_PARAMS = {
-  perspective: 1600,
-  maxRotateX: 28,
-  maxRotateY: 11,
+  perspective: 970,
+  maxRotateX: 8,
+  maxRotateY: 18,
   tiltSensitivity: 1,
   idleScale: 1,
-  hoverScale: 1,
-  idleTranslateZ: 23,
-  hoverTranslateZ: -18,
+  hoverScale: 0.94,
+  idleTranslateZ: 0,
+  hoverTranslateZ: -14,
   transitionMs: 180,
   easing: "cubic-bezier(0.22, 1, 0.36, 1)",
   shadowIdle: "0 8px 24px rgba(36, 36, 36, 0.12)",
-  shadowHover: "0 18px 40px rgba(36, 36, 36, 0.2)",
+  shadowHover: "",
 } as const;
 
 export type HeroProfileParallaxParams = typeof HERO_PROFILE_PARALLAX_PARAMS;
