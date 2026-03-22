@@ -6,11 +6,11 @@ export function PlaceholderPanel({
   description: string;
 }) {
   return (
-    <section className="skl-surface mx-auto max-w-3xl p-8 sm:p-10">
-      <div className="space-y-4">
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-zinc-500">Shell route</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-ink">{title}</h1>
-        <p className="max-w-2xl text-sm leading-7 text-zinc-600">{description}</p>
+    <section className="border-t border-zinc-200 py-10 text-center">
+      <div className="mx-auto max-w-3xl space-y-4">
+        <p className="page-kicker">Shell route</p>
+        <h1 className="page-title">{title}</h1>
+        <p className="mx-auto max-w-2xl text-[16px] font-medium leading-[1.2] text-[#242424] opacity-80">{description}</p>
       </div>
     </section>
   );

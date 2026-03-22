@@ -46,13 +46,13 @@ export function EmailSignupForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto max-w-md space-y-5">
+    <form onSubmit={onSubmit} className="mx-auto w-full max-w-[560px] space-y-8 border-t border-zinc-200 pt-8">
       {error ? (
-        <p className="border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">{error}</p>
+        <p className="border-y border-red-200 py-3 text-[16px] font-medium text-red-700">{error}</p>
       ) : null}
 
-      <label className="block space-y-2">
-        <span className="text-sm font-medium text-ink">Username</span>
+      <label className="profile-field-row block">
+        <span className="profile-field-label">Username</span>
         <input
           type="text"
           name="username"
@@ -62,11 +62,11 @@ export function EmailSignupForm() {
           onChange={(ev) => setUsername(ev.target.value)}
           className="skl-input"
         />
-        <span className="text-xs text-zinc-500">Lowercase letters, numbers, and hyphens. Used in your profile URL.</span>
+        <span className="profile-field-help">Lowercase letters, numbers, and hyphens. Used in your profile URL.</span>
       </label>
 
-      <label className="block space-y-2">
-        <span className="text-sm font-medium text-ink">Display name</span>
+      <label className="profile-field-row block">
+        <span className="profile-field-label">Display name</span>
         <input
           type="text"
           name="displayName"
@@ -78,8 +78,8 @@ export function EmailSignupForm() {
         />
       </label>
 
-      <label className="block space-y-2">
-        <span className="text-sm font-medium text-ink">Email</span>
+      <label className="profile-field-row block">
+        <span className="profile-field-label">Email</span>
         <input
           type="email"
           name="email"
@@ -91,8 +91,8 @@ export function EmailSignupForm() {
         />
       </label>
 
-      <label className="block space-y-2">
-        <span className="text-sm font-medium text-ink">Password</span>
+      <label className="profile-field-row block">
+        <span className="profile-field-label">Password</span>
         <input
           type="password"
           name="password"
@@ -108,16 +108,16 @@ export function EmailSignupForm() {
       <button
         type="submit"
         disabled={pending}
-        className="skl-btn skl-btn-primary w-full py-3 disabled:opacity-60"
+        className="skl-btn skl-btn-primary w-full justify-center"
       >
         {pending ? "Creating account…" : "Sign up"}
       </button>
 
-      <p className="text-center text-sm text-zinc-600">
+      <p className="text-center text-[16px] font-medium text-[#8f8f8f]">
         Already registered?{" "}
         <Link
           href={`/login?next=${encodeURIComponent(nextPath)}`}
-          className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+          className="profile-link"
         >
           Sign in
         </Link>

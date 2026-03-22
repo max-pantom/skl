@@ -2,15 +2,17 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <section className="skl-surface mx-auto max-w-2xl p-10 text-center">
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-zinc-500">404</p>
-      <h1 className="mt-4 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">Page not found</h1>
-      <p className="mt-4 text-sm leading-7 text-zinc-600">
-        The route exists in the registry map, but this record does not.
-      </p>
-      <Link href="/" className="skl-btn skl-btn-primary mt-8 inline-flex">
-        Back home
-      </Link>
-    </section>
+    <div className="page-shell">
+      <section className="flex flex-1 flex-col items-center justify-center text-center">
+        <div className="flex max-w-[520px] flex-col items-center gap-4">
+          <p className="page-kicker">404</p>
+          <h1 className="page-title">Page not found</h1>
+          <p className="page-description">The route exists in the registry map, but this record does not.</p>
+          <Link href="/" className="skl-btn skl-btn-primary mt-2">
+            Back home
+          </Link>
+        </div>
+      </section>
+    </div>
   );
 }

@@ -10,10 +10,10 @@ export function FormNotice({
   return (
     <div
       className={cn(
-        "border px-4 py-3 text-sm",
-        tone === "error" && "border-red-300 bg-red-50 text-red-900",
-        tone === "success" && "border-zinc-300 bg-zinc-50 text-zinc-900",
-        tone === "info" && "border-zinc-200 bg-white text-zinc-600",
+        "border-y px-0 py-3 text-[16px] font-medium",
+        tone === "error" && "border-red-200 text-red-700",
+        tone === "success" && "border-zinc-200 text-[#242424]",
+        tone === "info" && "border-zinc-200 text-[#8f8f8f]",
       )}
     >
       {children}

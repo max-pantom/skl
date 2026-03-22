@@ -51,162 +51,151 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
   const canEdit = viewer?.id === skill.author.id;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
-      <section className="space-y-6">
+    <div className="page-shell">
+      <section className="space-y-4">
         {query.error ? <FormNotice tone="error">{query.error}</FormNotice> : null}
         {query.message ? <FormNotice tone="success">{query.message}</FormNotice> : null}
+      </section>
 
-        <div className="skl-surface p-6 sm:p-8">
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-500">{skill.category}</p>
-              <div className="space-y-3">
-                <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">{skill.title}</h1>
-                <p className="max-w-3xl text-sm leading-7 text-zinc-600 sm:text-base sm:leading-8">{skill.summary}</p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-600">
-                <Link href={`/u/${skill.author.username}`} className="font-medium text-ink">
-                  {skill.author.displayName}
-                </Link>
-                <span className="text-zinc-300">·</span>
-                <span>@{skill.author.username}</span>
-                <span className="text-zinc-300">·</span>
-                <span>Updated {formatDate(skill.updatedAt)}</span>
-              </div>
-            </div>
-
-            <TagList tags={skill.tags} />
-
-            {skill.forkedFrom ? (
-              <div className="border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
-                Fork of{" "}
-                <Link
-                  href={`/s/${skill.forkedFrom.slug}`}
-                  className="font-medium text-ink underline decoration-zinc-300 underline-offset-2"
-                >
-                  {skill.forkedFrom.title}
-                </Link>{" "}
-                · {skill.forkedFrom.author.displayName}
-              </div>
-            ) : null}
+      <section className="mt-10 flex flex-col items-center text-center">
+        <div className="flex max-w-[720px] flex-col items-center gap-4">
+          <p className="page-kicker">{skill.category}</p>
+          <div className="space-y-3">
+            <h1 className="page-title">{skill.title}</h1>
+            <p className="page-description">{skill.summary}</p>
           </div>
-        </div>
-
-        <div className="skl-surface p-6 sm:p-8">
-          <MarkdownRenderer content={skill.currentVersion.content} />
+          <div className="flex flex-wrap items-center justify-center gap-3 text-[16px] font-medium text-[#8f8f8f]">
+            <Link href={`/u/${skill.author.username}`} className="profile-link">
+              {skill.author.displayName}
+            </Link>
+            <span>@{skill.author.username}</span>
+            <span>Updated {formatDate(skill.updatedAt)}</span>
+          </div>
+          <TagList tags={skill.tags} className="justify-center" />
+          {skill.forkedFrom ? (
+            <p className="text-[16px] font-medium text-[#8f8f8f]">
+              Fork of{" "}
+              <Link href={`/s/${skill.forkedFrom.slug}`} className="profile-link">
+                {skill.forkedFrom.title}
+              </Link>{" "}
+              · {skill.forkedFrom.author.displayName}
+            </p>
+          ) : null}
         </div>
       </section>
 
-      <aside className="space-y-4">
-        <section className="skl-surface p-5">
-          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">Actions</p>
-          <div className="mt-4 space-y-2">
-            {viewer ? (
-              <form action={toggleStarAction}>
-                <input type="hidden" name="skillId" value={skill.id} />
-                <input type="hidden" name="skillSlug" value={skill.slug} />
-                <input type="hidden" name="redirectTo" value={`/s/${skill.slug}`} />
-                <button type="submit" className="skl-btn skl-btn-secondary w-full rounded-none py-2.5 text-sm">
-                  {viewerHasStarred ? "Unstar" : "Star"}
-                </button>
-              </form>
-            ) : isAppConfigured() ? (
-              <Link
-                href={`/login?next=${encodeURIComponent(`/s/${skill.slug}`)}`}
-                className="skl-btn skl-btn-secondary block w-full rounded-none py-2.5 text-center text-sm"
-              >
-                Log in to star
-              </Link>
-            ) : (
-              <button type="button" disabled className="skl-btn w-full cursor-not-allowed rounded-none border-zinc-200 bg-zinc-100 py-2.5 text-sm text-zinc-400">
-                Auth not configured
-              </button>
-            )}
-
-            {viewer && !canEdit ? (
-              <form action={forkSkillAction}>
-                <input type="hidden" name="parentSkillId" value={skill.id} />
-                <input type="hidden" name="parentSlug" value={skill.slug} />
-                <input type="hidden" name="redirectTo" value={`/s/${skill.slug}`} />
-                <button type="submit" className="skl-btn skl-btn-secondary w-full rounded-none py-2.5 text-sm">
-                  Fork
-                </button>
-              </form>
-            ) : !viewer && isAppConfigured() ? (
-              <Link
-                href={`/login?next=${encodeURIComponent(`/s/${skill.slug}`)}`}
-                className="skl-btn skl-btn-secondary block w-full rounded-none py-2.5 text-center text-sm"
-              >
-                Log in to fork
-              </Link>
-            ) : null}
-
-            <Link
-              href={`/api/skills/${skill.slug}/raw`}
-              className="skl-btn skl-btn-primary block w-full rounded-none py-2.5 text-center text-sm"
-            >
-              Download .md
-            </Link>
-            <CopyRawButton content={skill.currentVersion.content} />
-          </div>
+      <div className="mt-[72px] grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <section className="border-t border-zinc-200 pt-8">
+          <MarkdownRenderer content={skill.currentVersion.content} />
         </section>
 
-        <section className="skl-surface p-5">
-          <div className="space-y-5">
-            <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">Compatible</p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {skill.currentVersion.compatibleWith.map((entry) => (
-                  <span key={entry} className="border border-zinc-200 bg-zinc-50 px-2 py-0.5 font-mono text-[11px] text-zinc-700">
-                    {entry}
-                  </span>
-                ))}
-              </div>
-            </div>
+        <aside className="space-y-8">
+          <section className="border-t border-zinc-200 pt-6">
+            <p className="page-kicker">Actions</p>
+            <div className="mt-5 space-y-3">
+              {viewer ? (
+                <form action={toggleStarAction}>
+                  <input type="hidden" name="skillId" value={skill.id} />
+                  <input type="hidden" name="skillSlug" value={skill.slug} />
+                  <input type="hidden" name="redirectTo" value={`/s/${skill.slug}`} />
+                  <button type="submit" className="skl-btn skl-btn-secondary w-full justify-center">
+                    {viewerHasStarred ? "Unstar" : "Star"}
+                  </button>
+                </form>
+              ) : isAppConfigured() ? (
+                <Link
+                  href={`/login?next=${encodeURIComponent(`/s/${skill.slug}`)}`}
+                  className="skl-btn skl-btn-secondary flex w-full justify-center text-center"
+                >
+                  Log in to star
+                </Link>
+              ) : (
+                <button type="button" disabled className="skl-btn w-full cursor-not-allowed justify-center bg-zinc-100 text-zinc-400">
+                  Auth not configured
+                </button>
+              )}
 
-            <div className="grid grid-cols-2 gap-px bg-zinc-200">
-              <div className="bg-white p-3">
-                <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">Version</p>
-                <p className="mt-1 font-mono text-lg font-semibold text-ink">{skill.currentVersion.version}</p>
-              </div>
-              <div className="bg-white p-3">
-                <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">Published</p>
-                <p className="mt-1 text-sm font-semibold text-ink">{formatDate(skill.createdAt)}</p>
-              </div>
-            </div>
+              {viewer && !canEdit ? (
+                <form action={forkSkillAction}>
+                  <input type="hidden" name="parentSkillId" value={skill.id} />
+                  <input type="hidden" name="parentSlug" value={skill.slug} />
+                  <input type="hidden" name="redirectTo" value={`/s/${skill.slug}`} />
+                  <button type="submit" className="skl-btn skl-btn-secondary w-full justify-center">
+                    Fork
+                  </button>
+                </form>
+              ) : !viewer && isAppConfigured() ? (
+                <Link
+                  href={`/login?next=${encodeURIComponent(`/s/${skill.slug}`)}`}
+                  className="skl-btn skl-btn-secondary flex w-full justify-center text-center"
+                >
+                  Log in to fork
+                </Link>
+              ) : null}
 
-            <div className="grid grid-cols-3 gap-px bg-zinc-200 text-center">
-              <div className="bg-white p-3">
-                <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">Stars</p>
-                <p className="mt-1 text-lg font-semibold tabular-nums text-ink">{formatNumber(skill.starsCount)}</p>
-              </div>
-              <div className="bg-white p-3">
-                <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">Forks</p>
-                <p className="mt-1 text-lg font-semibold tabular-nums text-ink">{formatNumber(skill.forksCount)}</p>
-              </div>
-              <div className="bg-white p-3">
-                <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">DL</p>
-                <p className="mt-1 text-lg font-semibold tabular-nums text-ink">{formatNumber(skill.downloadsCount)}</p>
-              </div>
+              <Link
+                href={`/api/skills/${skill.slug}/raw`}
+                className="skl-btn skl-btn-primary flex w-full justify-center text-center"
+              >
+                Download .md
+              </Link>
+              <CopyRawButton content={skill.currentVersion.content} />
             </div>
+          </section>
 
-            {skill.versions.length > 1 ? (
-              <details className="border border-zinc-200 bg-zinc-50 px-3 py-2">
-                <summary className="cursor-pointer text-sm font-medium text-ink">Version history</summary>
-                <ul className="mt-3 space-y-2 border-t border-zinc-200 pt-3 text-sm text-zinc-600">
-                  {skill.versions.map((v) => (
-                    <li key={v.id} className="flex justify-between gap-2">
-                      <span className="font-mono text-xs text-zinc-500">{v.version}</span>
-                      <span className="text-xs">{formatDate(v.createdAt)}</span>
-                    </li>
+          <section className="border-t border-zinc-200 pt-6">
+            <div className="space-y-6">
+              <div>
+                <p className="page-kicker">Compatible</p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {skill.currentVersion.compatibleWith.map((entry) => (
+                    <span key={entry} className="profile-pill">
+                      {entry}
+                    </span>
                   ))}
-                </ul>
-              </details>
-            ) : null}
-          </div>
-        </section>
-      </aside>
+                </div>
+              </div>
+
+              <div className="grid gap-4 border-t border-zinc-200 pt-6 text-[16px] font-medium text-[#8f8f8f]">
+                <div className="flex items-center justify-between gap-3">
+                  <span>Version</span>
+                  <span className="text-[#242424]">{skill.currentVersion.version}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span>Published</span>
+                  <span className="text-[#242424]">{formatDate(skill.createdAt)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span>Stars</span>
+                  <span className="text-[#242424]">{formatNumber(skill.starsCount)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span>Forks</span>
+                  <span className="text-[#242424]">{formatNumber(skill.forksCount)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span>Downloads</span>
+                  <span className="text-[#242424]">{formatNumber(skill.downloadsCount)}</span>
+                </div>
+              </div>
+
+              {skill.versions.length > 1 ? (
+                <details className="border-t border-zinc-200 pt-6">
+                  <summary className="cursor-pointer text-[16px] font-semibold text-[#242424]">Version history</summary>
+                  <ul className="mt-4 space-y-3 text-[16px] font-medium text-[#8f8f8f]">
+                    {skill.versions.map((v) => (
+                      <li key={v.id} className="flex justify-between gap-3">
+                        <span>{v.version}</span>
+                        <span>{formatDate(v.createdAt)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
+            </div>
+          </section>
+        </aside>
+      </div>
     </div>
   );
 }

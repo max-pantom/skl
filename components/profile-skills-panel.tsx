@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { ProfileSkillRow } from "@/components/profile-skill-row";
+import { ProfileSkillRow, ProfileSkillTableRow } from "@/components/profile-skill-row";
 import type { SkillListItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -25,11 +25,29 @@ export function ProfileSkillsPanel({
     <div className="flex min-h-[calc(100dvh-15rem)] flex-1 flex-col">
       <div className="flex flex-1 flex-col">
         {list.length > 0 ? (
-          <div className="flex flex-col gap-6">
-            {list.map((skill) => (
-              <ProfileSkillRow key={skill.id} skill={skill} />
-            ))}
-          </div>
+          <>
+            <div className="flex flex-col gap-6 sm:hidden">
+              {list.map((skill) => (
+                <ProfileSkillRow key={skill.id} skill={skill} />
+              ))}
+            </div>
+            <div className="hidden min-w-0 overflow-x-auto sm:block">
+              <table className="w-full min-w-[720px] table-fixed border-separate [border-spacing:36px_1.5rem]">
+                <colgroup>
+                  <col style={{ width: "10.92%" }} />
+                  <col />
+                  <col style={{ width: "7rem" }} />
+                  <col style={{ width: "5.5rem" }} />
+                  <col style={{ width: "4rem" }} />
+                </colgroup>
+              <tbody>
+                {list.map((skill) => (
+                  <ProfileSkillTableRow key={skill.id} skill={skill} />
+                ))}
+              </tbody>
+              </table>
+            </div>
+          </>
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center px-4 py-16 text-center">
             {tab === "starred" ? (

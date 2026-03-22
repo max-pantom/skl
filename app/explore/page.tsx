@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { PageIntro } from "@/components/page-intro";
 import { SectionHeading } from "@/components/section-heading";
 import { SkillCard } from "@/components/skill-card";
 import { getExploreSkills } from "@/lib/data";
@@ -27,17 +28,17 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
   const skills = await getExploreSkills({ query, category });
 
   return (
-    <div className="space-y-8">
-      <SectionHeading
+    <div className="page-shell gap-12">
+      <PageIntro
         eyebrow="Explore"
         title="Registry"
         description="Filter by category, search title, summary, tags, and body text."
       />
 
-      <section className="skl-surface p-5 sm:p-6">
+      <section className="border-t border-zinc-200 pt-8">
         <form className="grid gap-4 lg:grid-cols-[1fr_minmax(0,200px)_minmax(0,120px)] lg:items-end">
-          <label className="block space-y-2">
-            <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Search</span>
+          <label className="profile-field-row block">
+            <span className="profile-field-label">Search</span>
             <input
               type="search"
               name="q"
@@ -47,8 +48,8 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
             />
           </label>
 
-          <label className="block space-y-2">
-            <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Category</span>
+          <label className="profile-field-row block">
+            <span className="profile-field-label">Category</span>
             <select name="category" defaultValue={category} className="skl-input">
               <option value="all">All</option>
               {launchCategories.map((entry) => (
@@ -59,18 +60,18 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
             </select>
           </label>
 
-          <button type="submit" className="skl-btn skl-btn-primary h-[42px] w-full rounded-none lg:shrink-0">
+          <button type="submit" className="skl-btn skl-btn-primary w-full lg:shrink-0">
             Apply
           </button>
         </form>
 
-        <div className="mt-5 flex flex-wrap gap-2 border-t border-zinc-100 pt-5">
+        <div className="mt-6 flex flex-wrap gap-2 border-t border-zinc-200 pt-6">
           <Link
             href="/explore"
-            className={`border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide ${
+            className={`profile-pill ${
               category === "all" && !query
-                ? "border-zinc-900 bg-zinc-900 text-white"
-                : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-400"
+                ? "bg-[#242424] text-white"
+                : "hover:bg-[rgba(228,228,228,0.95)]"
             }`}
           >
             All
@@ -81,10 +82,10 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
               <Link
                 key={entry}
                 href={`/explore?category=${entry}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
-                className={`border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide ${
+                className={`profile-pill ${
                   active
-                    ? "border-zinc-900 bg-zinc-900 text-white"
-                    : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-400"
+                    ? "bg-[#242424] text-white"
+                    : "hover:bg-[rgba(228,228,228,0.95)]"
                 }`}
               >
                 {entry}
@@ -94,20 +95,21 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
         </div>
       </section>
 
-      <section className="space-y-4">
-        <p className="text-sm text-zinc-600">
-          <span className="font-mono tabular-nums text-ink">{skills.length}</span> result
+      <section className="border-t border-zinc-200 pt-8">
+        <SectionHeading eyebrow="Results" title="Matches" description="Filtered live from title, summary, tags, and markdown body." />
+        <p className="mt-6 text-[16px] font-medium text-[#8f8f8f]">
+          <span className="tabular-nums text-[#242424]">{skills.length}</span> result
           {skills.length === 1 ? "" : "s"}
         </p>
 
         {skills.length ? (
-          <div className="grid gap-4">
+          <div className="mt-2">
             {skills.map((skill) => (
               <SkillCard key={skill.id} skill={skill} />
             ))}
           </div>
         ) : (
-          <div className="border border-dashed border-zinc-300 bg-zinc-50 px-6 py-14 text-center text-sm text-zinc-600">
+          <div className="border-t border-zinc-200 py-12 text-center text-[16px] font-medium text-[#8f8f8f]">
             No skills match. Try another category or clear search.
           </div>
         )}

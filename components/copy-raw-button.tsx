@@ -20,7 +20,7 @@ export function CopyRawButton({ content }: { content: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="skl-btn skl-btn-secondary w-full rounded-none py-2.5 text-sm"
+      className="skl-btn skl-btn-secondary w-full justify-center"
     >
       {status === "idle" ? "Copy raw" : status === "copied" ? "Copied" : "Copy failed"}
     </button>

@@ -1,15 +1,18 @@
 import { PublishSkillForm } from "@/components/publish-skill-form";
-import { SectionHeading } from "@/components/section-heading";
+import { PageIntro } from "@/components/page-intro";
 
 export default function NewSkillPage() {
   return (
-    <div className="space-y-10">
-      <SectionHeading
+    <div className="page-shell">
+      <PageIntro
         eyebrow="Publish"
         title="Ship a skill"
-        description="One markdown body, one version string, obvious metadata. Raw download is automatic."
+        description="Write it once, version it clearly, and keep the source markdown portable after publish."
       />
-      <PublishSkillForm />
+
+      <section className="mt-[72px] flex min-h-0 flex-1 flex-col">
+        <PublishSkillForm />
+      </section>
     </div>
   );
 }

@@ -12,15 +12,12 @@ export function SectionHeading({
   className?: string;
 }) {
   return (
-    <div className={cn("skl-divider space-y-3 pb-6", className)}>
-      {eyebrow ? (
-        <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">{eyebrow}</p>
-      ) : null}
+    <div className={cn("space-y-3", className)}>
+      {eyebrow ? <p className="page-kicker">{eyebrow}</p> : null}
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">{title}</h2>
-        {description ? <p className="max-w-2xl text-sm leading-6 text-zinc-600">{description}</p> : null}
+        <h2 className="text-[24px] font-semibold leading-none text-[#242424]">{title}</h2>
+        {description ? <p className="max-w-2xl text-[16px] font-medium leading-[1.2] text-[#242424] opacity-80">{description}</p> : null}
       </div>
     </div>
   );
 }
-

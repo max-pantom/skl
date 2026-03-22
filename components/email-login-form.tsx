@@ -39,13 +39,13 @@ export function EmailLoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto max-w-md space-y-5">
+    <form onSubmit={onSubmit} className="mx-auto w-full max-w-[560px] space-y-8 border-t border-zinc-200 pt-8">
       {error ? (
-        <p className="border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">{error}</p>
+        <p className="border-y border-red-200 py-3 text-[16px] font-medium text-red-700">{error}</p>
       ) : null}
 
-      <label className="block space-y-2">
-        <span className="text-sm font-medium text-ink">Email</span>
+      <label className="profile-field-row block">
+        <span className="profile-field-label">Email</span>
         <input
           type="email"
           name="email"
@@ -57,8 +57,8 @@ export function EmailLoginForm() {
         />
       </label>
 
-      <label className="block space-y-2">
-        <span className="text-sm font-medium text-ink">Password</span>
+      <label className="profile-field-row block">
+        <span className="profile-field-label">Password</span>
         <input
           type="password"
           name="password"
@@ -73,16 +73,16 @@ export function EmailLoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full border border-ink bg-ink px-4 py-3 text-sm font-medium text-shell transition hover:bg-slate-900 disabled:opacity-60"
+        className="skl-btn skl-btn-primary w-full justify-center"
       >
         {pending ? "Signing in…" : "Sign in"}
       </button>
 
-      <p className="text-center text-sm text-zinc-600">
+      <p className="text-center text-[16px] font-medium text-[#8f8f8f]">
         No account?{" "}
         <Link
           href={`/signup?next=${encodeURIComponent(nextPath)}`}
-          className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+          className="profile-link"
         >
           Create one
         </Link>

@@ -5,6 +5,10 @@
 :root {
   color-scheme: light;
   --font-plex-mono: "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
+  --ink: #242424;
+  --muted: #8f8f8f;
+  --line: rgba(36, 36, 36, 0.12);
+  --soft: rgba(228, 228, 228, 0.8);
 }
 
 html {
@@ -14,7 +18,7 @@ html {
 body {
   min-height: 100vh;
   background: #ffffff;
-  color: #18181b;
+  color: var(--ink);
 }
 
 a {
@@ -34,23 +38,23 @@ select {
 
 @layer components {
   .skl-input {
-    @apply w-full border border-zinc-300 bg-white px-3 py-2.5 text-sm text-ink shadow-sm transition-colors placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900;
+    @apply w-full border-0 border-b border-zinc-200 bg-transparent px-0 pb-3 pt-0 text-[16px] font-medium text-[#242424] transition placeholder:text-[#8f8f8f] focus:border-[#242424] focus:outline-none focus:ring-0;
   }
 
   .skl-btn {
-    @apply inline-flex items-center justify-center border px-4 py-2.5 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-full px-4 py-2.5 text-[16px] font-medium leading-none transition disabled:pointer-events-none disabled:opacity-50;
   }
 
   .skl-btn-primary {
-    @apply skl-btn border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800;
+    @apply skl-btn bg-[#242424] text-white hover:opacity-90;
   }
 
   .skl-btn-secondary {
-    @apply skl-btn border-zinc-300 bg-white text-ink hover:border-zinc-900 hover:bg-zinc-50;
+    @apply skl-btn bg-[rgba(228,228,228,0.8)] text-[#242424] hover:bg-[rgba(228,228,228,0.95)];
   }
 
   .skl-surface {
-    @apply border border-zinc-200 bg-white shadow-sm;
+    @apply border-y border-zinc-200 bg-transparent;
   }
 
   .skl-divider {
@@ -58,14 +62,54 @@ select {
   }
 }
 
+.page-shell {
+  @apply mx-auto flex w-full max-w-[1056px] flex-1 flex-col;
+}
+
+.page-kicker {
+  @apply text-[16px] font-medium uppercase tracking-[0.16em] text-[#8f8f8f];
+}
+
+.page-title {
+  @apply text-[24px] font-semibold leading-none text-[#242424];
+}
+
+.page-description {
+  @apply text-[16px] font-medium leading-[1.2] text-[#242424] opacity-80;
+}
+
+.profile-field-row {
+  @apply space-y-3;
+}
+
+.profile-field-label {
+  @apply text-[16px] font-semibold text-[#242424];
+}
+
+.profile-field-help {
+  @apply text-[14px] font-medium text-[#8f8f8f];
+}
+
+.profile-link {
+  @apply text-[16px] font-medium text-[#242424] underline decoration-dotted underline-offset-4 transition hover:opacity-70;
+}
+
+.profile-link-muted {
+  @apply text-[16px] font-medium text-[#8f8f8f] underline decoration-dotted underline-offset-4 transition hover:text-[#242424];
+}
+
+.profile-pill {
+  @apply inline-flex rounded-[90px] bg-[rgba(228,228,228,0.8)] px-[6px] py-[2px] text-base font-medium leading-none text-[#8f8f8f] transition-colors;
+}
+
 .prose-skill {
-  @apply max-w-none text-[15px] leading-7 text-zinc-800;
+  @apply max-w-none text-[16px] leading-7 text-[#242424];
 }
 
 .prose-skill h1,
 .prose-skill h2,
 .prose-skill h3 {
-  @apply mt-8 scroll-m-20 font-semibold tracking-tight text-ink;
+  @apply mt-8 scroll-m-20 font-semibold tracking-tight text-[#242424];
 }
 
 .prose-skill h1 {
@@ -100,7 +144,7 @@ select {
 }
 
 .prose-skill code {
-  @apply rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[0.9em] text-ink;
+  @apply rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[0.9em] text-[#242424];
 }
 
 .prose-skill pre {
@@ -116,5 +160,37 @@ select {
 }
 
 .prose-skill a {
-  @apply text-zinc-900 underline decoration-zinc-400 underline-offset-4 hover:decoration-zinc-900;
+  @apply text-[#242424] underline decoration-zinc-400 underline-offset-4 hover:decoration-zinc-900;
+}
+
+.mdx-editor-shell {
+  @apply overflow-hidden border-y border-zinc-200 bg-transparent;
+}
+
+.mdx-editor-toolbar {
+  @apply border-b border-zinc-200 bg-transparent;
+}
+
+.mdx-editor-content {
+  @apply min-h-[24rem] px-0 py-5 text-[16px] text-[#242424] sm:py-6;
+}
+
+.mdx-editor-content p:first-child {
+  @apply mt-0;
+}
+
+.publish-form-row {
+  @apply profile-field-row;
+}
+
+.publish-form-label {
+  @apply profile-field-label;
+}
+
+.publish-form-input {
+  @apply skl-input;
+}
+
+.publish-form-textarea {
+  @apply min-h-[7rem] resize-y;
 }
