@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { FormLoadingOverlay } from "@/components/form-loading-overlay";
 import { MarkdownEditorPreview } from "@/components/markdown-editor-preview";
 import { SubmitButton } from "@/components/submit-button";
@@ -6,7 +8,7 @@ import { updateSkillAction } from "@/lib/actions";
 import { launchCategories, type SkillDetail } from "@/lib/types";
 import { bumpMajorSemver } from "@/lib/utils";
 
-export function SkillEditForm({ skill }: { skill: SkillDetail }) {
+export function SkillEditForm({ skill, closeHref }: { skill: SkillDetail; closeHref: string }) {
   const suggestedVersion = bumpMajorSemver(skill.currentVersion.version);
 
   return (
@@ -166,6 +168,12 @@ export function SkillEditForm({ skill }: { skill: SkillDetail }) {
         >
           Publish update
         </SubmitButton>
+        <Link
+          href={closeHref}
+          className="text-[16px] font-medium text-[#8f8f8f] underline decoration-dotted underline-offset-4 transition hover:text-[#242424]"
+        >
+          Cancel
+        </Link>
       </div>
     </form>
   );

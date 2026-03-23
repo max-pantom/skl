@@ -20,6 +20,7 @@ type SkillPageProps = {
     slug: string;
   }>;
   searchParams: Promise<{
+    edit?: string;
     error?: string;
     file?: string;
     message?: string;
@@ -55,6 +56,7 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
 
   const viewerHasStarred = viewer ? await hasUserStarredSkill(viewer.id, skill.id) : false;
   const canEdit = viewer?.id === skill.author.id;
+  const editMode = canEdit && query.edit === "1";
   const selectedVersion = resolveSkillInstallVersion(skill, query.version ?? null);
 
   if (!selectedVersion) {
@@ -63,6 +65,7 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
 
   const selectedFile = selectSkillFile(selectedVersion.files, query.file);
   const redirectTo = withQuery(`/s/${skill.slug}`, {
+    edit: editMode ? "1" : null,
     file: selectedFile?.path,
     version: selectedVersion.version === skill.currentVersion.version ? null : selectedVersion.version,
   });
@@ -197,6 +200,19 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
                 </Link>
               ) : null}
 
+              {canEdit ? (
+                <Link
+                  href={withQuery(`/s/${skill.slug}`, {
+                    edit: editMode ? null : "1",
+                    file: selectedFile.path,
+                    version: selectedVersion.version === skill.currentVersion.version ? null : selectedVersion.version,
+                  })}
+                  className="skl-btn skl-btn-secondary flex w-full justify-center text-center"
+                >
+                  {editMode ? "Close editor" : "Edit"}
+                </Link>
+              ) : null}
+
               <Link
                 href={withQuery(`/api/skills/${skill.slug}/raw`, {
                   path: selectedFile.path,
@@ -292,8 +308,8 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
         </aside>
       </div>
 
-      {canEdit ? (
-        <section className="mt-16 border-t border-zinc-200 pt-10">
+      {editMode ? (
+        <section id="edit-skill" className="mt-16 border-t border-zinc-200 pt-10">
           <div className="mx-auto w-full max-w-[1056px] space-y-6">
             <div className="space-y-2">
               <p className="page-kicker">Owner</p>
@@ -303,7 +319,13 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
                 higher semantic version like 1.0.1.
               </p>
             </div>
-            <SkillEditForm skill={skill} />
+            <SkillEditForm
+              skill={skill}
+              closeHref={withQuery(`/s/${skill.slug}`, {
+                file: selectedFile.path,
+                version: selectedVersion.version === skill.currentVersion.version ? null : selectedVersion.version,
+              })}
+            />
           </div>
         </section>
       ) : null}

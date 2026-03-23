@@ -357,9 +357,10 @@ export async function createSkillAction(formData: FormData) {
 
 export async function updateSkillAction(formData: FormData) {
   const currentSlug = getString(formData.get("currentSlug"));
-  ensureConfigured(`/s/${currentSlug}/edit`);
+  const editPath = withQuery(`/s/${currentSlug}`, { edit: "1" });
+  ensureConfigured(editPath);
 
-  const viewer = await requireCurrentViewer(`/s/${currentSlug}/edit`);
+  const viewer = await requireCurrentViewer(editPath);
   const skillId = getString(formData.get("skillId"));
   let fields: ReturnType<typeof readSkillFields>;
 
@@ -367,17 +368,17 @@ export async function updateSkillAction(formData: FormData) {
     fields = readSkillFields(formData);
   } catch (error) {
     redirectWithError(
-      `/s/${currentSlug}/edit`,
+      editPath,
       error instanceof Error ? error.message : "The skill files could not be read.",
     );
   }
 
   if (!skillId || !fields.title || !fields.summary || !fields.content) {
-    redirectWithError(`/s/${currentSlug}/edit`, "All primary fields are required.");
+    redirectWithError(editPath, "All primary fields are required.");
   }
 
   if (!isCategory(fields.category)) {
-    redirectWithError(`/s/${currentSlug}/edit`, "Choose a valid category.");
+    redirectWithError(editPath, "Choose a valid category.");
   }
 
   const category: SkillCategory = fields.category;
@@ -386,11 +387,11 @@ export async function updateSkillAction(formData: FormData) {
   });
 
   if (!existingSkill || existingSkill.authorId !== viewer.id) {
-    redirectWithError(`/s/${currentSlug}/edit`, "You can only edit your own skills.");
+    redirectWithError(editPath, "You can only edit your own skills.");
   }
 
   if (!existingSkill.currentVersionId) {
-    redirectWithError(`/s/${currentSlug}/edit`, "The current skill version could not be loaded.");
+    redirectWithError(editPath, "The current skill version could not be loaded.");
   }
 
   const currentVersionRecord = await db!.query.skillVersions.findFirst({
@@ -398,7 +399,7 @@ export async function updateSkillAction(formData: FormData) {
   });
 
   if (!currentVersionRecord) {
-    redirectWithError(`/s/${currentSlug}/edit`, "The current skill version could not be loaded.");
+    redirectWithError(editPath, "The current skill version could not be loaded.");
   }
 
   let nextVersion = "";
@@ -406,7 +407,7 @@ export async function updateSkillAction(formData: FormData) {
     nextVersion = resolveNextSkillVersion(currentVersionRecord.version, fields.version);
   } catch (error) {
     redirectWithError(
-      `/s/${currentSlug}/edit`,
+      editPath,
       error instanceof Error ? error.message : "The new version is invalid.",
     );
   }
@@ -416,7 +417,7 @@ export async function updateSkillAction(formData: FormData) {
   });
 
   if (duplicateVersion) {
-    redirectWithError(`/s/${currentSlug}/edit`, "That version already exists for this skill.");
+    redirectWithError(editPath, "That version already exists for this skill.");
   }
 
   const slug = await getUniqueSkillSlug(fields.slug, skillId);
