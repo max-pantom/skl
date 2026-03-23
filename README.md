@@ -39,6 +39,26 @@ pnpm dev
 
 Optional: set **`AUTH_VERBOSE=1`** in `.env` to print Better Auth logs in the terminal (see `.env.example`).
 
+## Avatar Utilities
+
+Generate a batch of PNG avatars:
+
+```bash
+pnpm avatars:generate
+```
+
+Turn a folder of PNG avatars into a single animated GIF:
+
+```bash
+pnpm avatars:gif -- --in-dir generated-avatars --out-file generated-avatars/avatars.gif
+```
+
+By default the GIF uses a `100ms` frame delay and loops forever. You can override those with `--delay` and `--repeat`, or pass `--loop` explicitly.
+
+By default the GIF places each PNG centered inside a white `600x600` frame. You can override that with `--frame-size`, `--frame-width`, or `--frame-height`.
+
+If you need transparency instead, pass `--background transparent`, but the result will usually look softer because GIF only supports a 256-color palette and 1-bit transparency.
+
 ### After migrations are applied
 
 1. Ensure `.env` has **`BETTER_AUTH_SECRET`** (32+ random characters) — not optional for sign-up / publish.

@@ -32,20 +32,11 @@ export function ProfileSkillsPanel({
               ))}
             </div>
             <div className="hidden min-w-0 overflow-x-auto sm:block">
-              <table className="w-full min-w-[720px] table-fixed border-separate [border-spacing:36px_1.5rem]">
-                <colgroup>
-                  <col style={{ width: "10.92%" }} />
-                  <col />
-                  <col style={{ width: "7rem" }} />
-                  <col style={{ width: "5.5rem" }} />
-                  <col style={{ width: "4rem" }} />
-                </colgroup>
-              <tbody>
+              <div className="flex w-full min-w-[720px] flex-col gap-6">
                 {list.map((skill) => (
                   <ProfileSkillTableRow key={skill.id} skill={skill} />
                 ))}
-              </tbody>
-              </table>
+              </div>
             </div>
           </>
         ) : (

@@ -32,6 +32,10 @@ function parseArgs(argv: string[]): Options {
     const arg = argv[index];
     const nextValue = argv[index + 1];
 
+    if (arg === "--") {
+      continue;
+    }
+
     if (arg === "--count" && nextValue) {
       count = parseInteger(nextValue, "--count");
       index += 1;

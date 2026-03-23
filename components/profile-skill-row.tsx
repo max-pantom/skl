@@ -7,6 +7,10 @@ import { cn, formatNumber } from "@/lib/utils";
 const rowHover =
   "group transition-colors hover:bg-[rgba(36,36,36,0.04)] sm:hover:bg-[rgba(36,36,36,0.04)]";
 
+/** Desktop profile skill list row — hover from Figma (Studio 1652:1867). */
+const profileSkillDesktopRowClass =
+  "group grid w-full min-w-[720px] grid-cols-[minmax(0,10.92%)_minmax(0,1fr)_7rem_5.5rem_4rem] items-center gap-x-9 rounded-[12px] py-1.5 text-[16px] text-[#242424] transition-colors hover:bg-[#efefef]";
+
 /** Shared with {@link SkillCard} so registry lists match profile mobile cards. */
 export const profileSkillMobileRowHoverClass = rowHover;
 
@@ -63,30 +67,32 @@ export function ProfileSkillRow({ skill }: { skill: SkillListItem }) {
   );
 }
 
-/** One row in the profile skills table — columns align with every other skill. */
+/** One row in the profile skills list (desktop grid) — columns align with every other skill. */
 export function ProfileSkillTableRow({ skill }: { skill: SkillListItem }) {
   return (
-    <tr className={cn("group text-[16px] text-[#242424]", rowHover)}>
-      <td className="min-w-0 align-middle py-2 pr-2">
+    <div className={profileSkillDesktopRowClass}>
+      <div className="min-w-0">
         <Link href={`/s/${skill.slug}`} className={titleLinkClass}>
           {skill.title}
         </Link>
-      </td>
-      <td className="min-w-0 align-middle py-2 pr-4">
+      </div>
+      <div className="min-w-0 pr-2">
         <p className={summaryClass}>{skill.summary}</p>
-      </td>
-      <td className="whitespace-nowrap align-middle py-2 pr-2">
+      </div>
+      <div className="whitespace-nowrap">
         <span className={profileSkillMobileCategoryPillClass}>
           {skill.category}
         </span>
-      </td>
-      <td className={cn("whitespace-nowrap align-middle py-2 pr-2", metricMuted)}>
+      </div>
+      <div className={cn("whitespace-nowrap", metricMuted)}>
         <div className="flex items-center justify-end gap-1.5">
           <IconMetricDownload className="size-[18px] shrink-0" />
           <span>{formatNumber(skill.downloadsCount)}</span>
         </div>
-      </td>
-      <td className={cn("whitespace-nowrap align-middle py-2 pl-2", versionClass)}>v{skill.currentVersion.version}</td>
-    </tr>
+      </div>
+      <div className={cn("whitespace-nowrap text-right", versionClass)}>
+        v{skill.currentVersion.version}
+      </div>
+    </div>
   );
 }
