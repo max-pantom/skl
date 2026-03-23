@@ -153,6 +153,23 @@ function createAuth() {
           before: async (data) => {
             const d = data as Record<string, unknown>;
             if (d.emailVerified === true) {
+              const userId = typeof d.id === "string" ? d.id : null;
+
+              if (!userId) {
+                return { data: d };
+              }
+
+              const existingUser = await database.query.users.findFirst({
+                columns: {
+                  emailVerifiedAt: true,
+                },
+                where: eq(schema.users.id, userId),
+              });
+
+              if (existingUser?.emailVerifiedAt) {
+                return { data: d };
+              }
+
               return {
                 data: {
                   ...d,

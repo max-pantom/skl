@@ -67,10 +67,10 @@ export function MemberIdCard({
   userId,
   role,
   avatarUrl,
-  portraitBaseSize = 256,
-  portraitScale = 2.3,
-  portraitOffsetRight = -202,
-  portraitOffsetY = -51,
+  portraitBaseSize = 280,
+  portraitScale = 1,
+  portraitOffsetRight = -168,
+  portraitOffsetY = -48,
   portraitOpacity = 1,
   portraitRotateDeg = 0,
   showPortrait = true,
@@ -148,7 +148,7 @@ export function MemberIdCard({
     <>
       {showPortrait ? (
         <div
-          className="pointer-events-none absolute z-0 select-none [&_svg]:drop-shadow-[0_2px_12px_rgba(0,0,0,0.08)]"
+          className="pointer-events-none absolute z-0 select-none"
           style={{
             right: `${portraitOffsetRight}px`,
             top: "50%",
@@ -157,15 +157,30 @@ export function MemberIdCard({
             transformOrigin: "center right",
           }}
         >
-          <ProfileAvatar
-            avatarUrl={avatarUrl}
-            clipCircle={false}
-            displayName={displayName}
-            parallax={false}
-            role={role}
-            size={portraitBaseSize}
-            userId={userId}
-          />
+          {role === "admin" && !avatarUrl?.trim() ? (
+            <div
+              role="img"
+              aria-label={`${displayName} avatar`}
+              className="flex items-center justify-center rounded-[14px] bg-[#e8e8e8] font-semibold text-[#242424]"
+              style={{
+                width: portraitBaseSize,
+                height: portraitBaseSize,
+                fontSize: Math.round(portraitBaseSize * 0.38),
+              }}
+            >
+              {(displayName.trim()[0] ?? "?").toUpperCase()}
+            </div>
+          ) : (
+            <ProfileAvatar
+              avatarUrl={avatarUrl}
+              clipCircle={false}
+              displayName={displayName}
+              parallax={false}
+              role={role}
+              size={portraitBaseSize}
+              userId={userId}
+            />
+          )}
         </div>
       ) : null}
 

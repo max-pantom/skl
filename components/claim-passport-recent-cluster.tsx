@@ -6,21 +6,24 @@ import { ProfileAvatar } from "@/components/profile-avatar";
 import type { RecentPassportClaimant } from "@/lib/types";
 
 /**
- * Studio 1655:2226 — four overlapping circles; index 0 is newest (largest), 3 is fourth back (smallest).
- * Front slot is slightly larger so the latest person’s photo (or shield) is easy to see.
+ * Studio frame `1655:2226` — absolute positions on artboard (px), largest = front:
+ * 30@ (1452,902), 20@ (1440,930), 15@ (1477,936), 11@ (1462,951). Origin (1440,902), bbox 52×60.
+ * Scaled ×2.4 so the lead avatar matches the prior ~72px target and tap targets stay usable.
  */
+const FIG = 2.4;
 const SLOTS = [
-  { size: 72, left: 14, top: 0 },
-  { size: 44, left: 0, top: 58 },
-  { size: 32, left: 80, top: 76 },
-  { size: 24, left: 46, top: 110 },
+  { size: Math.round(30 * FIG), left: Math.round(12 * FIG), top: Math.round(0 * FIG) },
+  { size: Math.round(20 * FIG), left: Math.round(0 * FIG), top: Math.round(28 * FIG) },
+  { size: Math.round(15 * FIG), left: Math.round(37 * FIG), top: Math.round(34 * FIG) },
+  { size: Math.round(11 * FIG), left: Math.round(22 * FIG), top: Math.round(49 * FIG) },
 ] as const;
 
-const CLUSTER_W = 112;
-const CLUSTER_H = 134;
+const CLUSTER_W = Math.round(52 * FIG);
+const CLUSTER_H = Math.round(60 * FIG);
 
 export function ClaimPassportRecentCluster({ claimants }: { claimants: RecentPassportClaimant[] }) {
-  if (!claimants.length) {
+  const slice = claimants.slice(0, SLOTS.length);
+  if (!slice.length) {
     return null;
   }
 
@@ -29,9 +32,9 @@ export function ClaimPassportRecentCluster({ claimants }: { claimants: RecentPas
       className="relative mx-auto shrink-0"
       style={{ width: CLUSTER_W, height: CLUSTER_H }}
       role="list"
-      aria-label="Recently verified passports"
+      aria-label="Recently joined members"
     >
-      {claimants.map((c, i) => {
+      {slice.map((c, i) => {
         const slot = SLOTS[i];
         if (!slot) {
           return null;
@@ -46,6 +49,7 @@ export function ClaimPassportRecentCluster({ claimants }: { claimants: RecentPas
               top: slot.top,
               width: slot.size,
               height: slot.size,
+              zIndex: SLOTS.length - i,
             }}
             title={`@${c.username}`}
             aria-label={`${c.displayName} (@${c.username})`}

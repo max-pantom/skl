@@ -730,6 +730,7 @@ export async function getUserById(userId: string) {
   }
 }
 
+/** Newest accounts by `users.created_at` — claim / passport avatar cluster (no email-verified filter). */
 export async function getRecentPassportClaimants(limit = 4): Promise<RecentPassportClaimant[]> {
   if (!db || !isDatabaseConfigured) {
     return [];
@@ -745,8 +746,7 @@ export async function getRecentPassportClaimants(limit = 4): Promise<RecentPassp
         role: users.role,
       })
       .from(users)
-      .where(eq(users.emailVerified, true))
-      .orderBy(desc(sql`coalesce(${users.emailVerifiedAt}, ${users.updatedAt})`))
+      .orderBy(desc(users.createdAt))
       .limit(limit);
 
     return rows;

@@ -106,7 +106,7 @@ export type AppViewer = PublicUser & {
   needsProfileSetup: boolean;
 };
 
-/** Recent email-verified users for claim / passport “passport cluster” UI. */
+/** Newest accounts (by signup) for claim / passport avatar cluster UI. */
 export type RecentPassportClaimant = {
   id: string;
   username: string;
