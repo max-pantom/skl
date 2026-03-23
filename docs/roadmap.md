@@ -1,26 +1,26 @@
-# SKL Roadmap (refined with real signals)
+# SKL Roadmap
 
-This is not feature dumping. It is staged to match how the product should evolve. Nothing here is committed scope—priorities can change.
+This is the working product checklist for the repo. Completed items are marked, active items stay open, and near-term work is grouped so it is obvious what to build next.
 
-## Phase 0 — Foundation (what you already have)
+## Phase 0 — Foundation
 
 **Goal:** prove people will publish and browse.
 
 ### Core
 
-- Auth (Better Auth)
-- Publish skill (markdown)
-- Skill page
-- Profiles
-- Star / fork / download
-- Version history
-- Explore page (search + categories)
+- [x] Auth (Better Auth)
+- [x] Publish skill (markdown + multi-file)
+- [x] Skill page
+- [x] Profiles
+- [x] Star / fork / download
+- [x] Version history
+- [x] Explore page (search + categories)
 
-### Add immediately (low effort, high impact)
+### Low effort / high impact
 
-- Example input/output on skill page
-- “Copy raw skill” button
-- Better metadata display (tags, compatibility)
+- [ ] Example input/output on skill page
+- [x] Copy raw skill button
+- [x] Better metadata display (tags, compatibility)
 
 ## Phase 1 — Trust + Clarity layer
 
@@ -28,65 +28,75 @@ This is not feature dumping. It is staged to match how the product should evolve
 
 ### Skill page upgrades
 
-- Input → output examples (required)
-- “What this skill does” section
-- Version notes visible
-- Author card (clear identity)
+- [ ] Input -> output examples
+- [x] “What this skill does” section
+- [x] Version notes visible
+- [x] Author card (clear identity)
+- [x] Browse former version contents
 
 ### Profile upgrades
 
-- Pinned skills
-- Total downloads / stars
-- “Verified creator” (manual at first)
+- [ ] Pinned skills
+- [x] Total downloads / stars
+- [ ] Verified creator badge / system
+- [x] Profile share metadata
+- [x] Branded profile OG image
 
 ### Discovery upgrades
 
-- Trending skills
-- Newest skills
-- Top creators
+- [x] Trending skills
+- [x] Newest skills
+- [ ] Top creators module
 
-## Phase 2 — Execution (critical unlock)
+## Phase 2 — Execution
 
-**Goal:** move from read-only → usable.
+**Goal:** move from read-only to usable.
 
 ### Core feature
 
-- **Run skill** button
+- [ ] Run skill button
 
 ### On skill page
 
-- Input box
-- Run
-- Output panel
+- [ ] Input box
+- [ ] Run
+- [ ] Output panel
 
-### Implementation (keep simple)
+### Implementation
 
-- Send skill content + input → model API
-- Return result
-- No infra complexity yet
+- [ ] Send skill content + input to model API
+- [ ] Return result
+- [ ] Keep infra simple
 
 ### UX
 
-- Instant feedback
-- Loading state
-- Show raw prompt + result
+- [x] Shared loading state pattern
+- [ ] Loading state for skill execution
+- [ ] Show raw prompt + result
 
-## Phase 3 — Iteration loop (this is where it becomes powerful)
+## Phase 3 — Iteration loop
 
 **Goal:** skills evolve inside the platform.
 
 ### Add
 
-- Edit skill in browser
-- Save as new version
-- Fork + edit instantly
-- Compare outputs between versions
+- [x] Edit skill in browser
+- [x] Save as new version
+- [x] Fork + edit instantly
+- [ ] Compare outputs between versions
+- [x] Auto-bump version when left blank
+- [x] Manual version must be higher than current
 
-### This creates
+### Editor diff plan
 
-- Evolution
-- Experimentation
-- Better skills over time
+- [ ] Show file-level diff between current draft and latest published version
+- [ ] Show version-to-version diff from version history
+- [ ] Highlight added / removed / changed files before publishing
+- [ ] Markdown-aware diff for `SKILL.md`
+- [ ] Plain text diff for non-markdown files
+- [ ] “Review changes” step before publishing an update
+- [ ] “Compare against” selector in the editor (`latest`, previous version, chosen version)
+- [ ] Copy diff / share diff link for collaborator review
 
 ## Phase 4 — Creator system
 
@@ -94,42 +104,106 @@ This is not feature dumping. It is staged to match how the product should evolve
 
 ### Add
 
-- Collections (group skills)
-- Follow creators
-- Creator pages feel like portfolios
-- Notifications (new versions, forks)
+- [ ] Collections (group skills)
+- [ ] Follow creators
+- [ ] Creator pages feel like portfolios
+- [ ] Notifications for new versions / forks
 
-## Phase 5 — Runtime layer (future, don’t rush)
+## Phase 5 — Identity / Passport
+
+**Goal:** make accounts feel owned, shareable, and trustworthy.
+
+### Claim + passport
+
+- [x] Claim flow on a single route
+- [x] Email OTP verification flow
+- [x] Passport page for verified users
+- [x] Share passport
+- [x] Download passport as PNG
+- [x] Settings entry to passport
+- [ ] Passport OG image
+- [ ] Stronger delivery/error messaging for verification mail
+- [ ] Resend cooldown / resend countdown
+
+## Phase 6 — Runtime layer
 
 **Goal:** SKL becomes a system, not just a registry.
 
-## Phase 6 - Cli
-
 ### Add later
 
-- Multi-step skills (chains)
-- Tool usage (APIs, actions)
-- Agent compatibility
-- Install to external agents
+- [ ] Multi-step skills (chains)
+- [ ] Tool usage (APIs, actions)
+- [ ] Agent compatibility
+- [ ] Install to external agents
 
+## Phase 7 — CLI
 
+**Goal:** SKL works from the terminal as both a registry client and a publishing tool.
 
-## What NOT to build yet
+### Download / install
 
-- CI/CD pipelines
-- Blockchain
-- Complex execution infra
-- Full Replit-like IDE
+- [x] Basic install flow
+- [ ] Version-aware CLI polish
+- [ ] Install a specific file from a version
+- [ ] Better bundle inspection / debugging
+- [ ] `skl inspect <slug>` for metadata, files, versions, author
+- [ ] `skl diff <slug>@a <slug>@b` for version comparison
 
-You’ll get there, but too early = death.
+### Upload / publish
 
----
+- [ ] `skl publish` from a local folder or `SKILL.md`
+- [ ] `skl update` to push a new version from the local project
+- [ ] Authenticated CLI publishing with token / session flow
+- [ ] Dry-run validation before upload
+- [ ] Preview the computed next version before publish
+- [ ] Push multi-file skills from the CLI
 
-## Platform / ops (parallel, not a “phase”)
+### Local project workflow
 
-- **Deploy** (Vercel, Railway, Fly, etc.) with production `DATABASE_URL`, `NEXT_PUBLIC_APP_URL`, `BETTER_AUTH_SECRET`.
-- **Run `pnpm db:migrate` once** against the production database (CI or manual).
-- **Optional `@supabase/supabase-js`**: keep **Drizzle + `DATABASE_URL`** as the source of truth for relational data, auth (Better Auth), and migrations. Add `supabase-js` only if we need **Storage**, **Realtime**, or other **HTTP APIs** without reimplementing them. Would **not** replace Drizzle for core queries unless we deliberately move to a PostgREST + RLS model (large architectural change).
-- **Email** for Better Auth (verification, password reset) when we outgrow password-only flows—wire a provider in `lib/auth.ts` when needed.
+- [ ] Pull a skill into a project with `skl install`
+- [ ] Edit locally inside the project
+- [ ] Diff local files against the published version
+- [ ] Upload back to SKL with `skl update` or `skl publish`
+- [ ] Round-trip metadata updates from the CLI
 
-Track ad-hoc tasks in your issue tracker; this file is the high-level plan for the repo.
+### Targets / integrations
+
+- [ ] Better target presets (`cursor`, local project, custom path)
+- [ ] Upload from installed local target back to the registry
+- [ ] Machine-readable JSON output for scripts
+- [ ] Non-interactive mode for CI / automation
+
+## Platform / ops
+
+- [x] Production DB migration path
+- [x] Better Auth email verification wiring
+- [ ] Production deploy checklist cleanup
+- [ ] Error logging / observability
+- [ ] Background jobs if email / analytics volume grows
+
+## Current TODO
+
+### Next up
+
+- [ ] Add inline version validation feedback in the skill edit form
+- [x] Add quick version bump actions (`+1.0.0`, `+0.1.0`, `+0.0.1`)
+- [ ] Add example input/output blocks to skill pages
+- [ ] Add passport OG image
+- [ ] Harden OTP verification UX and resend behavior
+- [ ] Add first editor diff view
+- [ ] Add first CLI upload flow
+
+### Nice after that
+
+- [ ] Top creators on discovery/home
+- [ ] Pinned skills on profile
+- [ ] Compare versions in the UI
+- [ ] CLI inspect / diff commands
+- [ ] Creator verification system
+
+## What not to build yet
+
+- [ ] CI/CD pipelines for skill content
+- [ ] Blockchain anything
+- [ ] Complex execution infra
+- [ ] Full IDE / Replit-style environment

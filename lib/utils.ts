@@ -172,3 +172,21 @@ export function bumpMajorSemver(value: string) {
 
   return `${parsed.major + 1}.0.0`;
 }
+
+export function bumpMinorSemver(value: string) {
+  const parsed = parseSemver(value);
+  if (!parsed) {
+    throw new Error("bumpMinorSemver expects a valid semantic version.");
+  }
+
+  return `${parsed.major}.${parsed.minor + 1}.0`;
+}
+
+export function bumpPatchSemver(value: string) {
+  const parsed = parseSemver(value);
+  if (!parsed) {
+    throw new Error("bumpPatchSemver expects a valid semantic version.");
+  }
+
+  return `${parsed.major}.${parsed.minor}.${parsed.patch + 1}`;
+}

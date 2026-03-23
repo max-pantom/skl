@@ -1,5 +1,7 @@
+import { FormLoadingOverlay } from "@/components/form-loading-overlay";
 import { MarkdownEditorPreview } from "@/components/markdown-editor-preview";
 import { SubmitButton } from "@/components/submit-button";
+import { SkillVersionInput } from "@/components/skill-version-input";
 import { updateSkillAction } from "@/lib/actions";
 import { launchCategories, type SkillDetail } from "@/lib/types";
 import { bumpMajorSemver } from "@/lib/utils";
@@ -8,7 +10,8 @@ export function SkillEditForm({ skill }: { skill: SkillDetail }) {
   const suggestedVersion = bumpMajorSemver(skill.currentVersion.version);
 
   return (
-    <form action={updateSkillAction} className="space-y-10">
+    <form action={updateSkillAction} className="relative space-y-10">
+      <FormLoadingOverlay label="Publishing update" />
       <input type="hidden" name="skillId" value={skill.id} />
       <input type="hidden" name="currentSlug" value={skill.slug} />
 
@@ -68,6 +71,19 @@ export function SkillEditForm({ skill }: { skill: SkillDetail }) {
         </div>
 
         <div className="space-y-6">
+          <div className="rounded-[28px] border border-zinc-200 bg-[rgba(244,244,240,0.7)] px-5 py-4">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.16em] text-[#8f8f8f]">Version plan</p>
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-[16px] font-medium">
+              <span className="rounded-full bg-white px-3 py-1 text-[#8f8f8f]">Current v{skill.currentVersion.version}</span>
+              <span className="text-[#8f8f8f]">→</span>
+              <span className="rounded-full bg-[#242424] px-3 py-1 text-white">Suggested v{suggestedVersion}</span>
+            </div>
+            <p className="mt-3 text-[14px] font-medium leading-[1.45] text-[#8f8f8f]">
+              Leave the version field empty and SKL will publish <span className="text-[#242424]">v{suggestedVersion}</span>{" "}
+              automatically. If you type your own version, it must be higher than <span className="text-[#242424]">v{skill.currentVersion.version}</span>.
+            </p>
+          </div>
+
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="publish-form-row">
               <label className="publish-form-label" htmlFor="edit-category">
@@ -117,20 +133,7 @@ export function SkillEditForm({ skill }: { skill: SkillDetail }) {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
-            <div className="publish-form-row">
-              <label className="publish-form-label" htmlFor="edit-version">
-                Next version
-              </label>
-              <input
-                id="edit-version"
-                name="version"
-                placeholder={suggestedVersion}
-                className="publish-form-input"
-              />
-              <p className="mt-2 text-[14px] font-medium text-[#8f8f8f]">
-                Leave blank to auto-bump from v{skill.currentVersion.version} to v{suggestedVersion}.
-              </p>
-            </div>
+            <SkillVersionInput currentVersion={skill.currentVersion.version} />
 
             <div className="publish-form-row">
               <label className="publish-form-label" htmlFor="edit-changelog">

@@ -464,7 +464,7 @@ export async function updateSkillAction(formData: FormData) {
 
   revalidateSkillSurfaces(currentSlug, viewer.username);
   revalidateSkillSurfaces(updatedSkill.slug, viewer.username);
-  redirect(`/s/${updatedSkill.slug}`);
+  redirect(withQuery(`/s/${updatedSkill.slug}`, { message: `Published new version v${nextVersion}.` }));
 }
 
 export async function toggleStarAction(formData: FormData) {

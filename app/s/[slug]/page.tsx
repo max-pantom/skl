@@ -11,6 +11,7 @@ import { TagList } from "@/components/tag-list";
 import { forkSkillAction, toggleStarAction } from "@/lib/actions";
 import { getCurrentViewer, isAppConfigured } from "@/lib/auth";
 import { getSkillBySlug, hasUserStarredSkill } from "@/lib/data";
+import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { isMarkdownPath, selectSkillFile } from "@/lib/skill-files";
 import { formatDate, formatNumber, withQuery } from "@/lib/utils";
 
@@ -22,6 +23,7 @@ type SkillPageProps = {
     error?: string;
     file?: string;
     message?: string;
+    version?: string;
   }>;
 };
 
@@ -53,8 +55,17 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
 
   const viewerHasStarred = viewer ? await hasUserStarredSkill(viewer.id, skill.id) : false;
   const canEdit = viewer?.id === skill.author.id;
-  const selectedFile = selectSkillFile(skill.currentVersion.files, query.file);
-  const redirectTo = withQuery(`/s/${skill.slug}`, { file: selectedFile?.path });
+  const selectedVersion = resolveSkillInstallVersion(skill, query.version ?? null);
+
+  if (!selectedVersion) {
+    notFound();
+  }
+
+  const selectedFile = selectSkillFile(selectedVersion.files, query.file);
+  const redirectTo = withQuery(`/s/${skill.slug}`, {
+    file: selectedFile?.path,
+    version: selectedVersion.version === skill.currentVersion.version ? null : selectedVersion.version,
+  });
 
   if (!selectedFile) {
     notFound();
@@ -92,9 +103,14 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
 
       <div className="mt-[72px] grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px]">
         <section className="border-t border-zinc-200 pt-8">
+          <div className="mb-10 border-b border-zinc-200 pb-8">
+            <p className="page-kicker">What this skill does</p>
+            <p className="mt-4 max-w-3xl text-[18px] font-medium leading-[1.5] text-[#242424]/90">{skill.summary}</p>
+          </div>
+
           <div className="mb-6 flex items-center justify-between gap-3 border-b border-zinc-200 pb-4">
             <div>
-              <p className="page-kicker">Current file</p>
+              <p className="page-kicker">{selectedVersion.version === skill.currentVersion.version ? "Current file" : `Version ${selectedVersion.version}`}</p>
               <p className="mt-2 text-[18px] font-semibold text-[#242424]">{selectedFile.path}</p>
             </div>
             <span className="text-[14px] font-medium text-[#8f8f8f]">
@@ -115,13 +131,16 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
           <section className="border-t border-zinc-200 pt-6">
             <p className="page-kicker">Files</p>
             <div className="mt-5 space-y-2">
-              {skill.currentVersion.files.map((file) => {
+              {selectedVersion.files.map((file) => {
                 const isActive = file.path === selectedFile.path;
 
                 return (
                   <Link
                     key={file.id}
-                    href={withQuery(`/s/${skill.slug}`, { file: file.path })}
+                    href={withQuery(`/s/${skill.slug}`, {
+                      file: file.path,
+                      version: selectedVersion.version === skill.currentVersion.version ? null : selectedVersion.version,
+                    })}
                     className={`block rounded-[20px] border px-4 py-3 text-[14px] font-medium transition ${
                       isActive
                         ? "border-[#242424] bg-[#242424] text-white"
@@ -179,7 +198,10 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
               ) : null}
 
               <Link
-                href={withQuery(`/api/skills/${skill.slug}/raw`, { path: selectedFile.path })}
+                href={withQuery(`/api/skills/${skill.slug}/raw`, {
+                  path: selectedFile.path,
+                  version: selectedVersion.version === skill.currentVersion.version ? null : selectedVersion.version,
+                })}
                 className="skl-btn skl-btn-primary flex w-full justify-center text-center"
               >
                 Download {selectedFile.path}
@@ -193,7 +215,7 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
               <div>
                 <p className="page-kicker">Compatible</p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {skill.currentVersion.compatibleWith.map((entry) => (
+                  {selectedVersion.compatibleWith.map((entry) => (
                     <span key={entry} className="profile-pill">
                       {entry}
                     </span>
@@ -204,11 +226,11 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
               <div className="grid gap-4 border-t border-zinc-200 pt-6 text-[16px] font-medium text-[#8f8f8f]">
                 <div className="flex items-center justify-between gap-3">
                   <span>Version</span>
-                  <span className="text-[#242424]">{skill.currentVersion.version}</span>
+                  <span className="text-[#242424]">{selectedVersion.version}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span>Published</span>
-                  <span className="text-[#242424]">{formatDate(skill.createdAt)}</span>
+                  <span className="text-[#242424]">{formatDate(selectedVersion.createdAt)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span>Stars</span>
@@ -224,15 +246,15 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span>Files</span>
-                  <span className="text-[#242424]">{formatNumber(skill.currentVersion.files.length)}</span>
+                  <span className="text-[#242424]">{formatNumber(selectedVersion.files.length)}</span>
                 </div>
               </div>
 
-              {skill.currentVersion.changelog ? (
+              {selectedVersion.changelog ? (
                 <div className="border-t border-zinc-200 pt-6">
                   <p className="page-kicker">Version notes</p>
                   <p className="mt-3 whitespace-pre-wrap text-[15px] font-medium leading-snug text-[#242424]/90">
-                    {skill.currentVersion.changelog}
+                    {selectedVersion.changelog}
                   </p>
                 </div>
               ) : null}
@@ -244,7 +266,15 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
                     {skill.versions.map((v) => (
                       <li key={v.id} className="border-b border-zinc-100 pb-4 last:border-b-0 last:pb-0">
                         <div className="flex justify-between gap-3">
-                          <span className="font-semibold text-[#242424]">v{v.version}</span>
+                          <Link
+                            href={withQuery(`/s/${skill.slug}`, {
+                              version: v.version === skill.currentVersion.version ? null : v.version,
+                              file: null,
+                            })}
+                            className={`font-semibold ${v.version === selectedVersion.version ? "text-[#242424]" : "text-[#8f8f8f] underline decoration-dotted underline-offset-4 transition hover:text-[#242424]"}`}
+                          >
+                            v{v.version}
+                          </Link>
                           <span>{formatDate(v.createdAt)}</span>
                         </div>
                         {v.changelog ? (
