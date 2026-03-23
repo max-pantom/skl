@@ -1,53 +1,70 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 import { ClaimProfileCard } from "@/components/claim-profile-card";
 import { ClaimVerifiedBottomDock } from "@/components/claim-passport-recent-cluster";
-import { getCurrentViewer } from "@/lib/auth";
-import { getEarlyBelieverRank, getRecentPassportClaimants } from "@/lib/data";
 import { absoluteUrl } from "@/lib/email/app-base-url";
+import type { RecentPassportClaimant, UserRole } from "@/lib/types";
 import { formatClaimCardFooterDate } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Passport (test)",
+  title: "Passport preview",
 };
 
-/** Visual clone of `/u/[username]/passport` for the signed-in user (same layout and data). */
-export default async function Test4Page() {
-  const viewer = await getCurrentViewer();
+/** New random preview on each request (no login). */
+export const dynamic = "force-dynamic";
 
-  if (!viewer) {
-    redirect(`/login?next=${encodeURIComponent("/test4")}`);
-  }
+const DISPLAY_NAMES = [
+  "Alex Rivera",
+  "Sam Chen",
+  "Jordan Lee",
+  "Riley Morgan",
+  "Casey Brooks",
+  "Morgan Blake",
+  "Jamie Park",
+  "Taylor Reed",
+] as const;
 
-  if (!viewer.emailVerified) {
-    redirect("/claim");
-  }
+const ROLES: UserRole[] = ["user", "pro", "admin"];
 
-  const [freshViewer, earlyRank, recentPassportClaimants] = await Promise.all([
-    getCurrentViewer(),
-    getEarlyBelieverRank(viewer.id, viewer.createdAt),
-    getRecentPassportClaimants(4),
-  ]);
+function pick<T>(items: readonly T[]): T {
+  return items[Math.floor(Math.random() * items.length)]!;
+}
 
-  if (!freshViewer) {
-    redirect(`/login?next=${encodeURIComponent("/test4")}`);
-  }
+function randomClaimant(): RecentPassportClaimant {
+  const id = crypto.randomUUID();
+  return {
+    id,
+    username: `u_${id.replace(/-/g, "").slice(0, 10)}`,
+    displayName: pick(DISPLAY_NAMES),
+    /** Same as passport: no upload → {@link ProfileAvatar} shield / admin tile from `userId`. */
+    avatarUrl: null,
+    role: pick(ROLES),
+  };
+}
+
+/** Passport layout mock — only SKL seeded avatars (no external photos). */
+export default function Test4Page() {
+  const userId = crypto.randomUUID();
+  const displayName = pick(DISPLAY_NAMES);
+  const username = `preview_${userId.replace(/-/g, "").slice(0, 8)}`;
+  const role = pick(ROLES);
+  const earlyBelieverRank = 1 + Math.floor(Math.random() * 800);
+  const recentPassportClaimants = Array.from({ length: 4 }, () => randomClaimant());
 
   return (
     <div className="page-shell gap-6">
       <div className="flex min-h-[min(720px,calc(100dvh-6rem))] flex-1 flex-col">
         <div className="flex flex-1 flex-col items-center justify-center px-0 pb-10 pt-4 sm:pb-16 sm:pt-6">
           <ClaimProfileCard
-            avatarUrl={freshViewer.avatarUrl}
-            cardDownloadUrl={absoluteUrl(`/api/users/${freshViewer.id}/claim-card.png`)}
-            displayName={freshViewer.displayName}
-            passportUrl={absoluteUrl(`/u/${freshViewer.username}/passport`)}
-            profileUrl={absoluteUrl(`/u/${freshViewer.username}`)}
-            role={freshViewer.role}
-            userId={freshViewer.id}
-            username={freshViewer.username}
-            earlyBelieverRank={earlyRank}
+            avatarUrl={null}
+            cardDownloadUrl={absoluteUrl(`/api/users/${userId}/claim-card.png`)}
+            displayName={displayName}
+            passportUrl={absoluteUrl("/test4")}
+            profileUrl={absoluteUrl("/test4")}
+            role={role}
+            userId={userId}
+            username={username}
+            earlyBelieverRank={earlyBelieverRank}
             footerDate={formatClaimCardFooterDate(new Date())}
             recentPassportClaimants={recentPassportClaimants}
           />

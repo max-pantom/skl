@@ -180,7 +180,7 @@ export function MemberIdCard({
     <>
       {showPortrait ? (
         <div
-          className="pointer-events-none absolute z-0 select-none [&_svg]:drop-shadow-[0_2px_12px_rgba(0,0,0,0.08)]"
+          className="pointer-events-none absolute z-0 select-none"
           style={{
             right: `${portraitOffsetRight}px`,
             top: "50%",

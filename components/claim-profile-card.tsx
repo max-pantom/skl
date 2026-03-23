@@ -36,6 +36,7 @@ export function ClaimProfileCard({
   earlyBelieverRank,
   footerDate,
   recentPassportClaimants = [],
+  showRecentMembersOnCard = false,
 }: {
   avatarUrl: string | null;
   cardDownloadUrl: string;
@@ -49,6 +50,8 @@ export function ClaimProfileCard({
   footerDate: string;
   /** Shown on the card as square thumbs (excludes the card owner). */
   recentPassportClaimants?: RecentPassportClaimant[];
+  /** When true, square recent-member links on the card. Default false — same as passport preview; dock still lists members. */
+  showRecentMembersOnCard?: boolean;
 }) {
   const [message, setMessage] = useState<string | null>(null);
 
@@ -123,6 +126,7 @@ export function ClaimProfileCard({
         earlyBelieverRank={earlyBelieverRank}
         footerDate={footerDate}
         recentMembers={recentMembersOnCard.length > 0 ? recentMembersOnCard : undefined}
+        showRecentMembers={showRecentMembersOnCard}
         role={role}
         userId={userId}
       />
