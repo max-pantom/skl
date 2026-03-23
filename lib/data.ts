@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 
 import { db, isDatabaseConfigured } from "@/db";
 import { downloads, skills, stars, users } from "@/db/schema";
@@ -11,6 +11,7 @@ import type {
   ProfileData,
   PublicUserListItem,
   PublicUser,
+  RecentPassportClaimant,
   SkillDetail,
   SkillListItem,
   SkillVersionRecord,
@@ -701,6 +702,31 @@ export async function getUserById(userId: string) {
     });
   } catch {
     return null;
+  }
+}
+
+export async function getRecentPassportClaimants(limit = 4): Promise<RecentPassportClaimant[]> {
+  if (!db || !isDatabaseConfigured) {
+    return [];
+  }
+
+  try {
+    const rows = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        role: users.role,
+      })
+      .from(users)
+      .where(eq(users.emailVerified, true))
+      .orderBy(desc(sql`coalesce(${users.emailVerifiedAt}, ${users.updatedAt})`))
+      .limit(limit);
+
+    return rows;
+  } catch {
+    return [];
   }
 }
 

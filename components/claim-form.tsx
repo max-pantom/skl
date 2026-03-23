@@ -1,11 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { ClaimEmailOtp } from "@/components/claim-email-otp";
+import { ClaimProgressDots } from "@/components/claim-progress-dots";
+import { GoogleSignInButton } from "@/components/google-sign-in-button";
 import { SignOutButton } from "@/components/sign-out-button";
 import { authClient } from "@/lib/auth-client";
-import { sanitizeUsername } from "@/lib/utils";
+import { isUsernameAvailableForRegistration } from "@/lib/username-registration";
+import { formatSignUpErrorMessage, sanitizeUsername } from "@/lib/utils";
 
 type InitialViewer = {
   displayName: string;
@@ -14,40 +19,56 @@ type InitialViewer = {
   username: string;
 } | null;
 
-const CLAIM_CALLBACK_URL = "/claim/card";
+const CLAIM_CALLBACK_URL = "/claim";
+
+const claimPillClass =
+  "flex w-full items-center gap-1 rounded-[18px] bg-[#e4e4e4] px-4 py-3 text-[16px] font-medium text-[#242424]";
+
+const claimInputClass =
+  "min-w-0 flex-1 border-0 bg-transparent p-0 text-[#242424] placeholder:text-[#242424]/30 focus:outline-none focus:ring-0";
 
 export function ClaimForm({
   verificationAvailable,
   initialViewer,
+  profileUrlPrefix,
+  googleOAuthConfigured,
 }: {
   verificationAvailable: boolean;
   initialViewer: InitialViewer;
+  profileUrlPrefix: string;
+  googleOAuthConfigured: boolean;
 }) {
+  const router = useRouter();
   const alreadyClaimed = Boolean(initialViewer);
   const pendingVerification = alreadyClaimed && !initialViewer?.emailVerified;
 
   const [email, setEmail] = useState(initialViewer?.email ?? "");
   const [username, setUsername] = useState(initialViewer?.username ?? "");
-  const [displayName, setDisplayName] = useState(initialViewer?.displayName ?? "");
+  const [displayName] = useState(initialViewer?.displayName ?? "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(
-    pendingVerification ? `Verification email sent to ${initialViewer?.email ?? "your inbox"}.` : null,
-  );
+  const [notice, setNotice] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [resendPending, setResendPending] = useState(false);
+  const [otpResendKey, setOtpResendKey] = useState(0);
 
   const canSubmit = verificationAvailable && !pendingVerification;
+
+  const claimStep: 1 | 2 | 3 =
+    pendingVerification ||
+    (notice != null && (notice.includes("5-digit code") || notice.includes("Verification email")))
+      ? 2
+      : 1;
   const helperText = useMemo(() => {
     if (!verificationAvailable) {
       return "Claims are disabled until email delivery is configured.";
     }
 
     if (pendingVerification) {
-      return "Open the verification link in your inbox to finish claiming your card.";
+      return "Enter the code from your email below, or resend if you need a new one.";
     }
 
-    return "We’ll email a verification link before your card is unlocked.";
+    return "We’ll email a 5-digit code to verify before your card is unlocked.";
   }, [pendingVerification, verificationAvailable]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -81,6 +102,13 @@ export function ClaimForm({
 
     setPending(true);
 
+    const usernameFree = await isUsernameAvailableForRegistration(username);
+    if (!usernameFree) {
+      setPending(false);
+      setError("That username is already taken.");
+      return;
+    }
+
     const { error: signError } = await authClient.signUp.email({
       callbackURL: CLAIM_CALLBACK_URL,
       email: cleanEmail,
@@ -92,11 +120,12 @@ export function ClaimForm({
     setPending(false);
 
     if (signError) {
-      setError(signError.message ?? "Could not create claim.");
+      setError(formatSignUpErrorMessage(signError.message, "Could not create claim."));
       return;
     }
 
-    setNotice(`Verification email sent to ${cleanEmail}. Open it to unlock your card.`);
+    setNotice(`We sent a 5-digit code to ${cleanEmail}. Enter it below to finish.`);
+    router.refresh();
   }
 
   async function resendVerification() {
@@ -109,134 +138,167 @@ export function ClaimForm({
     setNotice(null);
     setResendPending(true);
 
-    const response = await authClient.sendVerificationEmail({
-      callbackURL: CLAIM_CALLBACK_URL,
+    const { error: resendError } = await authClient.emailOtp.sendVerificationOtp({
       email: email.trim(),
-    } as never);
+      type: "email-verification",
+    });
 
     setResendPending(false);
 
-    if (response.error) {
-      setError(response.error.message ?? "Could not resend verification email.");
+    if (resendError) {
+      setError(resendError.message ?? "Could not resend the code.");
       return;
     }
 
-    setNotice(`Another verification email was sent to ${email.trim()}.`);
+    setOtpResendKey((k) => k + 1);
+    setNotice(`A new code was sent to ${email.trim()}.`);
   }
 
   return (
-    <div className="mx-auto w-full max-w-[640px] rounded-[32px] border border-zinc-200 bg-[linear-gradient(180deg,rgba(250,250,248,0.96),rgba(255,255,255,1))] p-6 sm:p-8">
-      <div className="space-y-2">
-        <p className="page-kicker">Claim Flow</p>
-        <p className="text-[18px] font-semibold text-[#242424]">
-          {pendingVerification ? "Check your email" : "Create your card"}
-        </p>
-        <p className="text-[15px] font-medium leading-6 text-[#8f8f8f]">{helperText}</p>
+    <div className="flex min-h-[min(720px,calc(100dvh-6rem))] flex-1 flex-col">
+      <div className="flex flex-1 flex-col items-center justify-center px-0 pb-10 pt-4 sm:pb-16 sm:pt-6">
+        <div className="flex w-full max-w-[367px] flex-col items-center gap-12">
+          {pendingVerification ? (
+            <>
+              <div className="flex w-full flex-col items-center gap-2 text-center">
+                <h1 className="w-full text-[24px] font-semibold leading-tight text-[#242424]">
+                  Verify your account
+                </h1>
+                <p className="max-w-[283px] text-[16px] font-medium leading-snug text-black/50">
+                  A code has been sent to your email
+                </p>
+              </div>
+
+              {error ? (
+                <p className="w-full rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-[15px] font-medium text-red-700">
+                  {error}
+                </p>
+              ) : null}
+
+              {notice ? (
+                <p className="w-full rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-[15px] font-medium text-emerald-700">
+                  {notice}
+                </p>
+              ) : null}
+
+              <div className="flex w-full flex-col gap-3">
+                <ClaimEmailOtp
+                  key={otpResendKey}
+                  email={email}
+                  disabled={!verificationAvailable || resendPending}
+                />
+                <p className="text-center text-[15px] font-medium text-black/45">{helperText}</p>
+                <button
+                  type="button"
+                  onClick={() => void resendVerification()}
+                  disabled={resendPending || !verificationAvailable}
+                  className="text-[16px] font-medium text-[#242424] underline decoration-[#242424]/30 underline-offset-4 transition hover:decoration-[#242424]"
+                >
+                  {resendPending ? "Sending…" : "Resend code"}
+                </button>
+                <Link
+                  href="/login"
+                  className="skl-btn skl-btn-secondary w-full justify-center rounded-[18px] py-3"
+                >
+                  Sign in instead
+                </Link>
+                <SignOutButton className="rounded-[18px] bg-[#e4e4e4] px-4 py-3 text-center text-[15px] font-medium text-[#242424] hover:bg-[#dadada]" />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex w-full max-w-[246px] flex-col items-center gap-2 text-center">
+                <h1 className="w-full text-[24px] font-semibold leading-tight text-[#242424]">Claim your username</h1>
+                <p className="w-full text-[16px] font-medium leading-snug text-black/50">see you soon</p>
+              </div>
+
+              {error ? (
+                <p className="w-full rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-[15px] font-medium text-red-700">
+                  {error}
+                </p>
+              ) : null}
+
+              {notice ? (
+                <p className="w-full rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-[15px] font-medium text-emerald-700">
+                  {notice}
+                </p>
+              ) : null}
+
+              {!verificationAvailable ? (
+                <p className="w-full rounded-[18px] bg-[#e4e4e4] px-4 py-3 text-center text-[15px] font-medium text-[#242424]/80">
+                  {helperText}
+                </p>
+              ) : null}
+
+              <form onSubmit={onSubmit} className="flex w-full flex-col items-center gap-3">
+                <label className={claimPillClass}>
+                  <span className="shrink-0 text-[#848484]">{profileUrlPrefix}</span>
+                  <input
+                    type="text"
+                    autoComplete="username"
+                    required
+                    minLength={3}
+                    disabled={!canSubmit || pending}
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    placeholder="username"
+                    className={claimInputClass}
+                  />
+                </label>
+
+                <label className={`${claimPillClass} w-full`}>
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    required
+                    disabled={!canSubmit || pending}
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="Email"
+                    className={`${claimInputClass} w-full`}
+                  />
+                </label>
+
+                <label className={`${claimPillClass} w-full`}>
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    minLength={8}
+                    disabled={!canSubmit || pending}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Password"
+                    className={`${claimInputClass} w-full`}
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  disabled={!canSubmit || pending}
+                  className="skl-btn skl-btn-primary mt-1 w-full justify-center rounded-[18px] py-3"
+                >
+                  {pending ? "Sending…" : "Verify with email"}
+                </button>
+
+                {googleOAuthConfigured ? (
+                  <>
+                    <p className="pt-1 text-[16px] font-medium text-black">Or</p>
+                    <GoogleSignInButton
+                      callbackURL={CLAIM_CALLBACK_URL}
+                      showGlyph={false}
+                      label="Continue with Google"
+                      className="rounded-[18px] py-3"
+                    />
+                  </>
+                ) : null}
+              </form>
+            </>
+          )}
+        </div>
       </div>
 
-      {error ? (
-        <p className="mt-6 rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-[15px] font-medium text-red-700">
-          {error}
-        </p>
-      ) : null}
-
-      {notice ? (
-        <p className="mt-6 rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-[15px] font-medium text-emerald-700">
-          {notice}
-        </p>
-      ) : null}
-
-      {pendingVerification ? (
-        <div className="mt-8 space-y-5">
-          <div className="rounded-[24px] border border-zinc-200 bg-white p-5">
-            <p className="text-[16px] font-semibold text-[#242424]">{displayName}</p>
-            <p className="mt-1 text-[15px] font-medium text-[#8f8f8f]">@{username}</p>
-            <p className="mt-4 text-[15px] font-medium text-[#242424]/70">{email}</p>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={resendVerification}
-              disabled={resendPending || !verificationAvailable}
-              className="skl-btn skl-btn-primary"
-            >
-              {resendPending ? "Sending…" : "Resend verification"}
-            </button>
-            <Link href="/login" className="skl-btn skl-btn-secondary">
-              Sign in instead
-            </Link>
-            <SignOutButton className="bg-zinc-100/80 px-4 py-2.5 text-[15px] font-medium text-[#242424]" />
-          </div>
-        </div>
-      ) : (
-        <form onSubmit={onSubmit} className="mt-8 space-y-7">
-          <label className="profile-field-row block">
-            <span className="profile-field-label">Email</span>
-            <input
-              type="email"
-              autoComplete="email"
-              required
-              disabled={!canSubmit || pending}
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="skl-input"
-            />
-          </label>
-
-          <label className="profile-field-row block">
-            <span className="profile-field-label">Username</span>
-            <input
-              type="text"
-              autoComplete="username"
-              required
-              minLength={3}
-              disabled={!canSubmit || pending}
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              className="skl-input"
-            />
-            <span className="profile-field-help">This becomes your public profile URL.</span>
-          </label>
-
-          <label className="profile-field-row block">
-            <span className="profile-field-label">Display name</span>
-            <input
-              type="text"
-              autoComplete="name"
-              required
-              minLength={3}
-              disabled={!canSubmit || pending}
-              value={displayName}
-              onChange={(event) => setDisplayName(event.target.value)}
-              className="skl-input"
-            />
-          </label>
-
-          <label className="profile-field-row block">
-            <span className="profile-field-label">Password</span>
-            <input
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              disabled={!canSubmit || pending}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="skl-input"
-            />
-            <span className="profile-field-help">Needed so you can sign back in later after claiming.</span>
-          </label>
-
-          <button
-            type="submit"
-            disabled={!canSubmit || pending}
-            className="skl-btn skl-btn-primary w-full justify-center"
-          >
-            {pending ? "Creating claim…" : "Send verification email"}
-          </button>
-        </form>
-      )}
+      <ClaimProgressDots step={claimStep} />
     </div>
   );
 }

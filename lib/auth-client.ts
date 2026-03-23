@@ -1,6 +1,7 @@
 "use client";
 
 import { createAuthClient } from "better-auth/react";
+import { emailOTPClient } from "better-auth/client/plugins";
 
 /**
  * Use the live page origin in the browser so auth calls stay same-origin. If `NEXT_PUBLIC_APP_URL`
@@ -17,4 +18,5 @@ function clientBaseURL() {
 
 export const authClient = createAuthClient({
   baseURL: clientBaseURL(),
+  plugins: [emailOTPClient()],
 });

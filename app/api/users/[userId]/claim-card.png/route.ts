@@ -1,3 +1,4 @@
+import { Resvg } from "@resvg/resvg-js";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -42,12 +43,20 @@ export async function GET(_request: Request, { params }: RouteProps) {
     username: user.username,
   });
 
-  return new NextResponse(svg, {
+  const resvg = new Resvg(svg, {
+    fitTo: {
+      mode: "width",
+      value: 1200,
+    },
+  });
+  const pngData = resvg.render().asPng();
+
+  return new NextResponse(pngData, {
     status: 200,
     headers: {
       "Cache-Control": "public, max-age=86400, s-maxage=86400",
-      "Content-Disposition": `attachment; filename="${user.username}-skl-card.svg"`,
-      "Content-Type": "image/svg+xml; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${user.username}-skl-card.png"`,
+      "Content-Type": "image/png",
     },
   });
 }

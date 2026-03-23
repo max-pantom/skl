@@ -3,13 +3,19 @@
 import { useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 export function GoogleSignInButton({
   callbackURL,
   label = "Continue with Google",
+  showGlyph = true,
+  className,
 }: {
   callbackURL: string;
   label?: string;
+  /** When false, matches text-only secondary buttons (e.g. claim flow). */
+  showGlyph?: boolean;
+  className?: string;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -37,9 +43,9 @@ export function GoogleSignInButton({
         type="button"
         onClick={onClick}
         disabled={pending}
-        className="skl-btn skl-btn-secondary flex w-full items-center justify-center gap-2"
+        className={cn("skl-btn skl-btn-secondary flex w-full items-center justify-center gap-2", className)}
       >
-        <GoogleGlyph className="h-5 w-5 shrink-0" aria-hidden />
+        {showGlyph ? <GoogleGlyph className="h-5 w-5 shrink-0" aria-hidden /> : null}
         {pending ? "Redirecting…" : label}
       </button>
     </div>

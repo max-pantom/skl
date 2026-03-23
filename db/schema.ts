@@ -32,6 +32,8 @@ export const users = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     email: varchar("email", { length: 255 }).notNull().unique(),
     emailVerified: boolean("email_verified").notNull().default(false),
+    /** Set when email is first verified (passport claimed); used for “recent claimants” ordering. */
+    emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
     username: varchar("username", { length: 32 }).notNull(),
     displayName: varchar("display_name", { length: 64 }).notNull(),
     role: userRoleEnum("role").notNull().default("user"),

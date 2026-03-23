@@ -2,37 +2,85 @@
 
 import { useState } from "react";
 
-import { ProfileAvatar } from "@/components/profile-avatar";
-import type { UserRole } from "@/lib/types";
+import { ClaimPassportRecentCluster } from "@/components/claim-passport-recent-cluster";
+import { MemberIdCard } from "@/components/member-id-card";
+import type { RecentPassportClaimant, UserRole } from "@/lib/types";
+
+function buildMemberCardPlainText(input: {
+  displayName: string;
+  username: string;
+  earlyBelieverRank: number | null;
+  footerDate: string;
+  passportUrl: string;
+}) {
+  const lines: string[] = [];
+  if (input.earlyBelieverRank != null) {
+    lines.push(`#${input.earlyBelieverRank} of users`);
+  }
+  const primary = input.displayName.trim().split(/\s+/)[0] || input.displayName;
+  lines.push(primary);
+  lines.push(`@${input.username}`);
+  lines.push(input.footerDate);
+  lines.push(input.passportUrl);
+  return lines.join("\n");
+}
 
 export function ClaimProfileCard({
+  avatarUrl,
   cardDownloadUrl,
   displayName,
-  email,
+  passportUrl,
   profileUrl,
+  recentPassportClaimants,
   role,
   userId,
   username,
+  earlyBelieverRank,
+  footerDate,
 }: {
+  avatarUrl: string | null;
   cardDownloadUrl: string;
   displayName: string;
-  email: string | null;
+  passportUrl: string;
   profileUrl: string;
+  recentPassportClaimants: RecentPassportClaimant[];
   role: UserRole;
   userId: string;
   username: string;
+  earlyBelieverRank: number | null;
+  footerDate: string;
 }) {
   const [message, setMessage] = useState<string | null>(null);
 
   async function shareCard() {
     setMessage(null);
 
+    try {
+      const response = await fetch(cardDownloadUrl);
+      if (response.ok) {
+        const blob = await response.blob();
+        const file = new File([blob], `${username}-skl-card.png`, { type: "image/png" });
+
+        if (navigator.share && typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+          files: [file],
+          title: `${displayName} Passport`,
+          text: `Passport for ${displayName} on SKL.`,
+          });
+          setMessage("Shared.");
+          return;
+        }
+      }
+    } catch {
+      // fall through to URL share / clipboard fallback
+    }
+
     if (navigator.share) {
       try {
         await navigator.share({
-          text: `Meet ${displayName} on SKL.`,
-          title: `${displayName} on SKL`,
-          url: profileUrl,
+          text: `Passport for ${displayName} on SKL.`,
+          title: `${displayName} Passport`,
+          url: passportUrl,
         });
         setMessage("Shared.");
         return;
@@ -41,66 +89,59 @@ export function ClaimProfileCard({
       }
     }
 
-    await navigator.clipboard.writeText(profileUrl);
-    setMessage("Profile link copied.");
+    await navigator.clipboard.writeText(passportUrl);
+    setMessage("Passport link copied.");
   }
 
-  async function copyCardLink() {
-    await navigator.clipboard.writeText(profileUrl);
-    setMessage("Profile link copied.");
+  async function copyCardContents() {
+    setMessage(null);
+    const text = buildMemberCardPlainText({
+      displayName,
+      username,
+      earlyBelieverRank,
+      footerDate,
+      passportUrl,
+    });
+    try {
+      await navigator.clipboard.writeText(text);
+      setMessage("Card contents copied.");
+    } catch {
+      setMessage("Could not copy — try again or copy manually.");
+    }
   }
+
+  const pillBtn =
+    "flex h-[43px] min-w-0 flex-1 items-center justify-center rounded-[18px] bg-[#e4e4e4] px-3 text-[16px] font-medium text-[rgba(36,36,36,0.5)] transition hover:bg-[#dadada] hover:text-[#242424] sm:px-4";
 
   return (
-    <div className="mx-auto w-full max-w-[840px] space-y-6">
-      <article className="overflow-hidden rounded-[36px] border border-zinc-200 bg-[linear-gradient(145deg,#ffffff,rgba(244,244,240,0.98))] shadow-[0_20px_80px_rgba(36,36,36,0.08)]">
-        <div className="grid gap-8 p-6 sm:grid-cols-[160px_minmax(0,1fr)] sm:p-8">
-          <div className="flex justify-center sm:justify-start">
-            <div className="rounded-[28px] bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.98),rgba(235,235,230,0.95))] p-4 shadow-[inset_0_0_0_1px_rgba(36,36,36,0.06)]">
-              <ProfileAvatar
-                avatarUrl={null}
-                displayName={displayName}
-                parallax={false}
-                role={role}
-                size={128}
-                userId={userId}
-              />
-            </div>
-          </div>
+    <div className="mx-auto flex w-full max-w-[367px] flex-col gap-12">
+      <ClaimPassportRecentCluster claimants={recentPassportClaimants} />
+      <MemberIdCard
+        avatarUrl={avatarUrl}
+        displayName={displayName}
+        earlyBelieverRank={earlyBelieverRank}
+        footerDate={footerDate}
+        role={role}
+        userId={userId}
+      />
 
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <div className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[13px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                Email verified
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-[34px] font-semibold leading-none text-[#242424] sm:text-[42px]">
-                  {displayName}
-                </h2>
-                <p className="text-[18px] font-medium text-[#8f8f8f]">@{username}</p>
-                {email ? <p className="text-[15px] font-medium text-[#242424]/55">{email}</p> : null}
-              </div>
-            </div>
-
-            <div className="rounded-[24px] border border-zinc-200 bg-white/80 p-4 text-[15px] font-medium leading-6 text-[#242424]/70">
-              Your generated SKL avatar is locked in. Save this card or share your profile URL while the claim is fresh.
-            </div>
-          </div>
-        </div>
-      </article>
-
-      <div className="flex flex-wrap gap-3">
-        <button type="button" onClick={shareCard} className="skl-btn skl-btn-primary">
-          Share profile
-        </button>
-        <a href={cardDownloadUrl} download={`${username}-skl-card.svg`} className="skl-btn skl-btn-secondary">
-          Save card
+      <div className="flex w-full flex-wrap gap-3">
+        <a
+          href={cardDownloadUrl}
+          download={`${username}-skl-card.png`}
+          className={pillBtn}
+        >
+          Download
         </a>
-        <button type="button" onClick={copyCardLink} className="skl-btn skl-btn-secondary">
-          Copy link
+        <button type="button" onClick={() => void shareCard()} className={pillBtn}>
+          Share
+        </button>
+        <button type="button" onClick={() => void copyCardContents()} className={pillBtn}>
+          Copy
         </button>
       </div>
 
-      {message ? <p className="text-[15px] font-medium text-[#8f8f8f]">{message}</p> : null}
+      {message ? <p className="text-center text-[15px] font-medium text-[#8f8f8f]">{message}</p> : null}
     </div>
   );
 }

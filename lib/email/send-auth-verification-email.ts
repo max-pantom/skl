@@ -2,9 +2,8 @@ import { escapeHtml } from "@/lib/email/escape-html";
 import { getEmailFrom, getResend } from "@/lib/email/resend-client";
 
 type SendAuthVerificationEmailInput = {
-  displayName: string;
+  otp: string;
   to: string;
-  verifyUrl: string;
 };
 
 export async function sendAuthVerificationEmail(
@@ -16,8 +15,7 @@ export async function sendAuthVerificationEmail(
     return { ok: false, error: "RESEND_API_KEY is not set" };
   }
 
-  const displayName = escapeHtml(input.displayName.trim() || "there");
-  const verifyUrl = input.verifyUrl.trim();
+  const otp = escapeHtml(input.otp.trim());
 
   const html = `<!doctype html>
 <html>
@@ -25,20 +23,14 @@ export async function sendAuthVerificationEmail(
     <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
       <div style="background:#ffffff;border:1px solid rgba(36,36,36,0.12);border-radius:28px;padding:32px;">
         <p style="margin:0 0 12px;font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#8f8f8f;">SKL Claim</p>
-        <h1 style="margin:0 0 14px;font-size:28px;line-height:1;color:#242424;">Verify your email</h1>
+        <h1 style="margin:0 0 14px;font-size:28px;line-height:1;color:#242424;">Your verification code</h1>
         <p style="margin:0 0 24px;font-size:16px;line-height:1.5;color:#4b4b4b;">
-          Hi ${displayName}, click the button below to verify your email and finish claiming your profile card.
-        </p>
-        <p style="margin:0 0 28px;">
-          <a href="${verifyUrl}" style="display:inline-block;padding:14px 22px;border-radius:999px;background:#242424;color:#ffffff;text-decoration:none;font-size:16px;font-weight:600;">
-            Verify email
-          </a>
+          Enter this 5-digit code in the claim form to verify your email and finish claiming your profile card.
         </p>
         <p style="margin:0;font-size:14px;line-height:1.5;color:#8f8f8f;">
-          If the button does not work, open this link:
-          <br />
-          <a href="${verifyUrl}" style="color:#242424;word-break:break-all;">${escapeHtml(verifyUrl)}</a>
+          Verification code
         </p>
+        <p style="margin:14px 0 0;font-size:40px;line-height:1;letter-spacing:0.24em;font-weight:700;color:#242424;">${otp}</p>
       </div>
     </div>
   </body>
@@ -47,7 +39,7 @@ export async function sendAuthVerificationEmail(
   const { data, error } = await resend.emails.send({
     from: getEmailFrom(),
     html,
-    subject: "Verify your email for SKL",
+    subject: "Your SKL verification code",
     to: [input.to.trim()],
   });
 

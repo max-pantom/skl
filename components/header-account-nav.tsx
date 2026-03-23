@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { ProfileAvatar } from "@/components/profile-avatar";
 import type { AppViewer } from "@/lib/types";
@@ -22,17 +23,31 @@ function showSettingsInsteadOfAvatar(pathname: string, viewer: AppViewer | null)
 
 export function HeaderAccountNav({ viewer }: { viewer: AppViewer | null }) {
   const pathname = usePathname() ?? "";
+  const [claimCopied, setClaimCopied] = useState(false);
   const settingsSlot = showSettingsInsteadOfAvatar(pathname, viewer);
 
   const createHref = viewer ? "/new" : "/login?next=%2Fnew";
   const settingsHref = "/settings";
   const profileHref = viewer ? `/u/${viewer.username}` : "/settings";
 
+  async function copyClaimLink() {
+    const claimUrl = `${window.location.origin}/claim`;
+    await navigator.clipboard.writeText(claimUrl);
+    setClaimCopied(true);
+    window.setTimeout(() => setClaimCopied(false), 1600);
+  }
+
   return (
     <div className="flex items-center gap-2">
-      <Link href={createHref} className={linkClass.create}>
-        Create
-      </Link>
+      {pathname === "/claim" ? (
+        <button type="button" onClick={() => void copyClaimLink()} className={linkClass.create}>
+          {claimCopied ? "Copied" : "Invite"}
+        </button>
+      ) : (
+        <Link href={createHref} className={linkClass.create}>
+          Create
+        </Link>
+      )}
       {viewer ? (
         settingsSlot ? (
           <Link href={settingsHref} className={linkClass.settings}>

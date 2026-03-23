@@ -8,6 +8,16 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      keyframes: {
+        "shutter-flash": {
+          "0%": { opacity: "0" },
+          "14%": { opacity: "0.93" },
+          "100%": { opacity: "0" },
+        },
+      },
+      animation: {
+        "shutter-flash": "shutter-flash 0.34s ease-out forwards",
+      },
       colors: {
         ink: "#18181b",
         shell: "#f4f4f5",

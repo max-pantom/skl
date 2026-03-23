@@ -12,5 +12,9 @@ export function ConditionalFooter() {
     return null;
   }
 
+  if (pathname === "/claim" || pathname.startsWith("/claim/")) {
+    return null;
+  }
+
   return <SiteFooter />;
 }

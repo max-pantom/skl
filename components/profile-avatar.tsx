@@ -26,6 +26,11 @@ type ProfileAvatarProps = {
    * Box-shadow is removed while hovering (idle keeps a light shadow).
    */
   parallax?: boolean;
+  /**
+   * When false, no circular mask on uploads or shield (square frame). Use on large claim / ID layouts.
+   * Admin default avatar stays circular.
+   */
+  clipCircle?: boolean;
 };
 
 function clamp(n: number, min: number, max: number) {
@@ -43,6 +48,7 @@ export function ProfileAvatar({
   role,
   size = 100,
   parallax = false,
+  clipCircle = true,
 }: ProfileAvatarProps) {
   if (parallax) {
     return (
@@ -63,7 +69,7 @@ export function ProfileAvatar({
         alt={displayName}
         width={size}
         height={size}
-        className="rounded-full object-cover"
+        className={clipCircle ? "rounded-full object-cover" : "rounded-none object-cover"}
       />
     );
   }
@@ -84,6 +90,8 @@ export function ProfileAvatar({
         seed={seed}
         size={size}
         showDebug={false}
+        clipToCircle={clipCircle}
+        includeOuterDisc={clipCircle}
         avatarScale={DEFAULT_SHIELD_LAYOUT.avatarScale}
         avatarOffsetX={DEFAULT_SHIELD_LAYOUT.avatarOffsetX}
         avatarOffsetY={DEFAULT_SHIELD_LAYOUT.avatarOffsetY}

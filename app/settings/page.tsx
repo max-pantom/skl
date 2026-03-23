@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { FormNotice } from "@/components/form-notice";
 import { PageIntro } from "@/components/page-intro";
@@ -30,6 +31,20 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       {sp.ok ? <FormNotice tone="success">Profile updated.</FormNotice> : null}
 
       <form action={updateProfileAction} className="mx-auto w-full max-w-[720px] space-y-8 border-t border-zinc-200 pt-8">
+        <div className="flex items-center justify-between gap-4 rounded-[24px] border border-zinc-200 bg-[linear-gradient(145deg,#ffffff,rgba(244,244,240,0.98))] px-5 py-4">
+          <div className="space-y-1">
+            <p className="text-[16px] font-semibold text-[#242424]">Passport</p>
+            <p className="text-[15px] font-medium text-[#8f8f8f]">
+              {viewer.emailVerified
+                ? "Open your verified card state."
+                : "Continue your claim and verification flow."}
+            </p>
+          </div>
+          <Link href={`/u/${viewer.username}/passport`} className="skl-btn skl-btn-secondary whitespace-nowrap">
+            Passport
+          </Link>
+        </div>
+
         <p className="text-[16px] font-medium text-[#8f8f8f]">
           Profile URL:{" "}
           <span className="font-medium text-[#242424]">

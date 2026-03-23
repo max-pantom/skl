@@ -105,3 +105,12 @@ export type AppViewer = PublicUser & {
   emailVerified: boolean;
   needsProfileSetup: boolean;
 };
+
+/** Recent email-verified users for claim / passport “passport cluster” UI. */
+export type RecentPassportClaimant = {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  role: UserRole;
+};

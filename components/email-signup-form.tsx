@@ -6,7 +6,8 @@ import { useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
 import { GoogleSignInButton } from "@/components/google-sign-in-button";
-import { sanitizeUsername } from "@/lib/utils";
+import { isUsernameAvailableForRegistration } from "@/lib/username-registration";
+import { formatSignUpErrorMessage, sanitizeUsername } from "@/lib/utils";
 
 export function EmailSignupForm({ googleAuthEnabled = false }: { googleAuthEnabled?: boolean }) {
   const router = useRouter();
@@ -40,6 +41,13 @@ export function EmailSignupForm({ googleAuthEnabled = false }: { googleAuthEnabl
       return;
     }
 
+    const usernameFree = await isUsernameAvailableForRegistration(username);
+    if (!usernameFree) {
+      setPending(false);
+      setError("That username is already taken.");
+      return;
+    }
+
     const { error: signError } = await authClient.signUp.email({
       email,
       password,
@@ -51,7 +59,7 @@ export function EmailSignupForm({ googleAuthEnabled = false }: { googleAuthEnabl
     setPending(false);
 
     if (signError) {
-      setError(signError.message ?? "Could not create account.");
+      setError(formatSignUpErrorMessage(signError.message, "Could not create account."));
       return;
     }
 

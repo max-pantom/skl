@@ -7,12 +7,9 @@ import { cn, formatNumber } from "@/lib/utils";
 const rowHover =
   "group transition-colors hover:bg-[rgba(36,36,36,0.04)] sm:hover:bg-[rgba(36,36,36,0.04)]";
 
-/** Desktop profile row — original height; hover is a tight pill on the title only. */
+/** Desktop profile row — compact height; hover pill covers the full row (all columns). */
 const profileSkillDesktopRowClass =
-  "group grid w-full grid-cols-[minmax(0,10.92%)_minmax(0,1fr)_7rem_5.5rem_4rem] items-center gap-x-9 py-1.5 text-[16px] text-[#242424]";
-
-const profileSkillDesktopTitleLinkClass =
-  "inline-block max-w-full truncate rounded-full px-2 py-0.5 -mx-2 text-[16px] font-semibold text-[#242424] transition-colors group-hover:bg-[#efefef] group-hover:opacity-90";
+  "group grid w-full grid-cols-[minmax(0,10.92%)_minmax(0,1fr)_7rem_5.5rem_4rem] items-center gap-x-9 rounded-[12px] px-2 py-1.5 text-[16px] text-[#242424] transition-colors hover:bg-[#efefef]";
 
 /** Shared with {@link SkillCard} so registry lists match profile mobile cards. */
 export const profileSkillMobileRowHoverClass = rowHover;
@@ -75,7 +72,7 @@ export function ProfileSkillTableRow({ skill }: { skill: SkillListItem }) {
   return (
     <div className={profileSkillDesktopRowClass}>
       <div className="min-w-0">
-        <Link href={`/s/${skill.slug}`} className={profileSkillDesktopTitleLinkClass}>
+        <Link href={`/s/${skill.slug}`} className={titleLinkClass}>
           {skill.title}
         </Link>
       </div>

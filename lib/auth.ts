@@ -3,6 +3,7 @@ import { inspect } from "node:util";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
+import { emailOTP } from "better-auth/plugins";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
@@ -73,7 +74,9 @@ function createAuth() {
   const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim();
   const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
   const googleOAuthConfigured = Boolean(googleClientId && googleClientSecret);
-  const emailVerificationEnabled = Boolean(process.env.RESEND_API_KEY?.trim());
+  const emailDeliveryConfigured = Boolean(
+    process.env.RESEND_API_KEY?.trim() && process.env.EMAIL_FROM?.trim(),
+  );
 
   return betterAuth({
     baseURL,
@@ -91,35 +94,18 @@ function createAuth() {
       schema,
       camelCase: true,
     }),
-    ...(emailVerificationEnabled
-      ? {
-          emailVerification: {
-            autoSignInAfterVerification: true,
-            sendOnSignIn: true,
-            sendOnSignUp: true,
-            async sendVerificationEmail({
-              user,
-              url,
-            }: {
-              user: { email: string; name?: string | null };
-              url: string;
-            }) {
-              const result = await sendAuthVerificationEmail({
-                displayName: user.name?.trim() || "there",
-                to: user.email,
-                verifyUrl: url,
-              });
-
-              if (!result.ok) {
-                throw new Error(result.error);
-              }
-            },
-          },
-        }
-      : {}),
     emailAndPassword: {
       enabled: true,
     },
+    ...(emailDeliveryConfigured
+      ? {
+          emailVerification: {
+            sendOnSignUp: true,
+            autoSignInAfterVerification: true,
+            sendOnSignIn: false,
+          },
+        }
+      : {}),
     ...(googleOAuthConfigured
       ? {
           socialProviders: {
@@ -148,6 +134,7 @@ function createAuth() {
 
             const nameFromProvider = typeof u.name === "string" ? u.name.trim() : "";
             const name = nameFromProvider || username;
+            const emailVerified = u.emailVerified === true;
 
             return {
               data: {
@@ -157,8 +144,23 @@ function createAuth() {
                 image: null,
                 avatarUrl: null,
                 needsProfileSetup,
+                ...(emailVerified ? { emailVerifiedAt: new Date() } : {}),
               },
             };
+          },
+        },
+        update: {
+          before: async (data) => {
+            const d = data as Record<string, unknown>;
+            if (d.emailVerified === true) {
+              return {
+                data: {
+                  ...d,
+                  emailVerifiedAt: new Date(),
+                },
+              };
+            }
+            return { data: d };
           },
         },
       },
@@ -174,13 +176,39 @@ function createAuth() {
         bio: { type: "string", required: false },
         website: { type: "string", required: false },
         xUrl: { type: "string", required: false },
+        emailVerifiedAt: { type: "date", required: false },
       },
     },
     session: { modelName: "sessions" },
     account: { modelName: "accounts" },
     verification: { modelName: "verifications" },
     trustedOrigins: buildTrustedOrigins(baseURL),
-    plugins: [nextCookies()],
+    plugins: [
+      ...(emailDeliveryConfigured
+        ? [
+            emailOTP({
+              overrideDefaultEmailVerification: true,
+              otpLength: 5,
+              sendVerificationOnSignUp: false,
+              async sendVerificationOTP({ email, otp, type }) {
+                if (type !== "email-verification") {
+                  return;
+                }
+
+                const result = await sendAuthVerificationEmail({
+                  otp,
+                  to: email,
+                });
+
+                if (!result.ok) {
+                  throw new Error(result.error);
+                }
+              },
+            }),
+          ]
+        : []),
+      nextCookies(),
+    ],
   });
 }
 

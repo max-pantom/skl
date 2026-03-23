@@ -100,7 +100,7 @@ pnpm exec skl install my-skill --target cursor
 
 ## Claim Flow
 
-`/claim` is a dedicated email verification funnel. It collects email, username, display name, and password, sends a verification email, and unlocks `/claim/card` after the address is verified.
+`/claim` is a dedicated email verification funnel. It collects email, username, display name, and password, sends a verification email, and keeps the full claim flow on `/claim`, including the verified card state.
 
 The generated card can be shared from the browser or saved from:
 
