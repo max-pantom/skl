@@ -124,7 +124,7 @@ export function ClaimProfileCard({
   return (
     <div
       className={`mx-auto flex w-full flex-col sm:max-w-[367px] sm:translate-y-0 sm:gap-12 ${
-        compactMobile ? "max-w-[292px] gap-8 -translate-y-4" : "max-w-[340px] gap-10 -translate-y-2"
+        compactMobile ? "max-w-[292px] gap-8 -translate-y-10" : "max-w-[340px] gap-10 -translate-y-2"
       }`}
     >
       <MemberIdCard
