@@ -2,9 +2,19 @@
  * Claim flow progress — supplied SVG: bottom-left → top → bottom-right;
  * opacity 1 for reached steps, 0.4 for upcoming (step 2 matches two solid + one muted).
  */
-export function ClaimProgressDots({ step }: { step: 1 | 2 | 3 }) {
+export function ClaimProgressDots({
+  step,
+  variant = "footer",
+}: {
+  step: 1 | 2 | 3;
+  /** `footer`: centered under form/card. `dock`: inline for bottom bar next to recent avatars. */
+  variant?: "footer" | "dock";
+}) {
+  const wrapClass =
+    variant === "footer" ? "mx-auto flex shrink-0 justify-center pb-6" : "flex shrink-0 items-center justify-center";
+
   return (
-    <div className="mx-auto flex shrink-0 justify-center pb-6">
+    <div className={wrapClass}>
       <svg
         width="30"
         height="20"

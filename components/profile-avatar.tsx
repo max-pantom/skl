@@ -28,7 +28,7 @@ type ProfileAvatarProps = {
   parallax?: boolean;
   /**
    * When false, no circular mask on uploads or shield (square frame). Use on large claim / ID layouts.
-   * Admin default avatar stays circular.
+   * Admin without a photo uses a square letter tile instead of {@link AdminAvatarCircle}.
    */
   clipCircle?: boolean;
   /**
@@ -90,6 +90,22 @@ export function ProfileAvatar({
   }
 
   if (role === "admin") {
+    if (!clipCircle) {
+      return (
+        <div
+          role="img"
+          aria-label={`${displayName} avatar`}
+          className="flex shrink-0 items-center justify-center rounded-[14px] bg-[#e8e8e8] font-semibold text-[#242424]"
+          style={{
+            width: size,
+            height: size,
+            fontSize: Math.round(size * 0.38),
+          }}
+        >
+          {(displayName.trim()[0] ?? "?").toUpperCase()}
+        </div>
+      );
+    }
     return (
       <span
         className={nestedCircle ? "flex h-full w-full shrink-0 items-center justify-center" : "inline-flex shrink-0"}

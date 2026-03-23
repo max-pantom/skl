@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 
 import { ClaimForm } from "@/components/claim-form";
 import { ClaimProfileCard } from "@/components/claim-profile-card";
-import { ClaimPassportRecentMembersDock } from "@/components/claim-passport-recent-cluster";
-import { ClaimProgressDots } from "@/components/claim-progress-dots";
+import { ClaimVerifiedBottomDock } from "@/components/claim-passport-recent-cluster";
 import { FormNotice } from "@/components/form-notice";
 import { getCurrentViewer } from "@/lib/auth";
 import { isGoogleOAuthConfigured } from "@/lib/auth-env";
@@ -68,9 +67,11 @@ export default async function ClaimPage({ searchParams }: ClaimPageProps) {
                 footerDate={claimCardFooterDate}
               />
             </div>
-            <ClaimProgressDots step={3} />
           </div>
-          <ClaimPassportRecentMembersDock claimants={recentPassportClaimants} />
+          <ClaimVerifiedBottomDock
+            claimants={recentPassportClaimants}
+            progressStep={3}
+          />
         </>
       ) : (
         <ClaimForm

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { ClaimProgressDots } from "@/components/claim-progress-dots";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import type { RecentPassportClaimant } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,9 @@ const SLOTS = [
 
 const CLUSTER_W = Math.round(52 * FIG);
 const CLUSTER_H = Math.round(60 * FIG);
+
+/** Shrinks the whole pile (layout unchanged); transform applied in dock. */
+export const CLAIM_RECENT_CLUSTER_GROUP_SCALE = 0.72;
 
 export function ClaimPassportRecentCluster({
   claimants,
@@ -78,17 +82,44 @@ export function ClaimPassportRecentCluster({
   );
 }
 
-/** Fixed bottom-right — recent members, does not scroll with the claim/passport column. */
-export function ClaimPassportRecentMembersDock({ claimants }: { claimants: RecentPassportClaimant[] }) {
-  if (!claimants.length) {
+/** Bottom bar: progress dots (left) + scaled recent cluster (right). Passport: omit `progressStep` to only show cluster. */
+export function ClaimVerifiedBottomDock({
+  claimants,
+  progressStep,
+}: {
+  claimants: RecentPassportClaimant[];
+  progressStep?: 1 | 2 | 3;
+}) {
+  const hasCluster = claimants.length > 0;
+  const hasProgress = progressStep != null;
+
+  if (!hasCluster && !hasProgress) {
     return null;
   }
 
+  const justify =
+    hasProgress && hasCluster ? "justify-between" : hasProgress ? "justify-start" : "justify-end";
+
   return (
-    <div className="pointer-events-none fixed bottom-5 right-4 z-30 sm:bottom-8 sm:right-6">
-      <div className="pointer-events-auto">
-        <ClaimPassportRecentCluster claimants={claimants} className="mx-0" />
-      </div>
+    <div
+      className={`pointer-events-none fixed bottom-5 left-4 right-4 z-30 flex items-center gap-3 sm:bottom-8 sm:left-6 sm:right-6 ${justify}`}
+    >
+      {hasProgress ? (
+        <div className="pointer-events-auto shrink-0">
+          <ClaimProgressDots variant="dock" step={progressStep} />
+        </div>
+      ) : null}
+      {hasCluster ? (
+        <div
+          className="pointer-events-auto shrink-0"
+          style={{
+            transform: `scale(${CLAIM_RECENT_CLUSTER_GROUP_SCALE})`,
+            transformOrigin: "100% 100%",
+          }}
+        >
+          <ClaimPassportRecentCluster claimants={claimants} className="mx-0" />
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -28,8 +28,9 @@ function primaryNameFrom(displayName: string, override?: string) {
 }
 
 function adminPlaceholderSvg(base: number, letter: string) {
-  const r = base / 2;
-  return `<circle cx="${r}" cy="${r}" r="${r}" fill="#E8E8E8"/><text x="${r}" y="${r}" text-anchor="middle" dominant-baseline="central" fill="#242424" font-family="system-ui, sans-serif" font-size="${Math.round(base * 0.42)}" font-weight="600">${escapeHtml(letter)}</text>`;
+  const rx = Math.min(14, Math.max(6, Math.round(base * 0.055)));
+  const fs = Math.round(base * 0.38);
+  return `<rect width="${base}" height="${base}" rx="${rx}" ry="${rx}" fill="#E8E8E8"/><text x="${base / 2}" y="${base / 2}" text-anchor="middle" dominant-baseline="central" fill="#242424" font-family="system-ui, sans-serif" font-size="${fs}" font-weight="600">${escapeHtml(letter)}</text>`;
 }
 
 /**
