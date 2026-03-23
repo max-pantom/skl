@@ -124,6 +124,17 @@ export function ClaimForm({
       return;
     }
 
+    const { error: otpError } = await authClient.emailOtp.sendVerificationOtp({
+      email: cleanEmail,
+      type: "email-verification",
+    });
+
+    if (otpError) {
+      setError(otpError.message ?? "Claim created, but we could not send the verification code.");
+      return;
+    }
+
+    setOtpResendKey((k) => k + 1);
     setNotice(`We sent a 5-digit code to ${cleanEmail}. Enter it below to finish.`);
     router.refresh();
   }
