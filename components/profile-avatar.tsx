@@ -109,7 +109,7 @@ export function ProfileAvatar({
   if (!clipCircle && !nestedCircle) {
     return (
       <span
-        className={`inline-flex shrink-0 items-center justify-center overflow-hidden ${squareCardBackdrop}`}
+        className="inline-flex shrink-0 items-center justify-center overflow-hidden"
         style={{ width: size, height: size }}
         role="img"
         aria-label={`${displayName} avatar`}
