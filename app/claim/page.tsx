@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { ClaimForm } from "@/components/claim-form";
 import { ClaimProfileCard } from "@/components/claim-profile-card";
+import { ClaimPassportRecentMembersDock } from "@/components/claim-passport-recent-cluster";
 import { ClaimProgressDots } from "@/components/claim-progress-dots";
 import { FormNotice } from "@/components/form-notice";
 import { getCurrentViewer } from "@/lib/auth";
@@ -51,24 +52,26 @@ export default async function ClaimPage({ searchParams }: ClaimPageProps) {
       ) : null}
 
       {viewer?.emailVerified ? (
-        <div className="flex min-h-[min(720px,calc(100dvh-6rem))] flex-1 flex-col">
-          <div className="flex flex-1 flex-col items-center justify-center px-0 pb-10 pt-4 sm:pb-16 sm:pt-6">
-            <ClaimProfileCard
-              avatarUrl={viewer.avatarUrl}
-              cardDownloadUrl={absoluteUrl(`/api/users/${viewer.id}/claim-card.png`)}
-              displayName={viewer.displayName}
-              passportUrl={absoluteUrl(`/u/${viewer.username}/passport`)}
-              profileUrl={absoluteUrl(`/u/${viewer.username}`)}
-              recentPassportClaimants={recentPassportClaimants}
-              role={viewer.role}
-              userId={viewer.id}
-              username={viewer.username}
-              earlyBelieverRank={earlyRank}
-              footerDate={claimCardFooterDate}
-            />
+        <>
+          <div className="flex min-h-[min(720px,calc(100dvh-6rem))] flex-1 flex-col">
+            <div className="flex flex-1 flex-col items-center justify-center px-0 pb-10 pt-4 sm:pb-16 sm:pt-6">
+              <ClaimProfileCard
+                avatarUrl={viewer.avatarUrl}
+                cardDownloadUrl={absoluteUrl(`/api/users/${viewer.id}/claim-card.png`)}
+                displayName={viewer.displayName}
+                passportUrl={absoluteUrl(`/u/${viewer.username}/passport`)}
+                profileUrl={absoluteUrl(`/u/${viewer.username}`)}
+                role={viewer.role}
+                userId={viewer.id}
+                username={viewer.username}
+                earlyBelieverRank={earlyRank}
+                footerDate={claimCardFooterDate}
+              />
+            </div>
+            <ClaimProgressDots step={3} />
           </div>
-          <ClaimProgressDots step={3} />
-        </div>
+          <ClaimPassportRecentMembersDock claimants={recentPassportClaimants} />
+        </>
       ) : (
         <ClaimForm
           verificationAvailable={verificationAvailable}

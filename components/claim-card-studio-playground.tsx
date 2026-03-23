@@ -36,10 +36,10 @@ export function ClaimCardStudioPlayground() {
   const [role, setRole] = useState<UserRole>("user");
   const [avatarUrl, setAvatarUrl] = useState("");
 
-  const [portraitBaseSize, setPortraitBaseSize] = useState(280);
-  const [portraitScale, setPortraitScale] = useState(1);
-  const [portraitOffsetRight, setPortraitOffsetRight] = useState(-168);
-  const [portraitOffsetY, setPortraitOffsetY] = useState(-48);
+  const [portraitBaseSize, setPortraitBaseSize] = useState(256);
+  const [portraitScale, setPortraitScale] = useState(2.42);
+  const [portraitOffsetRight, setPortraitOffsetRight] = useState(-219);
+  const [portraitOffsetY, setPortraitOffsetY] = useState(-76);
   const [portraitOpacity, setPortraitOpacity] = useState(1);
   const [portraitRotateDeg, setPortraitRotateDeg] = useState(0);
   const [minHeight, setMinHeight] = useState(508);

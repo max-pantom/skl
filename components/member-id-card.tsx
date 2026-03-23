@@ -67,10 +67,10 @@ export function MemberIdCard({
   userId,
   role,
   avatarUrl,
-  portraitBaseSize = 280,
-  portraitScale = 1,
-  portraitOffsetRight = -168,
-  portraitOffsetY = -48,
+  portraitBaseSize = 256,
+  portraitScale = 2.42,
+  portraitOffsetRight = -219,
+  portraitOffsetY = -76,
   portraitOpacity = 1,
   portraitRotateDeg = 0,
   showPortrait = true,
@@ -93,7 +93,7 @@ export function MemberIdCard({
   shadowY = 6,
   shadowOpacity = 0.17,
   hoverParallax = true,
-  className,
+  className = "w-full max-w-[367px]",
   "aria-label": ariaLabel,
 }: MemberIdCardProps) {
   const primaryName = primaryNameProp ?? (displayName.trim().split(/\s+/)[0] || displayName);
@@ -148,7 +148,7 @@ export function MemberIdCard({
     <>
       {showPortrait ? (
         <div
-          className="pointer-events-none absolute z-0 select-none"
+          className="pointer-events-none absolute z-0 select-none [&_svg]:drop-shadow-[0_2px_12px_rgba(0,0,0,0.08)]"
           style={{
             right: `${portraitOffsetRight}px`,
             top: "50%",
@@ -157,30 +157,15 @@ export function MemberIdCard({
             transformOrigin: "center right",
           }}
         >
-          {role === "admin" && !avatarUrl?.trim() ? (
-            <div
-              role="img"
-              aria-label={`${displayName} avatar`}
-              className="flex items-center justify-center rounded-[14px] bg-[#e8e8e8] font-semibold text-[#242424]"
-              style={{
-                width: portraitBaseSize,
-                height: portraitBaseSize,
-                fontSize: Math.round(portraitBaseSize * 0.38),
-              }}
-            >
-              {(displayName.trim()[0] ?? "?").toUpperCase()}
-            </div>
-          ) : (
-            <ProfileAvatar
-              avatarUrl={avatarUrl}
-              clipCircle={false}
-              displayName={displayName}
-              parallax={false}
-              role={role}
-              size={portraitBaseSize}
-              userId={userId}
-            />
-          )}
+          <ProfileAvatar
+            avatarUrl={avatarUrl}
+            clipCircle={false}
+            displayName={displayName}
+            parallax={false}
+            role={role}
+            size={portraitBaseSize}
+            userId={userId}
+          />
         </div>
       ) : null}
 
@@ -234,7 +219,7 @@ export function MemberIdCard({
   if (!hoverParallax) {
     return (
       <div
-        className={cn("relative overflow-hidden", className)}
+        className={cn("relative w-full overflow-hidden", className)}
         style={cardSurfaceStyle}
         aria-label={label}
       >
@@ -252,7 +237,7 @@ export function MemberIdCard({
       onPointerLeave={onLeave}
       onPointerMove={onMove}
     >
-      <div className="relative overflow-hidden" style={{ ...cardSurfaceStyle, ...tiltStyle }}>
+      <div className="relative w-full overflow-hidden" style={{ ...cardSurfaceStyle, ...tiltStyle }}>
         {content}
       </div>
     </div>

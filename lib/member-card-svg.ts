@@ -28,8 +28,8 @@ function primaryNameFrom(displayName: string, override?: string) {
 }
 
 function adminPlaceholderSvg(base: number, letter: string) {
-  const rx = 14;
-  return `<rect width="${base}" height="${base}" rx="${rx}" fill="#E8E8E8"/><text x="${base / 2}" y="${base / 2}" text-anchor="middle" dominant-baseline="central" fill="#242424" font-family="system-ui, sans-serif" font-size="${Math.round(base * 0.38)}" font-weight="600">${escapeHtml(letter)}</text>`;
+  const r = base / 2;
+  return `<circle cx="${r}" cy="${r}" r="${r}" fill="#E8E8E8"/><text x="${r}" y="${r}" text-anchor="middle" dominant-baseline="central" fill="#242424" font-family="system-ui, sans-serif" font-size="${Math.round(base * 0.42)}" font-weight="600">${escapeHtml(letter)}</text>`;
 }
 
 /**
@@ -45,10 +45,10 @@ export function buildMemberIdCardSvg(props: MemberIdCardProps): string {
     userId,
     role,
     avatarUrl,
-    portraitBaseSize = 280,
-    portraitScale = 1,
-    portraitOffsetRight = -168,
-    portraitOffsetY = -48,
+    portraitBaseSize = 256,
+    portraitScale = 2.42,
+    portraitOffsetRight = -219,
+    portraitOffsetY = -76,
     portraitOpacity = 1,
     portraitRotateDeg = 0,
     showPortrait = true,

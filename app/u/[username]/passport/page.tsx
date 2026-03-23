@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { ClaimProfileCard } from "@/components/claim-profile-card";
+import { ClaimPassportRecentMembersDock } from "@/components/claim-passport-recent-cluster";
 import { getCurrentViewer, requireCurrentViewer } from "@/lib/auth";
 import { getEarlyBelieverRank, getRecentPassportClaimants } from "@/lib/data";
 import { absoluteUrl } from "@/lib/email/app-base-url";
@@ -52,7 +53,6 @@ export default async function PassportPage({ params }: PassportPageProps) {
             displayName={freshViewer.displayName}
             passportUrl={absoluteUrl(`/u/${freshViewer.username}/passport`)}
             profileUrl={absoluteUrl(`/u/${freshViewer.username}`)}
-            recentPassportClaimants={recentPassportClaimants}
             role={freshViewer.role}
             userId={freshViewer.id}
             username={freshViewer.username}
@@ -61,6 +61,7 @@ export default async function PassportPage({ params }: PassportPageProps) {
           />
         </div>
       </div>
+      <ClaimPassportRecentMembersDock claimants={recentPassportClaimants} />
     </div>
   );
 }

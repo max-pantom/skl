@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 
-import { ClaimPassportRecentCluster } from "@/components/claim-passport-recent-cluster";
 import { MemberIdCard } from "@/components/member-id-card";
-import type { RecentPassportClaimant, UserRole } from "@/lib/types";
+import type { UserRole } from "@/lib/types";
 
 function buildMemberCardPlainText(input: {
   displayName: string;
@@ -31,7 +30,6 @@ export function ClaimProfileCard({
   displayName,
   passportUrl,
   profileUrl,
-  recentPassportClaimants,
   role,
   userId,
   username,
@@ -43,7 +41,6 @@ export function ClaimProfileCard({
   displayName: string;
   passportUrl: string;
   profileUrl: string;
-  recentPassportClaimants: RecentPassportClaimant[];
   role: UserRole;
   userId: string;
   username: string;
@@ -115,7 +112,6 @@ export function ClaimProfileCard({
 
   return (
     <div className="mx-auto flex w-full max-w-[367px] flex-col gap-12">
-      <ClaimPassportRecentCluster claimants={recentPassportClaimants} />
       <MemberIdCard
         avatarUrl={avatarUrl}
         displayName={displayName}

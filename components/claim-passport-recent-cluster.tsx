@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { ProfileAvatar } from "@/components/profile-avatar";
 import type { RecentPassportClaimant } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 /**
  * Studio frame `1655:2226` — absolute positions on artboard (px), largest = front:
@@ -21,7 +22,14 @@ const SLOTS = [
 const CLUSTER_W = Math.round(52 * FIG);
 const CLUSTER_H = Math.round(60 * FIG);
 
-export function ClaimPassportRecentCluster({ claimants }: { claimants: RecentPassportClaimant[] }) {
+export function ClaimPassportRecentCluster({
+  claimants,
+  className,
+}: {
+  claimants: RecentPassportClaimant[];
+  /** Default `mx-auto` for centered column layouts; use `mx-0` in fixed docks. */
+  className?: string;
+}) {
   const slice = claimants.slice(0, SLOTS.length);
   if (!slice.length) {
     return null;
@@ -29,7 +37,7 @@ export function ClaimPassportRecentCluster({ claimants }: { claimants: RecentPas
 
   return (
     <div
-      className="relative mx-auto shrink-0"
+      className={cn("relative shrink-0", className ?? "mx-auto")}
       style={{ width: CLUSTER_W, height: CLUSTER_H }}
       role="list"
       aria-label="Recently joined members"
@@ -66,6 +74,21 @@ export function ClaimPassportRecentCluster({ claimants }: { claimants: RecentPas
           </Link>
         );
       })}
+    </div>
+  );
+}
+
+/** Fixed bottom-right — recent members, does not scroll with the claim/passport column. */
+export function ClaimPassportRecentMembersDock({ claimants }: { claimants: RecentPassportClaimant[] }) {
+  if (!claimants.length) {
+    return null;
+  }
+
+  return (
+    <div className="pointer-events-none fixed bottom-5 right-4 z-30 sm:bottom-8 sm:right-6">
+      <div className="pointer-events-auto">
+        <ClaimPassportRecentCluster claimants={claimants} className="mx-0" />
+      </div>
     </div>
   );
 }
