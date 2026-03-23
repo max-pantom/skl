@@ -19,6 +19,11 @@ import type {
   UserRole,
 } from "@/lib/types";
 
+function logDataLayerError(context: string, error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`[skl/db] ${context}: ${message}`);
+}
+
 type AuthorRecord = {
   id: string;
   username: string;
@@ -230,7 +235,7 @@ async function fetchAllSkillRows() {
   }
 
   try {
-    return await db.query.skills.findMany({
+    const rows = await db.query.skills.findMany({
       with: {
         author: true,
         currentVersion: {
@@ -254,7 +259,19 @@ async function fetchAllSkillRows() {
         orderDesc(skillsTable.updatedAt),
       ],
     });
-  } catch {
+
+    if (rows.length > 0) {
+      const displayable = rows.filter((row) => mapSkill(row as SkillRecord));
+      if (displayable.length === 0) {
+        console.warn(
+          `[skl/db] ${rows.length} skill row(s) loaded but 0 are displayable — each needs a valid author and currentVersion (check skills.current_version_id → skill_versions).`,
+        );
+      }
+    }
+
+    return rows;
+  } catch (error) {
+    logDataLayerError("fetchAllSkillRows", error);
     return null;
   }
 }
@@ -412,7 +429,8 @@ export async function getSkillBySlug(slug: string): Promise<SkillDetail | null> 
       ...baseSkill,
       versions: skill.versions.map((version) => mapVersion(version)),
     };
-  } catch {
+  } catch (error) {
+    logDataLayerError("getSkillBySlug", error);
     return null;
   }
 }
@@ -436,7 +454,8 @@ export async function getViewerStar(skillId: string, userId: string) {
     return await db.query.stars.findFirst({
       where: and(eq(stars.skillId, skillId), eq(stars.userId, userId)),
     });
-  } catch {
+  } catch (error) {
+    logDataLayerError("getViewerStar", error);
     return null;
   }
 }
@@ -462,7 +481,8 @@ export async function recordSkillDownload(skillId: string, userId: string | null
     });
 
     return true;
-  } catch {
+  } catch (error) {
+    logDataLayerError("recordSkillDownload", error);
     return false;
   }
 }
@@ -503,7 +523,8 @@ export async function getStarredSkillsForUser(userId: string): Promise<SkillList
     return rows
       .map((row) => mapSkill(row.skill as SkillRecord))
       .filter((skill): skill is SkillListItem => Boolean(skill));
-  } catch {
+  } catch (error) {
+    logDataLayerError("getStarredSkillsForUser", error);
     return [];
   }
 }
@@ -565,7 +586,8 @@ export async function getProfileByUsername(username: string): Promise<ProfileDat
         .map((skill) => mapSkill(skill as SkillRecord))
         .filter((skill): skill is SkillListItem => Boolean(skill)),
     };
-  } catch {
+  } catch (error) {
+    logDataLayerError("getProfileByUsername", error);
     return null;
   }
 }
@@ -613,7 +635,8 @@ export async function getPublicProfileByUserId(userId: string): Promise<ProfileD
       user: mapPublicUserRecord(user),
       skills: mapPublicSkills(user.skills as SkillRecord[]),
     };
-  } catch {
+  } catch (error) {
+    logDataLayerError("getPublicProfileByUserId", error);
     return null;
   }
 }
@@ -686,7 +709,8 @@ export async function getPublicUsers(query?: string): Promise<PublicUserListItem
           right.totalDownloads - left.totalDownloads ||
           new Date(right.user.createdAt).getTime() - new Date(left.user.createdAt).getTime(),
       );
-  } catch {
+  } catch (error) {
+    logDataLayerError("getPublicUsers", error);
     return [];
   }
 }
@@ -700,7 +724,8 @@ export async function getUserById(userId: string) {
     return await db.query.users.findFirst({
       where: eq(users.id, userId),
     });
-  } catch {
+  } catch (error) {
+    logDataLayerError("getUserById", error);
     return null;
   }
 }
@@ -725,7 +750,8 @@ export async function getRecentPassportClaimants(limit = 4): Promise<RecentPassp
       .limit(limit);
 
     return rows;
-  } catch {
+  } catch (error) {
+    logDataLayerError("getRecentPassportClaimants", error);
     return [];
   }
 }
@@ -748,7 +774,8 @@ export async function getEarlyBelieverRank(userId: string, createdAt: string): P
     const rank = result[0]?.rank ?? null;
 
     return rank && rank <= 50 ? rank : null;
-  } catch {
+  } catch (error) {
+    logDataLayerError("getEarlyBelieverRank", error);
     return null;
   }
 }
@@ -764,7 +791,8 @@ export async function hasUserStarredSkill(userId: string, skillId: string) {
     });
 
     return Boolean(existingStar);
-  } catch {
+  } catch (error) {
+    logDataLayerError("hasUserStarredSkill", error);
     return false;
   }
 }

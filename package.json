@@ -14,6 +14,7 @@
     "avatars:gif": "node --import tsx scripts/generate-avatar-gif.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
+    "db:health": "tsx scripts/db-health.ts",
     "db:studio": "drizzle-kit studio",
     "email:send-profile": "tsx scripts/send-profile-emails.ts",
     "email:sync-audience": "tsx scripts/sync-resend-audience.ts",
