@@ -45,6 +45,7 @@ export function ClaimPassportRecentCluster({
   const lastPointerAngleRef = useRef(0);
   const lastPointerTimeRef = useRef(0);
   const movedRef = useRef(false);
+  const draggingRef = useRef(false);
   const [rotationDeg, setRotationDeg] = useState(0);
 
   const stopSpin = useCallback(() => {
@@ -94,7 +95,13 @@ export function ClaimPassportRecentCluster({
   }
 
   function onPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.pointerType === "touch") {
+      draggingRef.current = false;
+      return;
+    }
+
     stopSpin();
+    draggingRef.current = true;
     movedRef.current = false;
     dragStartAngleRef.current = pointerAngle(event.clientX, event.clientY);
     dragStartRotationRef.current = angleRef.current;
@@ -105,6 +112,10 @@ export function ClaimPassportRecentCluster({
   }
 
   function onPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (!draggingRef.current) {
+      return;
+    }
+
     if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
       return;
     }
@@ -128,6 +139,12 @@ export function ClaimPassportRecentCluster({
   }
 
   function onPointerUp(event: React.PointerEvent<HTMLDivElement>) {
+    if (!draggingRef.current) {
+      return;
+    }
+
+    draggingRef.current = false;
+
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
@@ -151,7 +168,7 @@ export function ClaimPassportRecentCluster({
         height: CLUSTER_H,
         transform: `rotate(${rotationDeg}deg)`,
         transformOrigin: "50% 50%",
-        touchAction: "none",
+        touchAction: "manipulation",
       }}
       role="list"
       aria-label="Recently joined members"
@@ -181,7 +198,7 @@ export function ClaimPassportRecentCluster({
             aria-label={`${c.displayName} (@${c.username})`}
             role="listitem"
             onClick={(event) => {
-              if (movedRef.current) {
+              if (draggingRef.current || movedRef.current) {
                 event.preventDefault();
               }
             }}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { MemberIdCard } from "@/components/member-id-card";
+import { PASSPORT_CARD_DEFAULTS } from "@/lib/passport-card-config";
 import type { RecentPassportClaimant, UserRole } from "@/lib/types";
 
 function buildMemberCardPlainText(input: {
@@ -38,6 +39,7 @@ export function ClaimProfileCard({
   recentPassportClaimants = [],
   showRecentMembersOnCard = false,
   compactMobile = false,
+  adminPortraitClipCircle = false,
 }: {
   avatarUrl: string | null;
   cardDownloadUrl: string;
@@ -55,6 +57,8 @@ export function ClaimProfileCard({
   showRecentMembersOnCard?: boolean;
   /** Shrink the card slightly on mobile without affecting desktop sizing. */
   compactMobile?: boolean;
+  /** Admin-only portrait crop override for route-specific card styling. */
+  adminPortraitClipCircle?: boolean;
 }) {
   const [message, setMessage] = useState<string | null>(null);
 
@@ -129,6 +133,8 @@ export function ClaimProfileCard({
     >
       <MemberIdCard
         avatarUrl={avatarUrl}
+        {...PASSPORT_CARD_DEFAULTS}
+        adminPortraitClipCircle={adminPortraitClipCircle}
         displayName={displayName}
         earlyBelieverRank={earlyBelieverRank}
         footerDate={footerDate}

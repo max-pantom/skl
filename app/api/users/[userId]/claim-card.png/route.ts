@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { getEarlyBelieverRank } from "@/lib/data";
+import { formatClaimCardFooterDate } from "@/lib/utils";
 import { buildPassportCardSvg } from "@/lib/passport-card-svg";
 
 export const runtime = "nodejs";
@@ -27,7 +29,10 @@ export async function GET(_request: Request, { params }: RouteProps) {
 
   const user = await db.query.users.findFirst({
     columns: {
+      avatarUrl: true,
+      createdAt: true,
       displayName: true,
+      role: true,
       username: true,
     },
     where: eq(schema.users.id, userId),
@@ -37,10 +42,14 @@ export async function GET(_request: Request, { params }: RouteProps) {
     return new NextResponse("User not found", { status: 404 });
   }
 
+  const earlyBelieverRank = await getEarlyBelieverRank(userId, user.createdAt);
   const svg = buildPassportCardSvg({
+    avatarUrl: user.avatarUrl,
     userId,
     displayName: user.displayName,
-    username: user.username,
+    earlyBelieverRank,
+    footerDate: formatClaimCardFooterDate(new Date()),
+    role: user.role,
   });
 
   const resvg = new Resvg(svg, {

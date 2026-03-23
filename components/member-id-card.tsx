@@ -67,6 +67,7 @@ export type MemberIdCardProps = {
   recentMembersOffsetBottom?: number;
   /** Horizontal overlap between thumbs (px). */
   recentMembersOverlap?: number;
+  adminPortraitClipCircle?: boolean;
   className?: string;
   "aria-label"?: string;
 };
@@ -113,6 +114,7 @@ export function MemberIdCard({
   recentMembersOffsetRight = 14,
   recentMembersOffsetBottom = 14,
   recentMembersOverlap = 10,
+  adminPortraitClipCircle = false,
   className = "w-full max-w-[367px]",
   "aria-label": ariaLabel,
 }: MemberIdCardProps) {
@@ -191,6 +193,7 @@ export function MemberIdCard({
         >
           <ProfileAvatar
             avatarUrl={avatarUrl}
+            adminClipCircle={adminPortraitClipCircle}
             clipCircle={false}
             displayName={displayName}
             parallax={false}

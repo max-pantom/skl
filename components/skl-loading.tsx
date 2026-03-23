@@ -8,13 +8,21 @@ export function SklLoading({
   return (
     <div
       className={`flex w-full items-center justify-center ${
-        fullScreen ? "min-h-[calc(100dvh-9rem)]" : "min-h-[14rem]"
+        fullScreen ? "min-h-dvh" : "min-h-[14rem]"
       }`}
       aria-live="polite"
       aria-busy="true"
     >
       <div className="skl-logo-shimmer">
-        <div style={{ transform: "scale(1.4)", transformOrigin: "50% 50%" }}>
+        <div
+          style={{
+            width: 36,
+            height: 36,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <SklLogo markOnly />
         </div>
       </div>

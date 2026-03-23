@@ -34,6 +34,10 @@ type ProfileAvatarProps = {
    * Parent supplies a fixed circle (e.g. overflow-hidden rounded-full). Shield omits the outer gray ring.
    */
   nestedCircle?: boolean;
+  /**
+   * Admin-only override for card layouts that should not reuse the circular admin framing.
+   */
+  adminClipCircle?: boolean;
 };
 
 function clamp(n: number, min: number, max: number) {
@@ -53,6 +57,7 @@ export function ProfileAvatar({
   parallax = false,
   clipCircle = true,
   nestedCircle = false,
+  adminClipCircle = clipCircle,
 }: ProfileAvatarProps) {
   void _avatarUrl;
 
@@ -74,7 +79,7 @@ export function ProfileAvatar({
             height: size,
           }}
         >
-          <AdminAvatarCircle size={size} includeOuterDisc />
+          <AdminAvatarCircle size={size} includeOuterDisc={false} clipToCircle={adminClipCircle} />
         </span>
       );
     }
@@ -84,7 +89,7 @@ export function ProfileAvatar({
         role="img"
         aria-label={`${displayName} avatar`}
       >
-        <AdminAvatarCircle size={size} includeOuterDisc={!nestedCircle} />
+        <AdminAvatarCircle size={size} includeOuterDisc={!nestedCircle} clipToCircle />
       </span>
     );
   }
@@ -210,7 +215,7 @@ function ProfileAvatarParallaxHero({
         <div className="flex h-full w-full items-center justify-center">
           {isAdmin ? (
             <div className="pointer-events-none inline-flex" style={artLayerStyle}>
-              <AdminAvatarCircle size={avatarPx} includeOuterDisc={false} />
+              <AdminAvatarCircle size={avatarPx} includeOuterDisc={false} clipToCircle={false} />
             </div>
           ) : (
             <div className="pointer-events-none inline-flex" style={artLayerStyle}>

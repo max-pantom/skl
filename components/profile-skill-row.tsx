@@ -70,11 +70,9 @@ export function ProfileSkillRow({ skill }: { skill: SkillListItem }) {
 /** One row in the profile skills list (desktop grid) — columns align with every other skill. */
 export function ProfileSkillTableRow({ skill }: { skill: SkillListItem }) {
   return (
-    <div className={profileSkillDesktopRowClass}>
+    <Link href={`/s/${skill.slug}`} className={profileSkillDesktopRowClass}>
       <div className="min-w-0">
-        <Link href={`/s/${skill.slug}`} className={titleLinkClass}>
-          {skill.title}
-        </Link>
+        <span className={titleLinkClass}>{skill.title}</span>
       </div>
       <div className="min-w-0 pr-2">
         <p className={summaryClass}>{skill.summary}</p>
@@ -93,6 +91,6 @@ export function ProfileSkillTableRow({ skill }: { skill: SkillListItem }) {
       <div className={cn("whitespace-nowrap text-right", versionClass)}>
         v{skill.currentVersion.version}
       </div>
-    </div>
+    </Link>
   );
 }

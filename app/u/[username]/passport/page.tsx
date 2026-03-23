@@ -49,6 +49,7 @@ export default async function PassportPage({ params }: PassportPageProps) {
         <div className="flex flex-1 flex-col items-center justify-start px-0 pt-2 sm:justify-center sm:pb-16 sm:pt-6">
           <ClaimProfileCard
             avatarUrl={freshViewer.avatarUrl}
+            adminPortraitClipCircle={false}
             cardDownloadUrl={absoluteUrl(`/api/users/${freshViewer.id}/claim-card.png`)}
             compactMobile
             displayName={freshViewer.displayName}

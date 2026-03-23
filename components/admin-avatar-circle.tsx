@@ -20,12 +20,21 @@ type AdminAvatarCircleProps = {
    * When false, matches parallax hero {@link ShieldAvatar}: artwork only (parent supplies the round mask).
    */
   includeOuterDisc?: boolean;
+  /**
+   * When true, crop artwork to the same circular frame as seeded shields.
+   * When false, render the admin artwork uncropped for square/card layouts.
+   */
+  clipToCircle?: boolean;
 };
 
 /**
  * Admin default artwork inside the same circular frame as seeded {@link ShieldAvatar} shields.
  */
-export function AdminAvatarCircle({ size, includeOuterDisc = true }: AdminAvatarCircleProps) {
+export function AdminAvatarCircle({
+  size,
+  includeOuterDisc = true,
+  clipToCircle = true,
+}: AdminAvatarCircleProps) {
   const rawId = useId().replace(/:/g, "");
   const uid = useMemo(() => `adm-${rawId}`, [rawId]);
 
@@ -91,7 +100,7 @@ export function AdminAvatarCircle({ size, includeOuterDisc = true }: AdminAvatar
           <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0" />
           <feBlend mode="normal" in2="shape" result="effect1_innerShadow" />
         </filter>
-        {includeOuterDisc ? (
+        {clipToCircle ? (
           <clipPath id={`${uid}-avatarClip`} clipPathUnits="userSpaceOnUse">
             <circle cx={FRAME_VB / 2} cy={FRAME_VB / 2} r={FRAME_CLIP_R} />
           </clipPath>
@@ -104,7 +113,7 @@ export function AdminAvatarCircle({ size, includeOuterDisc = true }: AdminAvatar
         </g>
       ) : null}
 
-      {includeOuterDisc ? <g clipPath={`url(#${uid}-avatarClip)`}>{inner}</g> : inner}
+      {clipToCircle ? <g clipPath={`url(#${uid}-avatarClip)`}>{inner}</g> : inner}
     </svg>
   );
 }
