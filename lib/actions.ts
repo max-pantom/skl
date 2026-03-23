@@ -16,8 +16,11 @@ import {
 } from "@/lib/skill-files";
 import { launchCategories, type SkillCategory } from "@/lib/types";
 import {
+  bumpMajorSemver,
+  compareSemver,
   getString,
   hasValidDisplayNameStart,
+  isValidSemver,
   parseCommaSeparatedList,
   sanitizeUsername,
   startsWithLetterOrNumber,
@@ -168,6 +171,24 @@ function revalidateSkillSurfaces(skillSlug: string, username: string) {
   revalidatePath(`/u/${username}`);
 }
 
+function resolveNextSkillVersion(currentVersion: string, submittedVersion: string) {
+  const manualVersion = submittedVersion.trim();
+
+  if (!manualVersion) {
+    return bumpMajorSemver(currentVersion);
+  }
+
+  if (!isValidSemver(manualVersion)) {
+    throw new Error("Versions must use semantic versioning like 1.0.0.");
+  }
+
+  if (compareSemver(manualVersion, currentVersion) <= 0) {
+    throw new Error(`New versions must be greater than the current version (${currentVersion}).`);
+  }
+
+  return manualVersion;
+}
+
 export async function updateProfileAction(formData: FormData) {
   ensureConfigured("/settings");
   const viewer = await requireCurrentViewer("/settings");
@@ -272,6 +293,10 @@ export async function createSkillAction(formData: FormData) {
     redirectWithError("/new", "Title, summary, version, and content are required.");
   }
 
+  if (!isValidSemver(fields.version)) {
+    redirectWithError("/new", "Versions must use semantic versioning like 1.0.0.");
+  }
+
   if (!isCategory(fields.category)) {
     redirectWithError("/new", "Choose a valid category.");
   }
@@ -347,7 +372,7 @@ export async function updateSkillAction(formData: FormData) {
     );
   }
 
-  if (!skillId || !fields.title || !fields.summary || !fields.version || !fields.content) {
+  if (!skillId || !fields.title || !fields.summary || !fields.content) {
     redirectWithError(`/s/${currentSlug}/edit`, "All primary fields are required.");
   }
 
@@ -364,8 +389,30 @@ export async function updateSkillAction(formData: FormData) {
     redirectWithError(`/s/${currentSlug}/edit`, "You can only edit your own skills.");
   }
 
+  if (!existingSkill.currentVersionId) {
+    redirectWithError(`/s/${currentSlug}/edit`, "The current skill version could not be loaded.");
+  }
+
+  const currentVersionRecord = await db!.query.skillVersions.findFirst({
+    where: eq(skillVersions.id, existingSkill.currentVersionId),
+  });
+
+  if (!currentVersionRecord) {
+    redirectWithError(`/s/${currentSlug}/edit`, "The current skill version could not be loaded.");
+  }
+
+  let nextVersion = "";
+  try {
+    nextVersion = resolveNextSkillVersion(currentVersionRecord.version, fields.version);
+  } catch (error) {
+    redirectWithError(
+      `/s/${currentSlug}/edit`,
+      error instanceof Error ? error.message : "The new version is invalid.",
+    );
+  }
+
   const duplicateVersion = await db!.query.skillVersions.findFirst({
-    where: and(eq(skillVersions.skillId, skillId), eq(skillVersions.version, fields.version)),
+    where: and(eq(skillVersions.skillId, skillId), eq(skillVersions.version, nextVersion)),
   });
 
   if (duplicateVersion) {
@@ -379,7 +426,7 @@ export async function updateSkillAction(formData: FormData) {
       .insert(skillVersions)
       .values({
         skillId,
-        version: fields.version,
+        version: nextVersion,
         content: fields.content,
         changelog: fields.changelog || "Updated skill content.",
         compatibleWith: fields.compatibleWith,

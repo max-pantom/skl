@@ -36,7 +36,6 @@ function randomClaimant(): RecentPassportClaimant {
     id,
     username: `u_${id.replace(/-/g, "").slice(0, 10)}`,
     displayName: pick(DISPLAY_NAMES),
-    /** Same as passport: no upload → {@link ProfileAvatar} shield / admin tile from `userId`. */
     avatarUrl: null,
     role: pick(ROLES),
   };

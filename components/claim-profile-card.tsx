@@ -37,6 +37,7 @@ export function ClaimProfileCard({
   footerDate,
   recentPassportClaimants = [],
   showRecentMembersOnCard = false,
+  compactMobile = false,
 }: {
   avatarUrl: string | null;
   cardDownloadUrl: string;
@@ -52,6 +53,8 @@ export function ClaimProfileCard({
   recentPassportClaimants?: RecentPassportClaimant[];
   /** When true, square recent-member links on the card. Default false — same as passport preview; dock still lists members. */
   showRecentMembersOnCard?: boolean;
+  /** Shrink the card slightly on mobile without affecting desktop sizing. */
+  compactMobile?: boolean;
 }) {
   const [message, setMessage] = useState<string | null>(null);
 
@@ -119,7 +122,11 @@ export function ClaimProfileCard({
   const recentMembersOnCard = recentPassportClaimants.filter((c) => c.id !== userId);
 
   return (
-    <div className="mx-auto flex w-full max-w-[340px] -translate-y-2 flex-col gap-10 sm:max-w-[367px] sm:translate-y-0 sm:gap-12">
+    <div
+      className={`mx-auto flex w-full flex-col gap-10 sm:max-w-[367px] sm:translate-y-0 sm:gap-12 ${
+        compactMobile ? "max-w-[318px] -translate-y-3" : "max-w-[340px] -translate-y-2"
+      }`}
+    >
       <MemberIdCard
         avatarUrl={avatarUrl}
         displayName={displayName}

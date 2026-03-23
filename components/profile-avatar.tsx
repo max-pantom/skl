@@ -13,13 +13,13 @@ import { HERO_PROFILE_PARALLAX_PARAMS } from "@/lib/profile-hero-parallax-params
 import type { UserRole } from "@/lib/types";
 
 type ProfileAvatarProps = {
+  /** Unused for display — SKL uses seeded shields; kept for call-site / data compatibility. */
   avatarUrl: string | null;
   displayName: string;
-  /** Stable id — deterministic generated shield (PRNG from this string). */
+  /** Stable id — deterministic shield (PRNG from this string). */
   userId: string;
-  /** Admins without an uploaded photo use {@link AdminAvatarCircle}. */
+  /** Admins: {@link AdminAvatarCircle} when circular; on ID layouts (`clipCircle` false) a letter only, no frame. */
   role?: UserRole;
-  /** Square edge length in px (default 100). */
   size?: number;
   /**
    * Hero profile: pointer 3D tilt with {@link HERO_PROFILE_PARALLAX_PARAMS}.
@@ -27,13 +27,11 @@ type ProfileAvatarProps = {
    */
   parallax?: boolean;
   /**
-   * When false, no circular mask on uploads or shield (square frame). Use on large claim / ID layouts.
-   * Admin without a photo uses a square letter tile instead of {@link AdminAvatarCircle}.
+   * When false, no circular clip on the shield / no circle variant for admin (letter tile). The artwork only — no extra frame.
    */
   clipCircle?: boolean;
   /**
-   * Parent supplies a fixed circle (e.g. overflow-hidden rounded-full). Photo/shield fill it; shield omits
-   * the extra outer gray ring so the face reads clearly at small sizes.
+   * Parent supplies a fixed circle (e.g. overflow-hidden rounded-full). Shield omits the outer gray ring.
    */
   nestedCircle?: boolean;
 };
@@ -43,11 +41,11 @@ function clamp(n: number, min: number, max: number) {
 }
 
 /**
- * Circular slot: uploaded photo when set, otherwise seeded shield (same viewBox + layout as /test).
- * Colors/shape come from a deterministic PRNG keyed by `userId` only so the avatar stays stable if the handle changes.
+ * SKL avatar only: seeded {@link ShieldAvatar} for members, admin treatment for `role === "admin"`.
+ * `avatarUrl` is ignored.
  */
 export function ProfileAvatar({
-  avatarUrl,
+  avatarUrl: _avatarUrl,
   displayName,
   userId,
   role,
@@ -56,36 +54,11 @@ export function ProfileAvatar({
   clipCircle = true,
   nestedCircle = false,
 }: ProfileAvatarProps) {
+  void _avatarUrl;
+
   if (parallax) {
     return (
-      <ProfileAvatarParallaxHero
-        avatarUrl={avatarUrl}
-        displayName={displayName}
-        userId={userId}
-        role={role}
-        size={size ?? 100}
-      />
-    );
-  }
-
-  if (avatarUrl) {
-    if (nestedCircle) {
-      return (
-        <img
-          src={avatarUrl}
-          alt={displayName}
-          className="h-full w-full min-h-0 min-w-0 rounded-full object-cover"
-        />
-      );
-    }
-    return (
-      <img
-        src={avatarUrl}
-        alt={displayName}
-        width={size}
-        height={size}
-        className={clipCircle ? "rounded-full object-cover" : "rounded-none object-cover"}
-      />
+      <ProfileAvatarParallaxHero displayName={displayName} userId={userId} role={role} size={size ?? 100} />
     );
   }
 
@@ -95,7 +68,7 @@ export function ProfileAvatar({
         <div
           role="img"
           aria-label={`${displayName} avatar`}
-          className="flex shrink-0 items-center justify-center rounded-[14px] bg-[#e8e8e8] font-semibold text-[#242424]"
+          className="flex shrink-0 items-center justify-center font-semibold text-[#242424]"
           style={{
             width: size,
             height: size,
@@ -119,43 +92,57 @@ export function ProfileAvatar({
 
   const seed = userId;
 
+  const shield = (
+    <ShieldAvatar
+      seed={seed}
+      size={size}
+      showDebug={false}
+      clipToCircle={nestedCircle || clipCircle}
+      includeOuterDisc={nestedCircle ? false : clipCircle}
+      avatarScale={DEFAULT_SHIELD_LAYOUT.avatarScale}
+      avatarOffsetX={DEFAULT_SHIELD_LAYOUT.avatarOffsetX}
+      avatarOffsetY={DEFAULT_SHIELD_LAYOUT.avatarOffsetY}
+      topStarScale={DEFAULT_TOP_STAR_SCALE}
+    />
+  );
+
+  if (!clipCircle && !nestedCircle) {
+    return (
+      <span
+        className={`inline-flex shrink-0 items-center justify-center overflow-hidden ${squareCardBackdrop}`}
+        style={{ width: size, height: size }}
+        role="img"
+        aria-label={`${displayName} avatar`}
+      >
+        {shield}
+      </span>
+    );
+  }
+
   return (
     <span
       className={nestedCircle ? "flex h-full w-full shrink-0 items-center justify-center" : "inline-flex shrink-0"}
       role="img"
       aria-label={`${displayName} avatar`}
     >
-      <ShieldAvatar
-        seed={seed}
-        size={size}
-        showDebug={false}
-        clipToCircle={nestedCircle || clipCircle}
-        includeOuterDisc={nestedCircle ? false : clipCircle}
-        avatarScale={DEFAULT_SHIELD_LAYOUT.avatarScale}
-        avatarOffsetX={DEFAULT_SHIELD_LAYOUT.avatarOffsetX}
-        avatarOffsetY={DEFAULT_SHIELD_LAYOUT.avatarOffsetY}
-        topStarScale={DEFAULT_TOP_STAR_SCALE}
-      />
+      {shield}
     </span>
   );
 }
 
 function ProfileAvatarParallaxHero({
-  avatarUrl,
   displayName,
   userId,
   role,
   size,
 }: {
-  avatarUrl: string | null;
   displayName: string;
   userId: string;
   role?: UserRole;
   size: number;
 }) {
   const p = HERO_PROFILE_PARALLAX_PARAMS;
-  const hasPhoto = Boolean(avatarUrl);
-  const adminDefault = role === "admin" && !avatarUrl;
+  const isAdmin = role === "admin";
 
   const rootRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState(false);
@@ -195,7 +182,7 @@ function ProfileAvatarParallaxHero({
   const artLayerStyle: CSSProperties = useMemo(
     () => ({
       transform,
-      transformOrigin: hasPhoto || adminDefault ? "50% 50%" : "50% 48%",
+      transformOrigin: isAdmin ? "50% 50%" : "50% 48%",
       transformStyle: "preserve-3d",
       transition: tracking
         ? "none"
@@ -203,7 +190,7 @@ function ProfileAvatarParallaxHero({
       boxShadow: shadow,
       willChange: "transform",
     }),
-    [transform, hasPhoto, adminDefault, tracking, p.transitionMs, p.easing, shadow],
+    [transform, isAdmin, tracking, p.transitionMs, p.easing, shadow],
   );
 
   const seed = userId;
@@ -222,18 +209,7 @@ function ProfileAvatarParallaxHero({
     >
       <div className="absolute inset-0 overflow-hidden rounded-full">
         <div className="flex h-full w-full items-center justify-center">
-          {hasPhoto ? (
-            <div className="pointer-events-none h-full w-full" style={artLayerStyle}>
-              <img
-                src={avatarUrl!}
-                alt={displayName}
-                width={avatarPx}
-                height={avatarPx}
-                className="block h-full w-full rounded-full object-cover"
-                draggable={false}
-              />
-            </div>
-          ) : adminDefault ? (
+          {isAdmin ? (
             <div className="pointer-events-none inline-flex" style={artLayerStyle}>
               <AdminAvatarCircle size={avatarPx} includeOuterDisc={false} />
             </div>

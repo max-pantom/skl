@@ -1,8 +1,18 @@
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
-import { EmailLoginForm } from "@/components/email-login-form";
 import { PageIntro } from "@/components/page-intro";
 import { isGoogleAuthConfigured } from "@/lib/google-auth";
+
+const formLoading = (
+  <p className="text-[16px] font-medium text-[#8f8f8f]">Loading…</p>
+);
+
+/** Separate chunk from the route shell — avoids flaky dev ChunkLoadError when `app/login/page` HMR gets out of sync. */
+const EmailLoginForm = dynamic(
+  () => import("@/components/email-login-form").then((m) => ({ default: m.EmailLoginForm })),
+  { loading: () => formLoading },
+);
 
 export default function LoginPage() {
   const googleAuth = isGoogleAuthConfigured();
@@ -18,7 +28,7 @@ export default function LoginPage() {
             : "Use your email and password to continue."
         }
       />
-      <Suspense fallback={<p className="text-[16px] font-medium text-[#8f8f8f]">Loading…</p>}>
+      <Suspense fallback={formLoading}>
         <EmailLoginForm googleAuthEnabled={googleAuth} />
       </Suspense>
     </div>

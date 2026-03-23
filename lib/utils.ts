@@ -121,3 +121,54 @@ export function formatClaimCardFooterDate(d: Date) {
   const yy = String(d.getFullYear()).slice(-2);
   return `${dd}-${mm}-${yy}`;
 }
+
+type SemverParts = {
+  major: number;
+  minor: number;
+  patch: number;
+};
+
+export function parseSemver(value: string): SemverParts | null {
+  const match = value.trim().match(/^(\d+)\.(\d+)\.(\d+)$/);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    major: Number(match[1]),
+    minor: Number(match[2]),
+    patch: Number(match[3]),
+  };
+}
+
+export function isValidSemver(value: string) {
+  return parseSemver(value) !== null;
+}
+
+export function compareSemver(left: string, right: string) {
+  const a = parseSemver(left);
+  const b = parseSemver(right);
+
+  if (!a || !b) {
+    throw new Error("compareSemver expects valid semantic versions.");
+  }
+
+  if (a.major !== b.major) {
+    return a.major - b.major;
+  }
+
+  if (a.minor !== b.minor) {
+    return a.minor - b.minor;
+  }
+
+  return a.patch - b.patch;
+}
+
+export function bumpMajorSemver(value: string) {
+  const parsed = parseSemver(value);
+  if (!parsed) {
+    throw new Error("bumpMajorSemver expects a valid semantic version.");
+  }
+
+  return `${parsed.major + 1}.0.0`;
+}

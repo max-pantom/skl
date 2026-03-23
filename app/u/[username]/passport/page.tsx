@@ -50,6 +50,7 @@ export default async function PassportPage({ params }: PassportPageProps) {
           <ClaimProfileCard
             avatarUrl={freshViewer.avatarUrl}
             cardDownloadUrl={absoluteUrl(`/api/users/${freshViewer.id}/claim-card.png`)}
+            compactMobile
             displayName={freshViewer.displayName}
             passportUrl={absoluteUrl(`/u/${freshViewer.username}/passport`)}
             profileUrl={absoluteUrl(`/u/${freshViewer.username}`)}

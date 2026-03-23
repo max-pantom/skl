@@ -8,26 +8,6 @@ import { publicAppOrigin } from "@/lib/utils";
 
 const appBase = () => publicAppOrigin();
 
-/** OG/Twitter crawlers require absolute image URLs. */
-function absoluteAvatarUrl(avatarUrl: string | null): string | undefined {
-  if (!avatarUrl?.trim()) {
-    return undefined;
-  }
-
-  const trimmed = avatarUrl.trim();
-
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed;
-  }
-
-  const path = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
-  try {
-    return new URL(path, appBase()).href;
-  } catch {
-    return undefined;
-  }
-}
-
 type ProfilePageProps = {
   params: Promise<{
     username: string;
@@ -48,7 +28,7 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
   const ogTitle = `${user.displayName} (@${user.username})`;
   const description = user.bio?.trim() || `${user.displayName} on SKL`;
   const pageUrl = new URL(`/u/${user.username}`, appBase()).href;
-  const imageUrl = absoluteAvatarUrl(user.avatarUrl);
+  const imageUrl = new URL(`/u/${user.username}/opengraph-image`, appBase()).href;
 
   return {
     title: `@${user.username}`,
@@ -59,24 +39,20 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
       url: pageUrl,
       siteName: "SKL",
       type: "website",
-      ...(imageUrl
-        ? {
-            images: [
-              {
-                url: imageUrl,
-                width: 512,
-                height: 512,
-                alt: `${user.displayName} — profile photo`,
-              },
-            ],
-          }
-        : {}),
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${user.displayName} (@${user.username}) on SKL`,
+        },
+      ],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: ogTitle,
       description,
-      ...(imageUrl ? { images: [imageUrl] } : {}),
+      images: [imageUrl],
     },
   };
 }
