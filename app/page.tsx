@@ -48,7 +48,7 @@ export default async function HomePage() {
           description="Weighted by stars, downloads, and forks. Sign in to star, fork, or publish your own."
         />
         {trendingSkills.length ? (
-          <div className="mt-6">
+          <div className="mt-6 flex flex-col gap-6 sm:gap-0">
             {trendingSkills.map((skill) => (
               <SkillCard key={skill.id} skill={skill} dividers={false} />
             ))}
@@ -68,7 +68,7 @@ export default async function HomePage() {
           description="Recently published to the registry (by first publish date)."
         />
         {newestSkills.length ? (
-          <div className="mt-6">
+          <div className="mt-6 flex flex-col gap-6 sm:gap-0">
             {newestSkills.map((skill) => (
               <SkillCard key={skill.id} skill={skill} dividers={false} />
             ))}
@@ -87,7 +87,7 @@ export default async function HomePage() {
           description="Authors ranked by total stars across their skills."
         />
         {topCreators.length ? (
-          <div className="mt-6">
+          <div className="mt-6 flex flex-col gap-6 sm:gap-0">
             {topCreators.map((creator) => (
               <CreatorCard key={creator.user.id} creator={creator} dividers={false} />
             ))}

@@ -97,7 +97,7 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
         </p>
 
         {skills.length ? (
-          <div className="mt-2">
+          <div className="mt-2 flex flex-col gap-6 sm:gap-0">
             {skills.map((skill) => (
               <SkillCard key={skill.id} skill={skill} />
             ))}

@@ -7,33 +7,44 @@ import { cn, formatNumber } from "@/lib/utils";
 const rowHover =
   "group transition-colors hover:bg-[rgba(36,36,36,0.04)] sm:hover:bg-[rgba(36,36,36,0.04)]";
 
-const titleLinkClass =
+/** Shared with {@link SkillCard} so registry lists match profile mobile cards. */
+export const profileSkillMobileRowHoverClass = rowHover;
+
+export const profileSkillMobileTitleClass =
   "block min-w-0 truncate text-[16px] font-semibold text-[#242424] transition-colors group-hover:text-[#242424] group-hover:opacity-90";
 
-const summaryClass =
+export const profileSkillMobileSummaryClass =
   "truncate text-left text-[16px] font-medium text-[#242424] opacity-80 transition-colors group-hover:opacity-100";
 
-const metricMuted = "text-[16px] font-medium tabular-nums text-[#919191] transition-colors group-hover:text-[#7a7a7a]";
+const summaryClass = profileSkillMobileSummaryClass;
+
+export const profileSkillMobileMetricMutedClass =
+  "text-[16px] font-medium tabular-nums text-[#919191] transition-colors group-hover:text-[#7a7a7a]";
+
+const metricMuted = profileSkillMobileMetricMutedClass;
+
+export const profileSkillMobileCategoryPillClass =
+  "inline-flex rounded-[90px] bg-[rgba(228,228,228,0.8)] px-[6px] py-[2px] text-base font-medium leading-none text-[#8f8f8f] transition-colors group-hover:bg-[rgba(228,228,228,0.95)]";
+
+export const profileSkillMobileCardClass =
+  "grid grid-cols-1 gap-3 rounded-[22px] px-3 py-3 text-[16px] text-[#242424] sm:hidden";
 
 const versionClass =
   "text-right text-[16px] font-medium tabular-nums text-[#242424]/50 transition-colors group-hover:text-[#242424]/60";
+
+const titleLinkClass = profileSkillMobileTitleClass;
 
 /** Stacked layout — mobile and fallback. */
 export function ProfileSkillRow({ skill }: { skill: SkillListItem }) {
   return (
     <Link
       href={`/s/${skill.slug}`}
-      className={cn(
-        "grid grid-cols-1 gap-3 rounded-[22px] px-3 py-3 text-[16px] text-[#242424] sm:hidden",
-        rowHover,
-      )}
+      className={cn(profileSkillMobileCardClass, profileSkillMobileRowHoverClass)}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <div className="text-left text-[16px] font-medium tabular-nums text-[#242424]/50">v{skill.currentVersion.version}</div>
-          <span className="rounded-[90px] bg-[rgba(228,228,228,0.8)] px-[6px] py-[2px] text-base font-medium leading-none text-[#8f8f8f] transition-colors group-hover:bg-[rgba(228,228,228,0.95)]">
-            {skill.category}
-          </span>
+          <span className={profileSkillMobileCategoryPillClass}>{skill.category}</span>
         </div>
         <div className={cn("flex items-center gap-1.5", metricMuted)}>
           <IconMetricDownload className="size-[18px] shrink-0" />
@@ -65,7 +76,7 @@ export function ProfileSkillTableRow({ skill }: { skill: SkillListItem }) {
         <p className={summaryClass}>{skill.summary}</p>
       </td>
       <td className="whitespace-nowrap align-middle py-2 pr-2">
-        <span className="inline-flex rounded-[90px] bg-[rgba(228,228,228,0.8)] px-[6px] py-[2px] text-base font-medium leading-none text-[#8f8f8f] transition-colors group-hover:bg-[rgba(228,228,228,0.95)]">
+        <span className={profileSkillMobileCategoryPillClass}>
           {skill.category}
         </span>
       </td>

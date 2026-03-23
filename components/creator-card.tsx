@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ProfileAvatar } from "@/components/profile-avatar";
+import { profileSkillMobileRowHoverClass } from "@/components/profile-skill-row";
 import { IconMetricStar } from "@/components/profile-metric-icons";
 import { UserRoleBadge } from "@/components/user-role-badge";
 import type { TopCreator } from "@/lib/types";
@@ -18,11 +19,19 @@ export function CreatorCard({
   return (
     <article
       className={cn(
-        "group py-4 transition-colors hover:bg-[rgba(36,36,36,0.04)] sm:py-5",
-        dividers && "border-b border-zinc-200 last:border-b-0",
+        "group relative max-sm:py-0 sm:py-5 sm:transition-colors sm:hover:bg-[rgba(36,36,36,0.04)]",
+        dividers && "border-b border-zinc-200 max-sm:border-0 max-sm:pb-0 sm:last:border-b-0",
       )}
     >
-      <Link href={`/u/${user.username}`} className="flex items-center gap-3 px-0 sm:gap-4 sm:px-2">
+      <Link
+        href={`/u/${user.username}`}
+        className={cn(
+          "flex items-center gap-3 px-0 sm:gap-4 sm:px-2",
+          "max-sm:rounded-[22px] max-sm:px-3 max-sm:py-3",
+          profileSkillMobileRowHoverClass,
+          "sm:hover:bg-transparent",
+        )}
+      >
         <ProfileAvatar
           avatarUrl={user.avatarUrl}
           displayName={user.displayName}
