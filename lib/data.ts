@@ -756,19 +756,20 @@ export async function getRecentPassportClaimants(limit = 4): Promise<RecentPassp
   }
 }
 
-export async function getEarlyBelieverRank(userId: string, createdAt: string): Promise<number | null> {
+export async function getEarlyBelieverRank(userId: string, createdAt: string | Date): Promise<number | null> {
   if (!db || !isDatabaseConfigured) {
     return null;
   }
 
   try {
+    const createdAtValue = createdAt instanceof Date ? createdAt.toISOString() : createdAt;
     const result = await db
       .select({
         rank: sql<number>`count(*)::int`,
       })
       .from(users)
       .where(
-        sql`${users.createdAt} < ${createdAt}::timestamptz OR (${users.createdAt} = ${createdAt}::timestamptz AND ${users.id} <= ${userId})`,
+        sql`${users.createdAt} < ${createdAtValue}::timestamptz OR (${users.createdAt} = ${createdAtValue}::timestamptz AND ${users.id} <= ${userId})`,
       );
 
     const rank = result[0]?.rank ?? null;
