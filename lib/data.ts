@@ -3,12 +3,13 @@ import "server-only";
 import { and, eq, sql } from "drizzle-orm";
 
 import { db, isDatabaseConfigured } from "@/db";
-import { skills, stars, users } from "@/db/schema";
+import { downloads, skills, stars, users } from "@/db/schema";
 import { createFallbackSkillFile, sortSkillFiles } from "@/lib/skill-files";
 import type {
   ExploreFilters,
   ForkReference,
   ProfileData,
+  PublicUserListItem,
   PublicUser,
   SkillDetail,
   SkillListItem,
@@ -158,6 +159,41 @@ function mapSkill(record: SkillRecord): SkillListItem | null {
     author: mapAuthor(record.author),
     currentVersion: mapVersion(record.currentVersion),
     forkedFrom: mapFork(record.parentFork),
+  };
+}
+
+function isPublicSkill(skill: SkillListItem) {
+  return skill.visibility === "public";
+}
+
+function mapPublicSkills(records: SkillRecord[]) {
+  return records
+    .map((record) => mapSkill(record))
+    .filter((skill): skill is SkillListItem => Boolean(skill))
+    .filter((skill) => isPublicSkill(skill));
+}
+
+function mapPublicUserRecord(user: {
+  id: string;
+  username: string;
+  displayName: string;
+  role: UserRole;
+  bio: string | null;
+  avatarUrl: string | null;
+  website: string | null;
+  xUrl: string | null;
+  createdAt: Date | string;
+}): PublicUser {
+  return {
+    id: user.id,
+    username: user.username,
+    displayName: user.displayName,
+    role: user.role,
+    bio: user.bio,
+    avatarUrl: user.avatarUrl,
+    website: user.website,
+    xUrl: user.xUrl,
+    createdAt: toIso(user.createdAt),
   };
 }
 
@@ -323,6 +359,11 @@ export async function getExploreSkills(filters: ExploreFilters = {}) {
   return filterSkills(items, filters);
 }
 
+export async function getPublicExploreSkills(filters: ExploreFilters = {}) {
+  const skills = await getExploreSkills(filters);
+  return skills.filter(isPublicSkill);
+}
+
 export async function getSkillBySlug(slug: string): Promise<SkillDetail | null> {
   if (!db || !isDatabaseConfigured) {
     return null;
@@ -375,6 +416,16 @@ export async function getSkillBySlug(slug: string): Promise<SkillDetail | null> 
   }
 }
 
+export async function getPublicSkillBySlug(slug: string): Promise<SkillDetail | null> {
+  const skill = await getSkillBySlug(slug);
+
+  if (!skill || skill.visibility !== "public") {
+    return null;
+  }
+
+  return skill;
+}
+
 export async function getViewerStar(skillId: string, userId: string) {
   if (!db || !isDatabaseConfigured) {
     return null;
@@ -386,6 +437,32 @@ export async function getViewerStar(skillId: string, userId: string) {
     });
   } catch {
     return null;
+  }
+}
+
+export async function recordSkillDownload(skillId: string, userId: string | null) {
+  if (!db || !isDatabaseConfigured) {
+    return false;
+  }
+
+  try {
+    await db.transaction(async (tx) => {
+      await tx.insert(downloads).values({
+        userId,
+        skillId,
+      });
+
+      await tx
+        .update(skills)
+        .set({
+          downloadsCount: sql`${skills.downloadsCount} + 1`,
+        })
+        .where(eq(skills.id, skillId));
+    });
+
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -489,6 +566,127 @@ export async function getProfileByUsername(username: string): Promise<ProfileDat
     };
   } catch {
     return null;
+  }
+}
+
+export async function getPublicProfileByUserId(userId: string): Promise<ProfileData | null> {
+  if (!db || !isDatabaseConfigured) {
+    return null;
+  }
+
+  try {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      with: {
+        skills: {
+          with: {
+            author: true,
+            currentVersion: {
+              with: {
+                files: true,
+              },
+            },
+            parentFork: {
+              with: {
+                parentSkill: {
+                  with: {
+                    author: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: (skillsTable, { desc: orderDesc }) => [
+            orderDesc(skillsTable.starsCount),
+            orderDesc(skillsTable.updatedAt),
+          ],
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      user: mapPublicUserRecord(user),
+      skills: mapPublicSkills(user.skills as SkillRecord[]),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function getPublicUsers(query?: string): Promise<PublicUserListItem[]> {
+  if (!db || !isDatabaseConfigured) {
+    return [];
+  }
+
+  try {
+    const usersWithSkills = await db.query.users.findMany({
+      with: {
+        skills: {
+          with: {
+            author: true,
+            currentVersion: {
+              with: {
+                files: true,
+              },
+            },
+            parentFork: {
+              with: {
+                parentSkill: {
+                  with: {
+                    author: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const normalizedQuery = query?.trim().toLowerCase() ?? "";
+
+    return usersWithSkills
+      .map((user) => {
+        const publicSkills = mapPublicSkills(user.skills as SkillRecord[]);
+        const updatedAt = publicSkills.length
+          ? publicSkills
+              .map((skill) => new Date(skill.updatedAt).getTime())
+              .reduce((latest, current) => Math.max(latest, current), 0)
+          : null;
+
+        return {
+          user: mapPublicUserRecord(user),
+          skillCount: publicSkills.length,
+          totalStars: publicSkills.reduce((sum, skill) => sum + skill.starsCount, 0),
+          totalForks: publicSkills.reduce((sum, skill) => sum + skill.forksCount, 0),
+          totalDownloads: publicSkills.reduce((sum, skill) => sum + skill.downloadsCount, 0),
+          updatedAt: updatedAt ? new Date(updatedAt).toISOString() : null,
+        };
+      })
+      .filter((entry) => {
+        if (!normalizedQuery) {
+          return true;
+        }
+
+        const haystack = [entry.user.username, entry.user.displayName, entry.user.bio ?? ""]
+          .join(" ")
+          .toLowerCase();
+
+        return haystack.includes(normalizedQuery);
+      })
+      .sort(
+        (left, right) =>
+          right.totalStars - left.totalStars ||
+          right.skillCount - left.skillCount ||
+          right.totalDownloads - left.totalDownloads ||
+          new Date(right.user.createdAt).getTime() - new Date(left.user.createdAt).getTime(),
+      );
+  } catch {
+    return [];
   }
 }
 

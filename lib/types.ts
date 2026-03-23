@@ -91,7 +91,17 @@ export type TopCreator = {
   totalStars: number;
 };
 
+export type PublicUserListItem = {
+  user: PublicUser;
+  skillCount: number;
+  totalStars: number;
+  totalForks: number;
+  totalDownloads: number;
+  updatedAt: string | null;
+};
+
 export type AppViewer = PublicUser & {
   email: string | null;
+  emailVerified: boolean;
   needsProfileSetup: boolean;
 };

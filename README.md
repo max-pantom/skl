@@ -59,6 +59,62 @@ By default the GIF places each PNG centered inside a white `600x600` frame. You 
 
 If you need transparency instead, pass `--background transparent`, but the result will usually look softer because GIF only supports a 256-color palette and 1-bit transparency.
 
+## Public API
+
+Read-only JSON endpoints:
+
+```bash
+GET /api/skills?limit=20&q=prompt&category=coding&sort=recent
+GET /api/skills/[slug]
+GET /api/skills/[slug]/manifest
+GET /api/skills/[slug]/bundle
+GET /api/users?limit=20&q=ada
+GET /api/users/[userId]
+```
+
+Notes:
+
+- `sort` for skills supports `recent`, `newest`, and `trending`.
+- Public APIs only return skills with `visibility: "public"`.
+- `GET /api/skills/[slug]` returns the current version only by default; use `?include=versions` for full history.
+- `GET /api/skills/[slug]/manifest` returns `slug`, `title`, `version`, and `files: [{ path, sha256 }]` (no download increment). Optional `?version=` pins a semver string.
+- `GET /api/skills/[slug]/bundle` returns the same files with `content` and records **one** download event (used by `skl install`). Optional `?version=`.
+- `POST /api/skills/[slug]/install` returns a JSON skill snapshot and records one download (legacy / alternate client shape).
+- `/api/users/[userId]` returns the user plus their public authored skills and aggregate stats.
+
+### CLI (`skl install`)
+
+The `@skl/cli` workspace package exposes the `skl` binary (linked as a root dev dependency). Build first, then run via `pnpm exec`:
+
+```bash
+pnpm install
+pnpm cli:build
+pnpm exec skl install my-skill --registry http://localhost:3000
+pnpm exec skl i my-skill@1.0.0 -o ./skills/my-skill
+pnpm exec skl install my-skill --target cursor
+```
+
+- Registry: `--registry` or `SKL_REGISTRY` (defaults to `http://localhost:3000` for local dev; set to your production `NEXT_PUBLIC_APP_URL` when installing from a deployed registry).
+- Auth (reserved): `SKL_TOKEN` or `-t, --token` sends `Authorization: Bearer …` for future private-registry support.
+- Default output: `./.skl/skills/<slug>/`. `--target cursor` writes to `~/.cursor/skills/<slug>/`.
+
+## Claim Flow
+
+`/claim` is a dedicated email verification funnel. It collects email, username, display name, and password, sends a verification email, and unlocks `/claim/card` after the address is verified.
+
+The generated card can be shared from the browser or saved from:
+
+```bash
+GET /api/users/[userId]/claim-card.svg
+```
+
+This flow requires transactional email:
+
+```env
+RESEND_API_KEY=re_...
+EMAIL_FROM=SKL <onboarding@your-domain.com>
+```
+
 ### After migrations are applied
 
 1. Ensure `.env` has **`BETTER_AUTH_SECRET`** (32+ random characters) — not optional for sign-up / publish.

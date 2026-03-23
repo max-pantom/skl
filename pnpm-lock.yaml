@@ -54,6 +54,9 @@ importers:
         specifier: ^4.0.1
         version: 4.0.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
     devDependencies:
+      '@skl/cli':
+        specifier: workspace:*
+        version: link:packages/cli
       '@types/node':
         specifier: ^22.13.10
         version: 22.19.15
@@ -81,6 +84,19 @@ importers:
       tsx:
         specifier: ^4.19.3
         version: 4.21.0
+      typescript:
+        specifier: ^5.8.2
+        version: 5.9.3
+
+  packages/cli:
+    dependencies:
+      commander:
+        specifier: ^13.1.0
+        version: 13.1.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.10
+        version: 22.19.15
       typescript:
         specifier: ^5.8.2
         version: 5.9.3
@@ -1916,6 +1932,10 @@ packages:
   commander@10.0.1:
     resolution: {integrity: sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==}
     engines: {node: '>=14'}
+
+  commander@13.1.0:
+    resolution: {integrity: sha512-/rFeCpNJQbhSZjGVwO9RFV3xPqbnERS8MmIQzCtD/zl6gpJuV/bMLuN92oG3F7d8oDEHHRrujSXNUr8fpjntKw==}
+    engines: {node: '>=18'}
 
   commander@4.1.1:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
@@ -4960,6 +4980,8 @@ snapshots:
   comma-separated-tokens@2.0.3: {}
 
   commander@10.0.1: {}
+
+  commander@13.1.0: {}
 
   commander@4.1.1: {}
 

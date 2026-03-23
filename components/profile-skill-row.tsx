@@ -7,9 +7,9 @@ import { cn, formatNumber } from "@/lib/utils";
 const rowHover =
   "group transition-colors hover:bg-[rgba(36,36,36,0.04)] sm:hover:bg-[rgba(36,36,36,0.04)]";
 
-/** Desktop profile skill list row — hover from Figma (Studio 1652:1867). */
+/** Desktop profile skill list row — pill hover with generous inset (esp. left of title). */
 const profileSkillDesktopRowClass =
-  "group grid w-full min-w-[720px] grid-cols-[minmax(0,10.92%)_minmax(0,1fr)_7rem_5.5rem_4rem] items-center gap-x-9 rounded-[12px] py-1.5 text-[16px] text-[#242424] transition-colors hover:bg-[#efefef]";
+  "group grid w-full min-w-[720px] grid-cols-[minmax(0,10.92%)_minmax(0,1fr)_7rem_5.5rem_4rem] items-center gap-x-9 rounded-full py-4 pl-8 pr-6 text-[16px] text-[#242424] transition-colors hover:bg-[#efefef]";
 
 /** Shared with {@link SkillCard} so registry lists match profile mobile cards. */
 export const profileSkillMobileRowHoverClass = rowHover;

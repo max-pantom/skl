@@ -1,0 +1,26 @@
+{
+  "name": "@skl/cli",
+  "version": "0.1.0",
+  "description": "CLI for installing skills from the SKL registry",
+  "type": "module",
+  "bin": {
+    "skl": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
+  }
+}

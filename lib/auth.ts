@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { sendAuthVerificationEmail } from "@/lib/email/send-auth-verification-email";
 import type { AppViewer } from "@/lib/types";
 import { pickUniqueUsername } from "@/lib/oauth-username";
 
@@ -72,6 +73,7 @@ function createAuth() {
   const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim();
   const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
   const googleOAuthConfigured = Boolean(googleClientId && googleClientSecret);
+  const emailVerificationEnabled = Boolean(process.env.RESEND_API_KEY?.trim());
 
   return betterAuth({
     baseURL,
@@ -89,6 +91,32 @@ function createAuth() {
       schema,
       camelCase: true,
     }),
+    ...(emailVerificationEnabled
+      ? {
+          emailVerification: {
+            autoSignInAfterVerification: true,
+            sendOnSignIn: true,
+            sendOnSignUp: true,
+            async sendVerificationEmail({
+              user,
+              url,
+            }: {
+              user: { email: string; name?: string | null };
+              url: string;
+            }) {
+              const result = await sendAuthVerificationEmail({
+                displayName: user.name?.trim() || "there",
+                to: user.email,
+                verifyUrl: url,
+              });
+
+              if (!result.ok) {
+                throw new Error(result.error);
+              }
+            },
+          },
+        }
+      : {}),
     emailAndPassword: {
       enabled: true,
     },
@@ -219,6 +247,7 @@ export async function getCurrentViewer(): Promise<AppViewer | null> {
   return {
     id: localUser.id,
     email: localUser.email,
+    emailVerified: localUser.emailVerified,
     username: localUser.username,
     displayName: localUser.displayName,
     role: localUser.role,

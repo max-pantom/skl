@@ -96,13 +96,41 @@ Implemented flows:
 
 Additional profile/edit flows may exist in adjacent route work, but the source of truth for server mutations is still `lib/actions.ts`.
 
-## Raw Downloads
+## Skill install APIs and raw file
 
-Raw markdown endpoint:
+**Manifest (metadata, no download increment)**
+
+- [app/api/skills/[slug]/manifest/route.ts](/Users/macbook/Desktop/code/skill/app/api/skills/[slug]/manifest/route.ts)
+- `GET` returns JSON: `slug`, `title`, `version`, `files: [{ path, sha256 }]`.
+- Optional query `version=` selects a published version; omit to use the skill’s current version.
+
+**Bundle (full install payload, one download)**
+
+- [app/api/skills/[slug]/bundle/route.ts](/Users/macbook/Desktop/code/skill/app/api/skills/[slug]/bundle/route.ts)
+- `GET` returns JSON with `files: [{ path, content }]` for every file in that version, sorted like the app UI, and records **one** download via [lib/data.ts](/Users/macbook/Desktop/code/skill/lib/data.ts) `recordSkillDownload`.
+- Same optional `version=` as manifest.
+
+**Per-file raw download**
 
 - [app/api/skills/[slug]/raw/route.ts](/Users/macbook/Desktop/code/skill/app/api/skills/[slug]/raw/route.ts)
+- `GET` returns a single file (`path` query to choose; default primary `SKILL.md`). Records a download per request.
 
-It returns the skill markdown and records a download event.
+Version resolution for all three is shared: [lib/skill-install.ts](/Users/macbook/Desktop/code/skill/lib/skill-install.ts) `resolveSkillInstallVersion`.
+
+## CLI
+
+The `skl` command lives in [packages/cli](/Users/macbook/Desktop/code/skill/packages/cli). Build from the repo root with `pnpm cli:build`. Typical usage:
+
+```bash
+pnpm exec skl install <slug>              # writes to ./.skl/skills/<slug>/
+pnpm exec skl i <slug>@1.0.0 --registry https://your-app.example
+pnpm exec skl install <slug> --target cursor   # ~/.cursor/skills/<slug>/
+```
+
+- **Registry:** `SKL_REGISTRY` or `--registry` (CLI default when unset: `http://localhost:3000`, aligned with local `NEXT_PUBLIC_APP_URL`).
+- **Auth (reserved):** `SKL_TOKEN` or `--token` adds `Authorization: Bearer` for future authenticated registries.
+
+Published installs can use `npm i -g @skl/cli` once the package is published.
 
 ## Migrations
 

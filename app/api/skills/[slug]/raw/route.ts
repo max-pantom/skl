@@ -1,9 +1,6 @@
-import { eq, sql } from "drizzle-orm";
-
-import { db } from "@/db";
-import { downloads, skills } from "@/db/schema";
 import { getCurrentViewer } from "@/lib/auth";
-import { getSkillBySlug } from "@/lib/data";
+import { getPublicSkillBySlug, recordSkillDownload } from "@/lib/data";
+import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { selectSkillFile } from "@/lib/skill-files";
 
 type RawSkillRouteProps = {
@@ -14,42 +11,31 @@ type RawSkillRouteProps = {
 
 export async function GET(request: Request, { params }: RawSkillRouteProps) {
   const { slug } = await params;
-  const skill = await getSkillBySlug(slug);
+  const skill = await getPublicSkillBySlug(slug);
 
   if (!skill) {
     return new Response("Skill not found", { status: 404 });
   }
 
-  if (db) {
-    try {
-      const viewer = await getCurrentViewer();
+  const url = new URL(request.url);
+  const versionParam = url.searchParams.get("version");
+  const resolvedVersion = resolveSkillInstallVersion(skill, versionParam);
 
-      await db.transaction(async (tx) => {
-        await tx.insert(downloads).values({
-          userId: viewer?.id ?? null,
-          skillId: skill.id,
-        });
-
-        await tx
-          .update(skills)
-          .set({
-            downloadsCount: sql`${skills.downloadsCount} + 1`,
-          })
-          .where(eq(skills.id, skill.id));
-      });
-    } catch {
-      /* demo slugs or missing rows should still return the file */
-    }
+  if (!resolvedVersion) {
+    return new Response("Version not found", { status: 404 });
   }
 
-  const requestedPath = new URL(request.url).searchParams.get("path");
-  const selectedFile = selectSkillFile(skill.currentVersion.files, requestedPath);
+  const viewer = await getCurrentViewer();
+  await recordSkillDownload(skill.id, viewer?.id ?? null);
+
+  const requestedPath = url.searchParams.get("path");
+  const selectedFile = selectSkillFile(resolvedVersion.files, requestedPath);
 
   if (!selectedFile || (requestedPath && selectedFile.path !== requestedPath)) {
     return new Response("File not found", { status: 404 });
   }
 
-  const filename = `${skill.slug}-${skill.currentVersion.version}-${selectedFile.path.replace(/\//g, "-")}`;
+  const filename = `${skill.slug}-${resolvedVersion.version}-${selectedFile.path.replace(/\//g, "-")}`;
   const contentType = /\.md$/i.test(selectedFile.path) ? "text/markdown; charset=utf-8" : "text/plain; charset=utf-8";
 
   return new Response(selectedFile.content, {
