@@ -14,7 +14,9 @@ export function SklLoading({
       aria-busy="true"
     >
       <div className="skl-logo-shimmer">
-        <SklLogo />
+        <div style={{ transform: "scale(1.4)", transformOrigin: "50% 50%" }}>
+          <SklLogo markOnly />
+        </div>
       </div>
     </div>
   );

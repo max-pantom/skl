@@ -1,7 +1,22 @@
 "use client";
 
 /** Figma Studio — logo mark + wordmark (node 1632:507 / user SVG). */
-export function SklLogo() {
+export function SklLogo({
+  markOnly = false,
+}: {
+  markOnly?: boolean;
+}) {
+  if (markOnly) {
+    return (
+      <svg width="24" height="34" viewBox="0 0 24 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <path
+          d="M24 18.7743C24 19.5668 23.2121 20.1239 22.4294 19.9994C21.964 19.9253 21.4866 19.8867 21 19.8867C16.4215 19.8867 12.6416 23.279 12.0737 27.6691C11.9922 28.2989 11.4852 28.8164 10.8501 28.8164H1.15C0.514872 28.8164 0 28.3015 0 27.6664V6.15C0 5.51487 0.514873 5 1.15 5H22.85C23.4851 5 24 5.51487 24 6.15V18.7743Z"
+          fill="#242424"
+        />
+      </svg>
+    );
+  }
+
   return (
     <svg width="81" height="34" viewBox="0 0 81 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <g opacity="0.2">
