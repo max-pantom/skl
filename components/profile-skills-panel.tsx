@@ -31,8 +31,8 @@ export function ProfileSkillsPanel({
                 <ProfileSkillRow key={skill.id} skill={skill} />
               ))}
             </div>
-            <div className="hidden min-w-0 overflow-x-auto sm:block">
-              <div className="flex w-full min-w-[720px] flex-col gap-6">
+            <div className="hidden w-full min-w-0 sm:block">
+              <div className="flex w-full min-w-0 flex-col gap-6">
                 {list.map((skill) => (
                   <ProfileSkillTableRow key={skill.id} skill={skill} />
                 ))}
