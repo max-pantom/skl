@@ -31,6 +31,11 @@ type ProfileAvatarProps = {
    * Admin default avatar stays circular.
    */
   clipCircle?: boolean;
+  /**
+   * Parent supplies a fixed circle (e.g. overflow-hidden rounded-full). Photo/shield fill it; shield omits
+   * the extra outer gray ring so the face reads clearly at small sizes.
+   */
+  nestedCircle?: boolean;
 };
 
 function clamp(n: number, min: number, max: number) {
@@ -49,6 +54,7 @@ export function ProfileAvatar({
   size = 100,
   parallax = false,
   clipCircle = true,
+  nestedCircle = false,
 }: ProfileAvatarProps) {
   if (parallax) {
     return (
@@ -63,6 +69,15 @@ export function ProfileAvatar({
   }
 
   if (avatarUrl) {
+    if (nestedCircle) {
+      return (
+        <img
+          src={avatarUrl}
+          alt={displayName}
+          className="h-full w-full min-h-0 min-w-0 rounded-full object-cover"
+        />
+      );
+    }
     return (
       <img
         src={avatarUrl}
@@ -76,8 +91,12 @@ export function ProfileAvatar({
 
   if (role === "admin") {
     return (
-      <span className="inline-flex shrink-0" role="img" aria-label={`${displayName} avatar`}>
-        <AdminAvatarCircle size={size} includeOuterDisc />
+      <span
+        className={nestedCircle ? "flex h-full w-full shrink-0 items-center justify-center" : "inline-flex shrink-0"}
+        role="img"
+        aria-label={`${displayName} avatar`}
+      >
+        <AdminAvatarCircle size={size} includeOuterDisc={!nestedCircle} />
       </span>
     );
   }
@@ -85,13 +104,17 @@ export function ProfileAvatar({
   const seed = userId;
 
   return (
-    <span className="inline-flex shrink-0" role="img" aria-label={`${displayName} avatar`}>
+    <span
+      className={nestedCircle ? "flex h-full w-full shrink-0 items-center justify-center" : "inline-flex shrink-0"}
+      role="img"
+      aria-label={`${displayName} avatar`}
+    >
       <ShieldAvatar
         seed={seed}
         size={size}
         showDebug={false}
-        clipToCircle={clipCircle}
-        includeOuterDisc={clipCircle}
+        clipToCircle={nestedCircle || clipCircle}
+        includeOuterDisc={nestedCircle ? false : clipCircle}
         avatarScale={DEFAULT_SHIELD_LAYOUT.avatarScale}
         avatarOffsetX={DEFAULT_SHIELD_LAYOUT.avatarOffsetX}
         avatarOffsetY={DEFAULT_SHIELD_LAYOUT.avatarOffsetY}
