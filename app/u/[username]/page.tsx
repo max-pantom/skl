@@ -4,8 +4,9 @@ import { notFound } from "next/navigation";
 import { ProfileView } from "@/components/profile-view";
 import { getCurrentViewer } from "@/lib/auth";
 import { getEarlyBelieverRank, getProfileByUsername, getStarredSkillsForUser } from "@/lib/data";
+import { publicAppOrigin } from "@/lib/utils";
 
-const appBase = () => new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000");
+const appBase = () => publicAppOrigin();
 
 /** OG/Twitter crawlers require absolute image URLs. */
 function absoluteAvatarUrl(avatarUrl: string | null): string | undefined {

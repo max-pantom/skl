@@ -6,6 +6,7 @@ import "@/app/globals.css";
 import { openRunde } from "@/app/fonts";
 import { ConditionalFooter } from "@/components/conditional-footer";
 import { SiteHeader } from "@/components/site-header";
+import { publicAppOrigin } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
     template: "%s | SKL",
   },
   description: "Portable AI skills. Publish, browse, fork, and download reusable instruction packages.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  metadataBase: publicAppOrigin(),
 };
 
 export default function RootLayout({

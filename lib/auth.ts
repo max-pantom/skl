@@ -215,7 +215,7 @@ function createAuth() {
 let authSingleton: ReturnType<typeof createAuth> | null = null;
 
 export function getAuth() {
-  if (!db || !secret) {
+  if (!db || !secret || secret.length < 32) {
     return null;
   }
   if (!authSingleton) {

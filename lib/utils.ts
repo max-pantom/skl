@@ -14,19 +14,28 @@ export function formatNumber(value: number) {
   return new Intl.NumberFormat("en", { notation: "compact" }).format(value);
 }
 
+/** Base URL for links and metadata; never throws (bad env falls back to localhost). */
+export function publicAppOrigin(): URL {
+  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (!raw) {
+    return new URL("http://localhost:3000");
+  }
+  try {
+    const href = /^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw}`;
+    return new URL(href);
+  } catch {
+    return new URL("http://localhost:3000");
+  }
+}
+
 export function absoluteUrl(path: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  return new URL(path, baseUrl).toString();
+  return new URL(path, publicAppOrigin()).toString();
 }
 
 /** Host + `/u/` for claim username field (public profiles live at `/u/:username`). */
 export function publicProfilePathPrefix() {
-  try {
-    const u = new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000");
-    return `${u.host}/u/`;
-  } catch {
-    return "localhost:3000/u/";
-  }
+  const u = publicAppOrigin();
+  return `${u.host}/u/`;
 }
 
 export function slugify(value: string) {
