@@ -557,8 +557,8 @@ export async function getProfileByUsername(username: string): Promise<ProfileDat
             },
           },
           orderBy: (skillsTable, { desc: orderDesc }) => [
-            orderDesc(skillsTable.starsCount),
             orderDesc(skillsTable.updatedAt),
+            orderDesc(skillsTable.createdAt),
           ],
         },
       },
@@ -620,8 +620,8 @@ export async function getPublicProfileByUserId(userId: string): Promise<ProfileD
             },
           },
           orderBy: (skillsTable, { desc: orderDesc }) => [
-            orderDesc(skillsTable.starsCount),
             orderDesc(skillsTable.updatedAt),
+            orderDesc(skillsTable.createdAt),
           ],
         },
       },

@@ -23,7 +23,7 @@ export function ProfileSkillsPanel({
   const hasList = list.length > 0;
 
   return (
-    <div className="flex min-h-0 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex min-h-0 flex-col">
         {hasList ? (
           <>
@@ -60,7 +60,7 @@ export function ProfileSkillsPanel({
 
       <nav
         className={`flex justify-center gap-9 pb-[14px] pt-12 text-[16px] uppercase ${
-          hasList ? "" : "mt-6"
+          hasList ? "mt-auto" : "mt-6"
         }`}
         aria-label="Profile skill filters"
       >
