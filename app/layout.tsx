@@ -28,6 +28,26 @@ export const metadata: Metadata = {
   },
   description: "Portable AI skills. Publish, browse, fork, and download reusable instruction packages.",
   metadataBase: publicAppOrigin(),
+  openGraph: {
+    title: "SKL",
+    description: "Portable AI skills. Publish, browse, fork, and download reusable instruction packages.",
+    siteName: "SKL",
+    type: "website",
+    images: [
+      {
+        url: "/sklx-og.png",
+        width: 1200,
+        height: 630,
+        alt: "SKL",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SKL",
+    description: "Portable AI skills. Publish, browse, fork, and download reusable instruction packages.",
+    images: ["/sklx-og.png"],
+  },
 };
 
 export default function RootLayout({

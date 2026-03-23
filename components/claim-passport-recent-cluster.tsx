@@ -24,7 +24,7 @@ const CLUSTER_W = Math.round(52 * FIG);
 const CLUSTER_H = Math.round(60 * FIG);
 
 /** Shrinks the whole pile (layout unchanged); transform applied in dock. */
-export const CLAIM_RECENT_CLUSTER_GROUP_SCALE = 0.72;
+export const CLAIM_RECENT_CLUSTER_GROUP_SCALE = 0.64;
 
 export function ClaimPassportRecentCluster({
   claimants,
@@ -102,7 +102,7 @@ export function ClaimVerifiedBottomDock({
 
   return (
     <div
-      className={`pointer-events-none fixed bottom-5 left-4 right-4 z-30 flex items-center gap-3 sm:bottom-8 sm:left-6 sm:right-6 ${justify}`}
+      className={`pointer-events-none fixed bottom-3 left-4 right-4 z-30 flex items-center gap-2.5 sm:bottom-8 sm:left-6 sm:right-6 sm:gap-3 ${justify}`}
     >
       {hasProgress ? (
         <div className="pointer-events-auto shrink-0">

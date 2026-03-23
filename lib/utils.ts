@@ -59,6 +59,14 @@ export function sanitizeUsername(value: string) {
   return cleaned.slice(0, 32) || "user";
 }
 
+export function startsWithLetterOrNumber(value: string) {
+  return /^[a-z0-9]/i.test(value.trim());
+}
+
+export function hasValidDisplayNameStart(value: string) {
+  return /^[a-z0-9]/i.test(value.trim());
+}
+
 export function parseCommaSeparatedList(value: FormDataEntryValue | string | null | undefined) {
   const input = typeof value === "string" ? value : value?.toString() ?? "";
 

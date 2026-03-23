@@ -10,7 +10,7 @@ import { GoogleSignInButton } from "@/components/google-sign-in-button";
 import { SignOutButton } from "@/components/sign-out-button";
 import { authClient } from "@/lib/auth-client";
 import { isUsernameAvailableForRegistration } from "@/lib/username-registration";
-import { formatSignUpErrorMessage, sanitizeUsername } from "@/lib/utils";
+import { formatSignUpErrorMessage, hasValidDisplayNameStart, sanitizeUsername, startsWithLetterOrNumber } from "@/lib/utils";
 
 type InitialViewer = {
   displayName: string;
@@ -90,8 +90,18 @@ export function ClaimForm({
       return;
     }
 
+    if (!startsWithLetterOrNumber(username)) {
+      setError("Username must start with a letter or number.");
+      return;
+    }
+
     if (cleanDisplayName.length < 3) {
       setError("Display name must be at least 3 characters.");
+      return;
+    }
+
+    if (!hasValidDisplayNameStart(displayName || cleanDisplayName)) {
+      setError("Display name must start with a letter or number.");
       return;
     }
 

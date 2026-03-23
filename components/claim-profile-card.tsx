@@ -119,7 +119,7 @@ export function ClaimProfileCard({
   const recentMembersOnCard = recentPassportClaimants.filter((c) => c.id !== userId);
 
   return (
-    <div className="mx-auto flex w-full max-w-[367px] flex-col gap-12">
+    <div className="mx-auto flex w-full max-w-[340px] -translate-y-2 flex-col gap-10 sm:max-w-[367px] sm:translate-y-0 sm:gap-12">
       <MemberIdCard
         avatarUrl={avatarUrl}
         displayName={displayName}
@@ -131,7 +131,7 @@ export function ClaimProfileCard({
         userId={userId}
       />
 
-      <div className="flex w-full flex-wrap gap-3">
+      <div className="flex w-full flex-wrap gap-2.5 sm:gap-3">
         <a
           href={cardDownloadUrl}
           download={`${username}-skl-card.png`}

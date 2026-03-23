@@ -7,7 +7,7 @@ import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { GoogleSignInButton } from "@/components/google-sign-in-button";
 import { isUsernameAvailableForRegistration } from "@/lib/username-registration";
-import { formatSignUpErrorMessage, sanitizeUsername } from "@/lib/utils";
+import { formatSignUpErrorMessage, hasValidDisplayNameStart, sanitizeUsername, startsWithLetterOrNumber } from "@/lib/utils";
 
 export function EmailSignupForm({ googleAuthEnabled = false }: { googleAuthEnabled?: boolean }) {
   const router = useRouter();
@@ -35,8 +35,20 @@ export function EmailSignupForm({ googleAuthEnabled = false }: { googleAuthEnabl
       return;
     }
 
+    if (!startsWithLetterOrNumber(username)) {
+      setError("Username must start with a letter or number.");
+      setPending(false);
+      return;
+    }
+
     if (cleanDisplayName.length < 3) {
       setError("Display name must be at least 3 characters.");
+      setPending(false);
+      return;
+    }
+
+    if (!hasValidDisplayNameStart(displayName)) {
+      setError("Display name must start with a letter or number.");
       setPending(false);
       return;
     }

@@ -5,6 +5,7 @@ import { FormNotice } from "@/components/form-notice";
 import { PageIntro } from "@/components/page-intro";
 import { completeProfileSetupAction } from "@/lib/actions";
 import { requireCurrentViewer } from "@/lib/auth";
+import { sanitizeUsername } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Finish account",
@@ -14,6 +15,7 @@ type WelcomePageProps = {
   searchParams: Promise<{
     error?: string;
     next?: string;
+    provider?: string;
   }>;
 };
 
@@ -21,8 +23,11 @@ export default async function WelcomePage({ searchParams }: WelcomePageProps) {
   const viewer = await requireCurrentViewer("/login");
   const sp = await searchParams;
   const nextPath = sp.next?.trim() || "/explore";
+  const emailLocal = viewer.email?.split("@")[0] ?? "";
+  const autoFilledUsername = sanitizeUsername(emailLocal) === viewer.username;
+  const allowGoogleProfileSetup = sp.provider === "google" && autoFilledUsername;
 
-  if (!viewer.needsProfileSetup) {
+  if (!viewer.needsProfileSetup && !allowGoogleProfileSetup) {
     redirect(nextPath);
   }
 

@@ -19,7 +19,7 @@ export function GoogleSignInButton({
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const onboardingCallback = `/welcome?next=${encodeURIComponent(callbackURL)}`;
+  const onboardingCallback = `/welcome?next=${encodeURIComponent(callbackURL)}&provider=google`;
 
   async function onClick() {
     setError(null);

@@ -126,7 +126,8 @@ function createAuth() {
               typeof u.username === "string" && u.username.trim() ? u.username.trim() : "";
 
             let username = existingUsername;
-            const needsProfileSetup = !existingUsername;
+            const emailVerified = u.emailVerified === true;
+            const needsProfileSetup = emailVerified || !existingUsername;
             if (!username) {
               const local = email.split("@")[0] || "user";
               username = await pickUniqueUsername(database, local);
@@ -134,7 +135,6 @@ function createAuth() {
 
             const nameFromProvider = typeof u.name === "string" ? u.name.trim() : "";
             const name = nameFromProvider || username;
-            const emailVerified = u.emailVerified === true;
 
             return {
               data: {

@@ -17,8 +17,10 @@ import {
 import { launchCategories, type SkillCategory } from "@/lib/types";
 import {
   getString,
+  hasValidDisplayNameStart,
   parseCommaSeparatedList,
   sanitizeUsername,
+  startsWithLetterOrNumber,
   slugify,
   withQuery,
 } from "@/lib/utils";
@@ -179,6 +181,10 @@ export async function updateProfileAction(formData: FormData) {
     redirectWithError("/settings", "Display name is required.");
   }
 
+  if (!hasValidDisplayNameStart(displayName)) {
+    redirectWithError("/settings", "Display name must start with a letter or number.");
+  }
+
   await db!
     .update(users)
     .set({
@@ -209,8 +215,16 @@ export async function completeProfileSetupAction(formData: FormData) {
     redirectWithError(withQuery("/welcome", { next: nextPath }), "Username must be at least 3 characters.");
   }
 
+  if (!startsWithLetterOrNumber(getString(formData.get("username")))) {
+    redirectWithError(withQuery("/welcome", { next: nextPath }), "Username must start with a letter or number.");
+  }
+
   if (displayName.length < 3) {
     redirectWithError(withQuery("/welcome", { next: nextPath }), "Display name must be at least 3 characters.");
+  }
+
+  if (!hasValidDisplayNameStart(displayName)) {
+    redirectWithError(withQuery("/welcome", { next: nextPath }), "Display name must start with a letter or number.");
   }
 
   const existingUser = await db!.query.users.findFirst({
