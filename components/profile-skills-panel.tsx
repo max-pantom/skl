@@ -22,7 +22,7 @@ export function ProfileSkillsPanel({
   const list = tab === "all" ? authoredSkills : starredSkills;
 
   return (
-    <div className="flex min-h-[calc(100dvh-15rem)] flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex flex-1 flex-col">
         {list.length > 0 ? (
           <>

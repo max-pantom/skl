@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { CopyRawButton } from "@/components/copy-raw-button";
 import { FormNotice } from "@/components/form-notice";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
-import { SkillEditForm } from "@/components/skill-edit-form";
 import { SkillAuthorCard } from "@/components/skill-author-card";
 import { TagList } from "@/components/tag-list";
 import { forkSkillAction, toggleStarAction } from "@/lib/actions";
@@ -20,7 +19,6 @@ type SkillPageProps = {
     slug: string;
   }>;
   searchParams: Promise<{
-    edit?: string;
     error?: string;
     file?: string;
     message?: string;
@@ -56,7 +54,6 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
 
   const viewerHasStarred = viewer ? await hasUserStarredSkill(viewer.id, skill.id) : false;
   const canEdit = viewer?.id === skill.author.id;
-  const editMode = canEdit && query.edit === "1";
   const selectedVersion = resolveSkillInstallVersion(skill, query.version ?? null);
 
   if (!selectedVersion) {
@@ -65,7 +62,6 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
 
   const selectedFile = selectSkillFile(selectedVersion.files, query.file);
   const redirectTo = withQuery(`/s/${skill.slug}`, {
-    edit: editMode ? "1" : null,
     file: selectedFile?.path,
     version: selectedVersion.version === skill.currentVersion.version ? null : selectedVersion.version,
   });
@@ -202,14 +198,10 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
 
               {canEdit ? (
                 <Link
-                  href={withQuery(`/s/${skill.slug}`, {
-                    edit: editMode ? null : "1",
-                    file: selectedFile.path,
-                    version: selectedVersion.version === skill.currentVersion.version ? null : selectedVersion.version,
-                  })}
+                  href={`/s/${skill.slug}/edit`}
                   className="skl-btn skl-btn-secondary flex w-full justify-center text-center"
                 >
-                  {editMode ? "Close editor" : "Edit"}
+                  Edit
                 </Link>
               ) : null}
 
@@ -307,28 +299,6 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
           </section>
         </aside>
       </div>
-
-      {editMode ? (
-        <section id="edit-skill" className="mt-16 border-t border-zinc-200 pt-10">
-          <div className="mx-auto w-full max-w-[1056px] space-y-6">
-            <div className="space-y-2">
-              <p className="page-kicker">Owner</p>
-              <h2 className="text-[28px] font-semibold leading-none text-[#242424]">Update this skill</h2>
-              <p className="max-w-2xl text-[16px] font-medium leading-[1.35] text-[#8f8f8f]">
-                Publish a new version from the current files. Leave version blank to auto-bump by 1.0.0, or enter a
-                higher semantic version like 1.0.1.
-              </p>
-            </div>
-            <SkillEditForm
-              skill={skill}
-              closeHref={withQuery(`/s/${skill.slug}`, {
-                file: selectedFile.path,
-                version: selectedVersion.version === skill.currentVersion.version ? null : selectedVersion.version,
-              })}
-            />
-          </div>
-        </section>
-      ) : null}
     </div>
   );
 }

@@ -357,7 +357,7 @@ export async function createSkillAction(formData: FormData) {
 
 export async function updateSkillAction(formData: FormData) {
   const currentSlug = getString(formData.get("currentSlug"));
-  const editPath = withQuery(`/s/${currentSlug}`, { edit: "1" });
+  const editPath = `/s/${currentSlug}/edit`;
   ensureConfigured(editPath);
 
   const viewer = await requireCurrentViewer(editPath);
