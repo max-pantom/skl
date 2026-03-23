@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import Link from "next/link";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { ProfileAvatar } from "@/components/profile-avatar";
-import type { UserRole } from "@/lib/types";
+import type { RecentPassportClaimant, UserRole } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 function clamp(n: number, min: number, max: number) {
@@ -55,6 +56,17 @@ export type MemberIdCardProps = {
   shadowOpacity?: number;
   /** 3D tilt following pointer while hovered. */
   hoverParallax?: boolean;
+  /** Newest-first list (e.g. {@link getRecentPassportClaimants}); shown as square thumbs bottom-right. */
+  recentMembers?: RecentPassportClaimant[];
+  showRecentMembers?: boolean;
+  recentMembersMax?: number;
+  recentMembersAvatarSize?: number;
+  /** Rounded-rect radius for each thumb (px), not a circle. */
+  recentMembersCornerRadius?: number;
+  recentMembersOffsetRight?: number;
+  recentMembersOffsetBottom?: number;
+  /** Horizontal overlap between thumbs (px). */
+  recentMembersOverlap?: number;
   className?: string;
   "aria-label"?: string;
 };
@@ -93,11 +105,31 @@ export function MemberIdCard({
   shadowY = 6,
   shadowOpacity = 0.17,
   hoverParallax = true,
+  recentMembers,
+  showRecentMembers = true,
+  recentMembersMax = 4,
+  recentMembersAvatarSize = 30,
+  recentMembersCornerRadius,
+  recentMembersOffsetRight = 14,
+  recentMembersOffsetBottom = 14,
+  recentMembersOverlap = 10,
   className = "w-full max-w-[367px]",
   "aria-label": ariaLabel,
 }: MemberIdCardProps) {
   const primaryName = primaryNameProp ?? (displayName.trim().split(/\s+/)[0] || displayName);
   const showRankLine = showRank && earlyBelieverRank != null;
+
+  const thumbRadius = recentMembersCornerRadius ?? Math.min(8, Math.max(4, Math.round(recentMembersAvatarSize * 0.2)));
+
+  const recentSlice = useMemo(() => {
+    if (!showRecentMembers || !recentMembers?.length) {
+      return [];
+    }
+    return recentMembers.slice(0, recentMembersMax);
+  }, [recentMembers, recentMembersMax, showRecentMembers]);
+
+  /** Oldest → newest left → right (API is newest-first). */
+  const recentDisplayOrder = useMemo(() => [...recentSlice].reverse(), [recentSlice]);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const [tracking, setTracking] = useState(false);
@@ -210,6 +242,46 @@ export function MemberIdCard({
         >
           {footerDate}
         </p>
+      ) : null}
+
+      {recentDisplayOrder.length > 0 ? (
+        <div
+          className="pointer-events-auto absolute z-20 flex flex-row items-end"
+          style={{
+            right: `${recentMembersOffsetRight}px`,
+            bottom: `${recentMembersOffsetBottom}px`,
+          }}
+          role="list"
+          aria-label="Recently joined members"
+        >
+          {recentDisplayOrder.map((c, i) => (
+            <Link
+              key={c.id}
+              href={`/u/${c.username}`}
+              className="relative flex shrink-0 overflow-hidden bg-[#e8e8e8] shadow-[0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.06] transition hover:ring-black/12"
+              style={{
+                width: recentMembersAvatarSize,
+                height: recentMembersAvatarSize,
+                borderRadius: thumbRadius,
+                marginLeft: i > 0 ? -recentMembersOverlap : 0,
+                zIndex: i + 1,
+              }}
+              title={`@${c.username}`}
+              aria-label={`${c.displayName} (@${c.username})`}
+              role="listitem"
+            >
+              <ProfileAvatar
+                avatarUrl={c.avatarUrl}
+                clipCircle={false}
+                displayName={c.displayName}
+                nestedCircle={false}
+                role={c.role}
+                size={recentMembersAvatarSize}
+                userId={c.id}
+              />
+            </Link>
+          ))}
+        </div>
       ) : null}
     </>
   );

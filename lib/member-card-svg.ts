@@ -1,5 +1,6 @@
 import type { MemberIdCardProps } from "@/components/member-id-card";
 import { escapeHtml } from "@/lib/email/escape-html";
+import type { RecentPassportClaimant, UserRole } from "@/lib/types";
 import {
   DEFAULT_SHIELD_LAYOUT,
   DEFAULT_TOP_STAR_SCALE,
@@ -31,6 +32,84 @@ function adminPlaceholderSvg(base: number, letter: string) {
   const rx = Math.min(14, Math.max(6, Math.round(base * 0.055)));
   const fs = Math.round(base * 0.38);
   return `<rect width="${base}" height="${base}" rx="${rx}" ry="${rx}" fill="#E8E8E8"/><text x="${base / 2}" y="${base / 2}" text-anchor="middle" dominant-baseline="central" fill="#242424" font-family="system-ui, sans-serif" font-size="${fs}" font-weight="600">${escapeHtml(letter)}</text>`;
+}
+
+/** Square avatar (no circle): photo, admin tile, or shield — same semantics as {@link MemberIdCard} portrait. */
+function squareAvatarBody(
+  userId: string,
+  role: UserRole,
+  displayName: string,
+  avatarUrl: string | null,
+  side: number,
+  /** First-name token for admin initial (same as card primary line). */
+  primaryToken: string,
+): string {
+  if (avatarUrl?.trim()) {
+    const u = escAttr(avatarUrl.trim());
+    return `<image href="${u}" x="0" y="0" width="${side}" height="${side}" preserveAspectRatio="xMidYMid slice"/>`;
+  }
+  if (role === "admin") {
+    const L = (primaryToken[0] ?? "?").toUpperCase();
+    return adminPlaceholderSvg(side, L);
+  }
+  const shield = buildShieldAvatarSvgString(userId, FRAME_VB, {
+    avatarScale: DEFAULT_SHIELD_LAYOUT.avatarScale,
+    avatarOffsetX: DEFAULT_SHIELD_LAYOUT.avatarOffsetX,
+    avatarOffsetY: DEFAULT_SHIELD_LAYOUT.avatarOffsetY,
+    topStarScale: DEFAULT_TOP_STAR_SCALE,
+    includeOuterDisc: false,
+    clipToCircle: false,
+  });
+  return `<g transform="scale(${side / FRAME_VB})">${extractSvgBody(shield)}</g>`;
+}
+
+function buildRecentMembersSvgFragment(
+  cardOwnerId: string,
+  members: RecentPassportClaimant[] | undefined,
+  h: number,
+  options: {
+    show: boolean;
+    max: number;
+    size: number;
+    cornerRadius: number;
+    offsetRight: number;
+    offsetBottom: number;
+    overlap: number;
+  },
+): { defs: string; body: string } {
+  if (!options.show || !members?.length) {
+    return { defs: "", body: "" };
+  }
+  const slice = members.filter((c) => c.id !== cardOwnerId).slice(0, options.max);
+  if (!slice.length) {
+    return { defs: "", body: "" };
+  }
+  const ordered = [...slice].reverse();
+  const s = options.size;
+  const rx = options.cornerRadius;
+  const step = s - options.overlap;
+  const totalW = s + (ordered.length - 1) * step;
+  const rightX = CARD_W - options.offsetRight;
+  const y = h - options.offsetBottom - s;
+
+  let defs = "";
+  let body = "";
+  ordered.forEach((c, i) => {
+    const clipId = `skl-rm-${i}`;
+    defs += `<clipPath id="${clipId}"><rect width="${s}" height="${s}" rx="${rx}" ry="${rx}"/></clipPath>`;
+    const x = rightX - totalW + i * step;
+    const inner = squareAvatarBody(
+      c.id,
+      c.role,
+      c.displayName,
+      c.avatarUrl,
+      s,
+      primaryNameFrom(c.displayName),
+    );
+    body += `<g transform="translate(${x},${y})"><g clip-path="url(#${clipId})">${inner}</g></g>`;
+  });
+
+  return { defs, body };
 }
 
 /**
@@ -71,6 +150,14 @@ export function buildMemberIdCardSvg(props: MemberIdCardProps): string {
     shadowX = 6,
     shadowY = 6,
     shadowOpacity = 0.17,
+    recentMembers,
+    showRecentMembers = true,
+    recentMembersMax = 4,
+    recentMembersAvatarSize = 30,
+    recentMembersCornerRadius,
+    recentMembersOffsetRight = 14,
+    recentMembersOffsetBottom = 14,
+    recentMembersOverlap = 10,
   } = props;
 
   const h = minHeight;
@@ -81,26 +168,22 @@ export function buildMemberIdCardSvg(props: MemberIdCardProps): string {
   const sy = shadowY;
   const shadowFill = `rgba(0,0,0,${shadowOpacity})`;
 
+  const thumbRx =
+    recentMembersCornerRadius ?? Math.min(8, Math.max(4, Math.round(recentMembersAvatarSize * 0.2)));
+
+  const { defs: recentDefs, body: recentBody } = buildRecentMembersSvgFragment(userId, recentMembers, h, {
+    show: showRecentMembers,
+    max: recentMembersMax,
+    size: recentMembersAvatarSize,
+    cornerRadius: thumbRx,
+    offsetRight: recentMembersOffsetRight,
+    offsetBottom: recentMembersOffsetBottom,
+    overlap: recentMembersOverlap,
+  });
+
   let portraitInner = "";
   if (showPortrait) {
-    if (avatarUrl?.trim()) {
-      const u = escAttr(avatarUrl.trim());
-      portraitInner = `<image href="${u}" x="0" y="0" width="${portraitBaseSize}" height="${portraitBaseSize}" preserveAspectRatio="xMidYMid slice"/>`;
-    } else if (role === "admin") {
-      const L = (primary[0] ?? "?").toUpperCase();
-      portraitInner = adminPlaceholderSvg(portraitBaseSize, L);
-    } else {
-      const shield = buildShieldAvatarSvgString(userId, FRAME_VB, {
-        avatarScale: DEFAULT_SHIELD_LAYOUT.avatarScale,
-        avatarOffsetX: DEFAULT_SHIELD_LAYOUT.avatarOffsetX,
-        avatarOffsetY: DEFAULT_SHIELD_LAYOUT.avatarOffsetY,
-        topStarScale: DEFAULT_TOP_STAR_SCALE,
-        includeOuterDisc: false,
-        clipToCircle: false,
-      });
-      portraitInner = `<g transform="scale(${portraitBaseSize / FRAME_VB})">${extractSvgBody(shield)}</g>`;
-    }
-
+    portraitInner = squareAvatarBody(userId, role, displayName, avatarUrl, portraitBaseSize, primary);
     const cx = CARD_W - portraitOffsetRight;
     const cy = h / 2 + portraitOffsetY;
     portraitInner = `<g opacity="${portraitOpacity}" transform="translate(${cx},${cy}) rotate(${portraitRotateDeg}) scale(${portraitScale}) translate(${-portraitBaseSize},${-portraitBaseSize / 2})">${portraitInner}</g>`;
@@ -116,14 +199,18 @@ export function buildMemberIdCardSvg(props: MemberIdCardProps): string {
 
   const nameBlock = `<g transform="translate(${36 + nameOffsetX},${h / 2 + nameOffsetY}) rotate(${nameRotateDeg})"><text x="0" y="0" fill="#000000" font-family="system-ui, -apple-system, sans-serif" font-size="${nameFontSize}" font-weight="500" dominant-baseline="middle">${escapeHtml(primary)}</text></g>`;
 
+  const defsPrefix = recentDefs ? `<defs>${recentDefs}</defs>` : "";
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${CARD_W}" height="${h}" viewBox="0 0 ${CARD_W} ${h}" fill="none">
+  ${defsPrefix}
   <rect x="${sx}" y="${sy}" width="${CARD_W}" height="${h}" rx="${cardRadius}" fill="${escAttr(shadowFill)}"/>
   <rect width="${CARD_W}" height="${h}" rx="${cardRadius}" fill="${escAttr(cardBackground)}"/>
   ${portraitInner}
   ${rankText}
   ${nameBlock}
   ${dateText}
+  ${recentBody}
 </svg>`;
 }
 

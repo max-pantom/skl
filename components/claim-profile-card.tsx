@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { MemberIdCard } from "@/components/member-id-card";
-import type { UserRole } from "@/lib/types";
+import type { RecentPassportClaimant, UserRole } from "@/lib/types";
 
 function buildMemberCardPlainText(input: {
   displayName: string;
@@ -35,6 +35,7 @@ export function ClaimProfileCard({
   username,
   earlyBelieverRank,
   footerDate,
+  recentPassportClaimants = [],
 }: {
   avatarUrl: string | null;
   cardDownloadUrl: string;
@@ -46,6 +47,8 @@ export function ClaimProfileCard({
   username: string;
   earlyBelieverRank: number | null;
   footerDate: string;
+  /** Shown on the card as square thumbs (excludes the card owner). */
+  recentPassportClaimants?: RecentPassportClaimant[];
 }) {
   const [message, setMessage] = useState<string | null>(null);
 
@@ -110,6 +113,8 @@ export function ClaimProfileCard({
   const pillBtn =
     "flex h-[43px] min-w-0 flex-1 items-center justify-center rounded-[18px] bg-[#e4e4e4] px-3 text-[16px] font-medium text-[rgba(36,36,36,0.5)] transition hover:bg-[#dadada] hover:text-[#242424] sm:px-4";
 
+  const recentMembersOnCard = recentPassportClaimants.filter((c) => c.id !== userId);
+
   return (
     <div className="mx-auto flex w-full max-w-[367px] flex-col gap-12">
       <MemberIdCard
@@ -117,6 +122,7 @@ export function ClaimProfileCard({
         displayName={displayName}
         earlyBelieverRank={earlyBelieverRank}
         footerDate={footerDate}
+        recentMembers={recentMembersOnCard.length > 0 ? recentMembersOnCard : undefined}
         role={role}
         userId={userId}
       />

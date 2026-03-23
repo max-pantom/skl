@@ -58,6 +58,7 @@ export default async function PassportPage({ params }: PassportPageProps) {
             username={freshViewer.username}
             earlyBelieverRank={earlyRank}
             footerDate={formatClaimCardFooterDate(new Date())}
+            recentPassportClaimants={recentPassportClaimants}
           />
         </div>
       </div>

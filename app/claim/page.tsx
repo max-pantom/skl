@@ -65,6 +65,7 @@ export default async function ClaimPage({ searchParams }: ClaimPageProps) {
                 username={viewer.username}
                 earlyBelieverRank={earlyRank}
                 footerDate={claimCardFooterDate}
+                recentPassportClaimants={recentPassportClaimants}
               />
             </div>
           </div>
