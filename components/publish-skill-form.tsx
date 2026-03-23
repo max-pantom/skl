@@ -1,10 +1,10 @@
 import Link from "next/link";
 
+import { MarkdownEditorPreview } from "@/components/markdown-editor-preview";
 import { SubmitButton } from "@/components/submit-button";
 import { createSkillAction } from "@/lib/actions";
 import { isAppConfigured } from "@/lib/auth";
-import { launchCategories } from "@/lib/types";
-import { MarkdownEditorPreview } from "@/components/markdown-editor-preview";
+import { launchCategories, modelCompatibilitySuggestions } from "@/lib/types";
 
 export async function PublishSkillForm() {
   const configured = isAppConfigured();
@@ -98,9 +98,16 @@ export async function PublishSkillForm() {
             <input
               id="compatibleWith"
               name="compatibleWith"
-              placeholder="e.g. GPT-5, Claude 4"
+              list="model-compatibility-options"
+              placeholder="e.g. GPT-5, Claude Sonnet 4, Gemini 2.5 Pro"
               className="publish-form-input"
             />
+            <p className="profile-field-help">Pick from the list or type your own, separated by commas.</p>
+            <datalist id="model-compatibility-options">
+              {modelCompatibilitySuggestions.map((model) => (
+                <option key={model} value={model} />
+              ))}
+            </datalist>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">

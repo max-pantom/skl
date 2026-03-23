@@ -5,7 +5,7 @@ import { MarkdownEditorPreview } from "@/components/markdown-editor-preview";
 import { SubmitButton } from "@/components/submit-button";
 import { SkillVersionInput } from "@/components/skill-version-input";
 import { updateSkillAction } from "@/lib/actions";
-import { launchCategories, type SkillDetail } from "@/lib/types";
+import { launchCategories, modelCompatibilitySuggestions, type SkillDetail } from "@/lib/types";
 import { bumpMajorSemver } from "@/lib/utils";
 
 export function SkillEditForm({ skill, closeHref }: { skill: SkillDetail; closeHref: string }) {
@@ -129,9 +129,16 @@ export function SkillEditForm({ skill, closeHref }: { skill: SkillDetail; closeH
               id="edit-compatible-with"
               name="compatibleWith"
               defaultValue={skill.currentVersion.compatibleWith.join(", ")}
-              placeholder="e.g. GPT-5, Claude 4"
+              list="edit-model-compatibility-options"
+              placeholder="e.g. GPT-5, Claude Sonnet 4, Gemini 2.5 Pro"
               className="publish-form-input"
             />
+            <p className="profile-field-help">Pick from the list or type your own, separated by commas.</p>
+            <datalist id="edit-model-compatibility-options">
+              {modelCompatibilitySuggestions.map((model) => (
+                <option key={model} value={model} />
+              ))}
+            </datalist>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">

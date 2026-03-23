@@ -1,10 +1,16 @@
 import type { MemberIdCardProps } from "@/components/member-id-card";
+import { ADMIN_DEFAULT_AVATAR_PATH } from "@/lib/admin-avatar";
 import { escapeHtml } from "@/lib/email/escape-html";
 import type { RecentPassportClaimant, UserRole } from "@/lib/types";
 import {
   DEFAULT_SHIELD_LAYOUT,
   DEFAULT_TOP_STAR_SCALE,
   FRAME_VB,
+  FRAME_CLIP_R,
+  SHIELD_BBOX,
+  SHIELD_HEIGHT,
+  avatarContentTransformString,
+  shieldTransformString,
 } from "@/lib/shield-avatar-core";
 import { buildShieldAvatarSvgString } from "@/lib/shield-avatar-svg-string";
 
@@ -28,10 +34,21 @@ function primaryNameFrom(displayName: string, override?: string) {
   return t.split(/\s+/)[0] || t;
 }
 
-function adminPlaceholderSvg(base: number, letter: string) {
-  const rx = Math.min(14, Math.max(6, Math.round(base * 0.055)));
-  const fs = Math.round(base * 0.38);
-  return `<rect width="${base}" height="${base}" rx="${rx}" ry="${rx}" fill="#E8E8E8"/><text x="${base / 2}" y="${base / 2}" text-anchor="middle" dominant-baseline="central" fill="#242424" font-family="system-ui, sans-serif" font-size="${fs}" font-weight="600">${escapeHtml(letter)}</text>`;
+function adminAvatarSvg(base: number, clipToCircle: boolean) {
+  const shieldTransform = shieldTransformString();
+  const avatarContentTransform = avatarContentTransformString(
+    DEFAULT_SHIELD_LAYOUT.avatarScale,
+    DEFAULT_SHIELD_LAYOUT.avatarOffsetX,
+    DEFAULT_SHIELD_LAYOUT.avatarOffsetY,
+  );
+
+  const inner = `<g transform="${avatarContentTransform}"><g transform="${shieldTransform}"><image href="${ADMIN_DEFAULT_AVATAR_PATH}" x="${SHIELD_BBOX.minX}" y="${SHIELD_BBOX.minY}" width="${SHIELD_BBOX.maxX - SHIELD_BBOX.minX}" height="${SHIELD_HEIGHT}" preserveAspectRatio="xMidYMid meet"/></g></g>`;
+
+  if (!clipToCircle) {
+    return `<g transform="scale(${base / FRAME_VB})">${inner}</g>`;
+  }
+
+  return `<g transform="scale(${base / FRAME_VB})"><defs><clipPath id="admin-clip"><circle cx="${FRAME_VB / 2}" cy="${FRAME_VB / 2}" r="${FRAME_CLIP_R}"/></clipPath></defs><g clip-path="url(#admin-clip)">${inner}</g></g>`;
 }
 
 /** Square avatar (no circle): photo, admin tile, or shield — same semantics as {@link MemberIdCard} portrait. */
@@ -41,16 +58,14 @@ function squareAvatarBody(
   displayName: string,
   avatarUrl: string | null,
   side: number,
-  /** First-name token for admin initial (same as card primary line). */
-  primaryToken: string,
+  clipToCircle: boolean,
 ): string {
   if (avatarUrl?.trim()) {
     const u = escAttr(avatarUrl.trim());
     return `<image href="${u}" x="0" y="0" width="${side}" height="${side}" preserveAspectRatio="xMidYMid slice"/>`;
   }
   if (role === "admin") {
-    const L = (primaryToken[0] ?? "?").toUpperCase();
-    return adminPlaceholderSvg(side, L);
+    return adminAvatarSvg(side, clipToCircle);
   }
   const shield = buildShieldAvatarSvgString(userId, FRAME_VB, {
     avatarScale: DEFAULT_SHIELD_LAYOUT.avatarScale,
@@ -104,7 +119,7 @@ function buildRecentMembersSvgFragment(
       c.displayName,
       c.avatarUrl,
       s,
-      primaryNameFrom(c.displayName),
+      false,
     );
     body += `<g transform="translate(${x},${y})"><g clip-path="url(#${clipId})">${inner}</g></g>`;
   });
@@ -158,6 +173,7 @@ export function buildMemberIdCardSvg(props: MemberIdCardProps): string {
     recentMembersOffsetRight = 14,
     recentMembersOffsetBottom = 14,
     recentMembersOverlap = 10,
+    adminPortraitClipCircle = false,
   } = props;
 
   const h = minHeight;
@@ -183,7 +199,14 @@ export function buildMemberIdCardSvg(props: MemberIdCardProps): string {
 
   let portraitInner = "";
   if (showPortrait) {
-    portraitInner = squareAvatarBody(userId, role, displayName, avatarUrl, portraitBaseSize, primary);
+    portraitInner = squareAvatarBody(
+      userId,
+      role,
+      displayName,
+      avatarUrl,
+      portraitBaseSize,
+      adminPortraitClipCircle,
+    );
     const cx = CARD_W - portraitOffsetRight;
     const cy = h / 2 + portraitOffsetY;
     portraitInner = `<g opacity="${portraitOpacity}" transform="translate(${cx},${cy}) rotate(${portraitRotateDeg}) scale(${portraitScale}) translate(${-portraitBaseSize},${-portraitBaseSize / 2})">${portraitInner}</g>`;

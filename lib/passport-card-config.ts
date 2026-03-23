@@ -27,6 +27,7 @@ type PassportCardPreset = Pick<
   | "shadowX"
   | "shadowY"
   | "shadowOpacity"
+  | "adminPortraitClipCircle"
   | "hoverParallax"
   | "className"
 >;
@@ -57,6 +58,7 @@ export const PASSPORT_CARD_DEFAULTS: PassportCardPreset = {
   shadowX: 6,
   shadowY: 6,
   shadowOpacity: 0.17,
+  adminPortraitClipCircle: false,
   hoverParallax: true,
   className: "w-full max-w-[367px]",
 };

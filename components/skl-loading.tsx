@@ -7,9 +7,11 @@ export function SklLoading({
 }) {
   return (
     <div
-      className={`flex w-full items-center justify-center ${
-        fullScreen ? "min-h-dvh" : "min-h-[14rem]"
-      }`}
+      className={
+        fullScreen
+          ? "fixed inset-0 z-50 flex items-center justify-center"
+          : "flex min-h-[14rem] w-full items-center justify-center"
+      }
       aria-live="polite"
       aria-busy="true"
     >

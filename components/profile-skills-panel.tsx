@@ -20,11 +20,12 @@ export function ProfileSkillsPanel({
 }) {
   const [tab, setTab] = useState<Tab>("all");
   const list = tab === "all" ? authoredSkills : starredSkills;
+  const hasList = list.length > 0;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex flex-1 flex-col">
-        {list.length > 0 ? (
+    <div className="flex min-h-0 flex-col">
+      <div className="flex min-h-0 flex-col">
+        {hasList ? (
           <>
             <div className="flex flex-col gap-6 sm:hidden">
               {list.map((skill) => (
@@ -58,7 +59,9 @@ export function ProfileSkillsPanel({
       </div>
 
       <nav
-        className="mt-auto flex justify-center gap-9 pb-[14px] pt-12 text-[16px] uppercase"
+        className={`flex justify-center gap-9 pb-[14px] pt-12 text-[16px] uppercase ${
+          hasList ? "" : "mt-6"
+        }`}
         aria-label="Profile skill filters"
       >
         <button
