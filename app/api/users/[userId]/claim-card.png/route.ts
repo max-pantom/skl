@@ -51,7 +51,7 @@ export async function GET(_request: Request, { params }: RouteProps) {
   });
   const pngData = resvg.render().asPng();
 
-  return new NextResponse(pngData, {
+  return new NextResponse(new Uint8Array(pngData), {
     status: 200,
     headers: {
       "Cache-Control": "public, max-age=86400, s-maxage=86400",

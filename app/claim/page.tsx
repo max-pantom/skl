@@ -30,7 +30,7 @@ export default async function ClaimPage({ searchParams }: ClaimPageProps) {
           getEarlyBelieverRank(viewer.id, viewer.createdAt),
           getRecentPassportClaimants(4),
         ])
-      : [null, [] as const];
+      : [null, [] as RecentPassportClaimant[]];
   const claimCardFooterDate = formatClaimCardFooterDate(new Date());
   const verificationAvailable = Boolean(
     process.env.RESEND_API_KEY?.trim() && process.env.EMAIL_FROM?.trim(),
