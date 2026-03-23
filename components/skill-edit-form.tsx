@@ -11,7 +11,7 @@ export function SkillEditForm({ skill }: { skill: SkillDetail }) {
 
   return (
     <form action={updateSkillAction} className="relative space-y-10">
-      <FormLoadingOverlay label="Publishing update" />
+      <FormLoadingOverlay />
       <input type="hidden" name="skillId" value={skill.id} />
       <input type="hidden" name="currentSlug" value={skill.slug} />
 

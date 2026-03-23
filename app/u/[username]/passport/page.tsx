@@ -45,8 +45,8 @@ export default async function PassportPage({ params }: PassportPageProps) {
 
   return (
     <div className="page-shell gap-6">
-      <div className="flex min-h-[min(720px,calc(100dvh-6rem))] flex-1 flex-col">
-        <div className="flex flex-1 flex-col items-center justify-center px-0 pb-12 pt-1 sm:pb-16 sm:pt-6">
+      <div className="flex min-h-[calc(100dvh-8rem)] flex-1 flex-col sm:min-h-[min(720px,calc(100dvh-6rem))]">
+        <div className="flex flex-1 flex-col items-center justify-center px-0 py-8 sm:pb-16 sm:pt-6">
           <ClaimProfileCard
             avatarUrl={freshViewer.avatarUrl}
             cardDownloadUrl={absoluteUrl(`/api/users/${freshViewer.id}/claim-card.png`)}

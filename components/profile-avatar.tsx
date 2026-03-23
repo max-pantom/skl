@@ -65,18 +65,17 @@ export function ProfileAvatar({
   if (role === "admin") {
     if (!clipCircle) {
       return (
-        <div
+        <span
           role="img"
           aria-label={`${displayName} avatar`}
-          className="flex shrink-0 items-center justify-center font-semibold text-[#242424]"
+          className="inline-flex shrink-0 items-center justify-center overflow-hidden"
           style={{
             width: size,
             height: size,
-            fontSize: Math.round(size * 0.38),
           }}
         >
-          {(displayName.trim()[0] ?? "?").toUpperCase()}
-        </div>
+          <AdminAvatarCircle size={size} includeOuterDisc />
+        </span>
       );
     }
     return (
