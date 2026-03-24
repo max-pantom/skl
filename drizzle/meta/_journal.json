@@ -43,6 +43,13 @@
       "when": 1774271364765,
       "tag": "0005_light_prima",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1774600000000,
+      "tag": "0006_community_feed",
+      "breakpoints": true
     }
   ]
 }

@@ -396,10 +396,21 @@ export async function updateSkillAction(formData: FormData) {
   const category: SkillCategory = fields.category;
   const existingSkill = await db!.query.skills.findFirst({
     where: eq(skills.id, skillId),
+    with: {
+      parentFork: {
+        with: {
+          parentSkill: true,
+        },
+      },
+    },
   });
 
   if (!existingSkill || existingSkill.authorId !== viewer.id) {
     redirectWithError(editPath, "You can only edit your own skills.");
+  }
+
+  if (existingSkill.parentFork?.parentSkill?.visibility === "unlisted") {
+    redirectWithError(editPath, "This fork can’t be edited because the source skill is unlisted.");
   }
 
   if (!existingSkill.currentVersionId) {

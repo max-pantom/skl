@@ -62,6 +62,7 @@ type ForkRecord = {
   parentSkill: {
     slug: string;
     title: string;
+    visibility: SkillListItem["visibility"];
     author: {
       username: string;
       displayName: string;
@@ -140,6 +141,7 @@ function mapFork(fork: ForkRecord): ForkReference {
   return {
     slug: fork.parentSkill.slug,
     title: fork.parentSkill.title,
+    visibility: fork.parentSkill.visibility,
     author: {
       username: fork.parentSkill.author.username,
       displayName: fork.parentSkill.author.displayName,

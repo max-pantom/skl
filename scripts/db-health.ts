@@ -10,7 +10,7 @@ config({ path: resolve(process.cwd(), ".env.local"), override: true });
  */
 async function main() {
   const { db, isDatabaseConfigured } = await import("../db");
-  const { skills, skillVersions, users } = await import("../db/schema");
+  const { communityPosts, communityVotes, skills, skillVersions, users } = await import("../db/schema");
   const { count, eq, isNull, sql } = await import("drizzle-orm");
 
   if (!db || !isDatabaseConfigured) {
@@ -22,6 +22,8 @@ async function main() {
     const [skillsTotal] = await db.select({ n: count() }).from(skills);
     const [usersTotal] = await db.select({ n: count() }).from(users);
     const [versionsTotal] = await db.select({ n: count() }).from(skillVersions);
+    const [communityPostsTotal] = await db.select({ n: count() }).from(communityPosts);
+    const [communityVotesTotal] = await db.select({ n: count() }).from(communityVotes);
     const [nullCurrent] = await db
       .select({ n: count() })
       .from(skills)
@@ -38,6 +40,8 @@ async function main() {
     console.log("users:", usersTotal.n);
     console.log("skills (rows):", skillsTotal.n);
     console.log("skill_versions (rows):", versionsTotal.n);
+    console.log("community_posts (rows):", communityPostsTotal.n);
+    console.log("community_votes (rows):", communityVotesTotal.n);
     console.log("skills.current_version_id IS NULL:", nullCurrent.n);
     console.log("skills with broken current_version_id (no version row):", orphanN);
 
@@ -48,6 +52,13 @@ async function main() {
       .innerJoin(skillVersions, eq(skills.currentVersionId, skillVersions.id));
 
     console.log("skills joinable (author + current_version row, app can list):", joinOk.n);
+
+    const [topLevelCommunityPosts] = await db
+      .select({ n: count() })
+      .from(communityPosts)
+      .where(isNull(communityPosts.parentPostId));
+
+    console.log("top-level community posts:", topLevelCommunityPosts.n);
 
     if (skillsTotal.n > 0 && joinOk.n === 0) {
       console.log(

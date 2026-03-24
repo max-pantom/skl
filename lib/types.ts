@@ -85,6 +85,7 @@ export type SkillVersionRecord = {
 export type ForkReference = {
   slug: string;
   title: string;
+  visibility: "public" | "unlisted";
   author: {
     username: string;
     displayName: string;

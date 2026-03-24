@@ -28,6 +28,7 @@
     "better-auth": "^1.5.5",
     "drizzle-orm": "^0.44.2",
     "gifenc": "^1.0.3",
+    "jszip": "^3.10.1",
     "next": "^15.0.0",
     "pngjs": "^7.0.0",
     "postgres": "^3.4.5",

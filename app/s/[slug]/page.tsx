@@ -11,7 +11,7 @@ import { SkillStarButton } from "@/components/skill-star-button";
 import { TagList } from "@/components/tag-list";
 import { forkSkillAction } from "@/lib/actions";
 import { getCurrentViewer, isAppConfigured } from "@/lib/auth";
-import { getSkillBySlug, hasUserStarredSkill } from "@/lib/data";
+import { getAccessibleSkillBySlug, getPublicSkillBySlug, hasUserStarredSkill } from "@/lib/data";
 import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { isMarkdownPath, selectSkillFile } from "@/lib/skill-files";
 import { formatDate, formatNumber, withQuery } from "@/lib/utils";
@@ -30,7 +30,7 @@ type SkillPageProps = {
 
 export async function generateMetadata({ params }: SkillPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const skill = await getSkillBySlug(slug);
+  const skill = await getPublicSkillBySlug(slug);
 
   if (!skill) {
     return {
@@ -48,14 +48,16 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
   const { slug } = await params;
   const query = await searchParams;
   const viewer = await getCurrentViewer();
-  const skill = await getSkillBySlug(slug);
+  const skill = await getAccessibleSkillBySlug(slug, viewer?.id ?? null);
 
   if (!skill) {
     notFound();
   }
 
   const viewerHasStarred = viewer ? await hasUserStarredSkill(viewer.id, skill.id) : false;
-  const canEdit = viewer?.id === skill.author.id;
+  const ownsSkill = viewer?.id === skill.author.id;
+  const editLockedByForkSource = skill.forkedFrom?.visibility === "unlisted";
+  const canEdit = ownsSkill && !editLockedByForkSource;
   const selectedVersion = resolveSkillInstallVersion(skill, query.version ?? null);
 
   if (!selectedVersion) {
@@ -210,6 +212,15 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
                 >
                   Edit
                 </Link>
+              ) : ownsSkill && editLockedByForkSource ? (
+                <button
+                  type="button"
+                  disabled
+                  className="skl-btn w-full cursor-not-allowed justify-center bg-zinc-100 text-zinc-400"
+                  title="Editing is disabled for forks of unlisted skills."
+                >
+                  Edit
+                </button>
               ) : null}
 
               <a href={downloadHref} download={downloadName} className="skl-btn skl-btn-primary flex w-full justify-center text-center">

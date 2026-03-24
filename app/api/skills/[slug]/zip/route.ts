@@ -2,7 +2,7 @@ import { getCurrentViewer } from "@/lib/auth";
 import { getAccessibleSkillBySlug, recordSkillDownload } from "@/lib/data";
 import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { sortSkillFiles } from "@/lib/skill-files";
-import { buildZipArchive } from "@/lib/zip";
+import JSZip from "jszip";
 
 type ZipSkillRouteProps = {
   params: Promise<{
@@ -29,15 +29,21 @@ export async function GET(request: Request, { params }: ZipSkillRouteProps) {
 
   await recordSkillDownload(skill.id, viewer?.id ?? null);
 
-  const archive = buildZipArchive(
-    sortSkillFiles(resolvedVersion.files).map((file) => ({
-      path: file.path,
-      content: file.content,
-    })),
-  );
-  const filename = `${skill.slug}.zip`;
+  const zip = new JSZip();
 
-  return new Response(archive, {
+  for (const file of sortSkillFiles(resolvedVersion.files)) {
+    zip.file(file.path, file.content);
+  }
+
+  const archive = await zip.generateAsync({
+    type: "uint8array",
+    compression: "DEFLATE",
+    compressionOptions: { level: 6 },
+  });
+  const filename = `${skill.slug}.zip`;
+  const archiveBuffer = Buffer.from(archive);
+
+  return new Response(archiveBuffer, {
     headers: {
       "content-type": "application/zip",
       "content-disposition": `attachment; filename="${filename}"`,

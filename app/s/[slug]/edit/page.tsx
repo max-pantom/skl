@@ -29,6 +29,10 @@ export default async function SkillEditPage({ params, searchParams }: SkillEditP
     redirect(`/s/${skill.slug}`);
   }
 
+  if (skill.forkedFrom?.visibility === "unlisted") {
+    redirect(`/s/${skill.slug}`);
+  }
+
   return (
     <div className="page-shell">
       <PageIntro
