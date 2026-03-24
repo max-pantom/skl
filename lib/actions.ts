@@ -297,6 +297,10 @@ export async function createSkillAction(formData: FormData) {
     redirectWithError("/new", "Title, summary, version, and content are required.");
   }
 
+  if (fields.compatibleWith.length === 0) {
+    redirectWithError("/new", "Add at least one compatible model.");
+  }
+
   if (!isValidSemver(fields.version)) {
     redirectWithError("/new", "Versions must use semantic versioning like 1.0.0.");
   }
@@ -379,6 +383,10 @@ export async function updateSkillAction(formData: FormData) {
 
   if (!skillId || !fields.title || !fields.summary || !fields.content) {
     redirectWithError(editPath, "All primary fields are required.");
+  }
+
+  if (fields.compatibleWith.length === 0) {
+    redirectWithError(editPath, "Add at least one compatible model.");
   }
 
   if (!isCategory(fields.category)) {

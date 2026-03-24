@@ -5,9 +5,11 @@ import { notFound } from "next/navigation";
 import { CopyRawButton } from "@/components/copy-raw-button";
 import { FormNotice } from "@/components/form-notice";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { OpenInAiButton } from "@/components/open-in-ai-button";
 import { SkillAuthorCard } from "@/components/skill-author-card";
+import { SkillStarButton } from "@/components/skill-star-button";
 import { TagList } from "@/components/tag-list";
-import { forkSkillAction, toggleStarAction } from "@/lib/actions";
+import { forkSkillAction } from "@/lib/actions";
 import { getCurrentViewer, isAppConfigured } from "@/lib/auth";
 import { getSkillBySlug, hasUserStarredSkill } from "@/lib/data";
 import { resolveSkillInstallVersion } from "@/lib/skill-install";
@@ -157,14 +159,7 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
             <p className="page-kicker">Actions</p>
             <div className="mt-5 space-y-3">
               {viewer ? (
-                <form action={toggleStarAction}>
-                  <input type="hidden" name="skillId" value={skill.id} />
-                  <input type="hidden" name="skillSlug" value={skill.slug} />
-                  <input type="hidden" name="redirectTo" value={redirectTo} />
-                  <button type="submit" className="skl-btn skl-btn-secondary w-full justify-center">
-                    {viewerHasStarred ? "Unstar" : "Star"}
-                  </button>
-                </form>
+                <SkillStarButton initialStarred={viewerHasStarred} skillSlug={skill.slug} />
               ) : isAppConfigured() ? (
                 <Link
                   href={`/login?next=${encodeURIComponent(redirectTo)}`}
@@ -214,6 +209,7 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
               >
                 Download {selectedFile.path}
               </Link>
+              <OpenInAiButton content={selectedFile.content} />
               <CopyRawButton content={selectedFile.content} label={`Copy ${selectedFile.path}`} />
             </div>
           </section>

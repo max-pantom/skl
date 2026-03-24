@@ -448,6 +448,27 @@ export async function getPublicSkillBySlug(slug: string): Promise<SkillDetail | 
   return skill;
 }
 
+export async function getAccessibleSkillBySlug(
+  slug: string,
+  viewerId?: string | null,
+): Promise<SkillDetail | null> {
+  const skill = await getSkillBySlug(slug);
+
+  if (!skill) {
+    return null;
+  }
+
+  if (skill.visibility === "public") {
+    return skill;
+  }
+
+  if (viewerId && skill.author.id === viewerId) {
+    return skill;
+  }
+
+  return null;
+}
+
 export async function getViewerStar(skillId: string, userId: string) {
   if (!db || !isDatabaseConfigured) {
     return null;

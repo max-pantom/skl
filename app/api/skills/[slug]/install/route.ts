@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentViewer } from "@/lib/auth";
-import { getPublicSkillBySlug, recordSkillDownload } from "@/lib/data";
+import { getAccessibleSkillBySlug, recordSkillDownload } from "@/lib/data";
 import type { SkillDetail } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -19,13 +19,13 @@ function buildInstallPayload(skill: SkillDetail) {
 
 export async function POST(_request: Request, { params }: RouteProps) {
   const { slug } = await params;
-  const skill = await getPublicSkillBySlug(slug);
+  const viewer = await getCurrentViewer();
+  const skill = await getAccessibleSkillBySlug(slug, viewer?.id ?? null);
 
   if (!skill) {
     return NextResponse.json({ error: "Skill not found" }, { status: 404 });
   }
 
-  const viewer = await getCurrentViewer();
   const downloadRecorded = await recordSkillDownload(skill.id, viewer?.id ?? null);
 
   return NextResponse.json(

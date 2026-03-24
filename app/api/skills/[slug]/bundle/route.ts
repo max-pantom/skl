@@ -1,5 +1,5 @@
 import { getCurrentViewer } from "@/lib/auth";
-import { getPublicSkillBySlug, recordSkillDownload } from "@/lib/data";
+import { getAccessibleSkillBySlug, recordSkillDownload } from "@/lib/data";
 import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { sortSkillFiles } from "@/lib/skill-files";
 
@@ -14,7 +14,8 @@ type BundleRouteProps = {
  */
 export async function GET(request: Request, { params }: BundleRouteProps) {
   const { slug } = await params;
-  const skill = await getPublicSkillBySlug(slug);
+  const viewer = await getCurrentViewer();
+  const skill = await getAccessibleSkillBySlug(slug, viewer?.id ?? null);
 
   if (!skill) {
     return Response.json({ error: "Skill not found" }, { status: 404 });
@@ -28,7 +29,6 @@ export async function GET(request: Request, { params }: BundleRouteProps) {
     return Response.json({ error: "Version not found" }, { status: 404 });
   }
 
-  const viewer = await getCurrentViewer();
   await recordSkillDownload(skill.id, viewer?.id ?? null);
 
   const files = sortSkillFiles(resolvedVersion.files).map((file) => ({

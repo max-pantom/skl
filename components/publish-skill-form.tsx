@@ -98,11 +98,12 @@ export async function PublishSkillForm() {
             <input
               id="compatibleWith"
               name="compatibleWith"
+              required
               list="model-compatibility-options"
               placeholder="e.g. GPT-5, Claude Sonnet 4, Gemini 2.5 Pro"
               className="publish-form-input"
             />
-            <p className="profile-field-help">Pick from the list or type your own, separated by commas.</p>
+            <p className="profile-field-help">Pick from the list or type your own, separated by commas. At least one is required.</p>
             <datalist id="model-compatibility-options">
               {modelCompatibilitySuggestions.map((model) => (
                 <option key={model} value={model} />

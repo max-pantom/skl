@@ -1,5 +1,5 @@
 import { getCurrentViewer } from "@/lib/auth";
-import { getPublicSkillBySlug, recordSkillDownload } from "@/lib/data";
+import { getAccessibleSkillBySlug, recordSkillDownload } from "@/lib/data";
 import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { selectSkillFile } from "@/lib/skill-files";
 
@@ -11,7 +11,8 @@ type RawSkillRouteProps = {
 
 export async function GET(request: Request, { params }: RawSkillRouteProps) {
   const { slug } = await params;
-  const skill = await getPublicSkillBySlug(slug);
+  const viewer = await getCurrentViewer();
+  const skill = await getAccessibleSkillBySlug(slug, viewer?.id ?? null);
 
   if (!skill) {
     return new Response("Skill not found", { status: 404 });
@@ -25,7 +26,6 @@ export async function GET(request: Request, { params }: RawSkillRouteProps) {
     return new Response("Version not found", { status: 404 });
   }
 
-  const viewer = await getCurrentViewer();
   await recordSkillDownload(skill.id, viewer?.id ?? null);
 
   const requestedPath = url.searchParams.get("path");
