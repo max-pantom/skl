@@ -55,15 +55,11 @@ function adminAvatarSvg(base: number, clipToCircle: boolean) {
 function squareAvatarBody(
   userId: string,
   role: UserRole,
-  displayName: string,
-  avatarUrl: string | null,
+  _displayName: string,
+  _avatarUrl: string | null,
   side: number,
   clipToCircle: boolean,
 ): string {
-  if (avatarUrl?.trim()) {
-    const u = escAttr(avatarUrl.trim());
-    return `<image href="${u}" x="0" y="0" width="${side}" height="${side}" preserveAspectRatio="xMidYMid slice"/>`;
-  }
   if (role === "admin") {
     return adminAvatarSvg(side, clipToCircle);
   }
@@ -179,6 +175,7 @@ export function buildMemberIdCardSvg(props: MemberIdCardProps): string {
   const h = minHeight;
   const primary = primaryNameFrom(displayName, primaryOverride);
   const showRankLine = showRank && earlyBelieverRank != null;
+  const isMilestoneRank = earlyBelieverRank === 50 || earlyBelieverRank === 100;
 
   const sx = shadowX;
   const sy = shadowY;
@@ -213,7 +210,9 @@ export function buildMemberIdCardSvg(props: MemberIdCardProps): string {
   }
 
   const rankText = showRankLine
-    ? `<text x="${14 + rankBlockOffsetX}" y="${26 + rankBlockOffsetY}" fill="rgba(0,0,0,${rankLabelOpacity})" font-family="ui-monospace, monospace" font-size="12">#${earlyBelieverRank} of users</text>`
+    ? `<text x="${14 + rankBlockOffsetX}" y="${26 + rankBlockOffsetY}" fill="${
+        isMilestoneRank ? "rgba(34,34,34,0.8)" : `rgba(0,0,0,${rankLabelOpacity})`
+      }" font-family="ui-monospace, monospace" font-size="12">#${earlyBelieverRank} of users</text>`
     : "";
 
   const dateText = showDate

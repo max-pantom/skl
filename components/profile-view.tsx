@@ -31,6 +31,13 @@ export function ProfileView({
   totalForks,
   totalDownloads,
 }: ProfileViewProps) {
+  const isMilestoneRank = earlyBelieverRank === 50 || earlyBelieverRank === 100;
+  const earlyRankMessage = earlyBelieverRank
+    ? isMilestoneRank
+      ? `You made us hit the ${earlyBelieverRank === 50 ? "50" : "100"} early-people milestone.`
+      : `You are the No. ${earlyBelieverRank} account. Early believers.`
+    : null;
+
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-[1056px] flex-1 flex-col">
       <section className="flex flex-col items-center text-center">
@@ -44,9 +51,11 @@ export function ProfileView({
           />
           {earlyBelieverRank ? (
             <span
-              className="absolute left-[89px] top-[-8px] rotate-[-23.45deg] text-xs font-semibold text-black/20"
-              title={`You are the No. ${earlyBelieverRank} account. Early believers.`}
-              aria-label={`You are the No. ${earlyBelieverRank} account. Early believers.`}
+              className={`absolute left-[89px] top-[-8px] rotate-[-23.45deg] text-xs font-semibold ${
+                isMilestoneRank ? "text-[#222222]/80" : "text-black/20"
+              }`}
+              title={earlyRankMessage ?? undefined}
+              aria-label={earlyRankMessage ?? undefined}
             >
               #{earlyBelieverRank}
             </span>

@@ -774,7 +774,7 @@ export async function getEarlyBelieverRank(userId: string, createdAt: string | D
 
     const rank = result[0]?.rank ?? null;
 
-    return rank && rank <= 50 ? rank : null;
+    return rank && rank <= 100 ? rank : null;
   } catch (error) {
     logDataLayerError("getEarlyBelieverRank", error);
     return null;

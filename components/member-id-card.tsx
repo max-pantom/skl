@@ -120,6 +120,12 @@ export function MemberIdCard({
 }: MemberIdCardProps) {
   const primaryName = primaryNameProp ?? (displayName.trim().split(/\s+/)[0] || displayName);
   const showRankLine = showRank && earlyBelieverRank != null;
+  const isMilestoneRank = earlyBelieverRank === 50 || earlyBelieverRank === 100;
+  const rankMessage = earlyBelieverRank
+    ? isMilestoneRank
+      ? `You made us hit the ${earlyBelieverRank === 50 ? "50" : "100"} early-people milestone.`
+      : `You are the No. ${earlyBelieverRank} account. Early believers.`
+    : undefined;
 
   const thumbRadius = recentMembersCornerRadius ?? Math.min(8, Math.max(4, Math.round(recentMembersAvatarSize * 0.2)));
 
@@ -214,7 +220,9 @@ export function MemberIdCard({
         >
           <p
             className="font-mono text-[12px] leading-tight text-black"
-            style={{ opacity: rankLabelOpacity }}
+            style={{ opacity: isMilestoneRank ? 0.8 : rankLabelOpacity, color: isMilestoneRank ? "#222222" : undefined }}
+            title={rankMessage}
+            aria-label={rankMessage}
           >
             #{earlyBelieverRank} of users
           </p>
