@@ -93,6 +93,7 @@ const commands: CommandDoc[] = [
 
 export function CliDocsTerminal() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
   const active = commands[activeIndex] ?? commands[0];
   const activeRowCode = String(activeIndex + 1).padStart(2, "0");
 
@@ -128,6 +129,21 @@ export function CliDocsTerminal() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [shortcutMap]);
+
+  useEffect(() => {
+    setCopyStatus("idle");
+  }, [activeIndex]);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(active.command);
+      setCopyStatus("copied");
+      window.setTimeout(() => setCopyStatus("idle"), 1600);
+    } catch {
+      setCopyStatus("error");
+      window.setTimeout(() => setCopyStatus("idle"), 1600);
+    }
+  }
 
   return (
     <section className="cli-docs-terminal">
@@ -172,9 +188,14 @@ export function CliDocsTerminal() {
             </div>
 
             <div className="cli-docs-terminal__section-title">ACTIVE COMMAND</div>
-            <div className="cli-docs-terminal__command-block">
-              <span className="cli-docs-terminal__prompt">$</span>
-              <span>{active.command}</span>
+            <div className="cli-docs-terminal__command-row">
+              <div className="cli-docs-terminal__command-block">
+                <span className="cli-docs-terminal__prompt">$</span>
+                <span className="cli-docs-terminal__command-text">{active.command}</span>
+                <button type="button" onClick={handleCopy} className="cli-docs-terminal__copy-inline">
+                  {copyStatus === "idle" ? "copy" : copyStatus === "copied" ? "copied" : "failed"}
+                </button>
+              </div>
             </div>
 
             <div className="cli-docs-terminal__history">

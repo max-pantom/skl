@@ -504,6 +504,31 @@ select {
   font-weight: 600;
   line-height: 1.7;
   white-space: nowrap;
+  align-items: center;
+}
+
+.cli-docs-terminal__command-row {
+  margin-top: 14px;
+}
+
+.cli-docs-terminal__command-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.cli-docs-terminal__copy-inline {
+  color: rgba(214, 214, 214, 0.6);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 140ms ease;
+}
+
+.cli-docs-terminal__copy-inline:hover,
+.cli-docs-terminal__copy-inline:focus-visible {
+  color: var(--console-amber);
+  outline: none;
 }
 
 .cli-docs-terminal__history {
@@ -656,6 +681,7 @@ select {
     padding: 12px 14px;
     font-size: 12px;
     line-height: 1.6;
+    align-items: flex-start;
   }
 
   .cli-docs-terminal__history {
@@ -759,6 +785,26 @@ body:has(.cli-docs-page) .profile-link,
 body:has(.cli-docs-page) footer a,
 body:has(.cli-docs-page) header a {
   color: rgba(214, 214, 214, 0.7);
+}
+
+body:has(.cli-docs-page) .header-account-nav-create {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #090909 !important;
+}
+
+body:has(.cli-docs-page) .header-account-nav-create:hover {
+  background: #ffffff !important;
+  color: #090909 !important;
+}
+
+body:has(.cli-docs-page) .header-account-nav-settings {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+body:has(.cli-docs-page) .header-account-nav-settings:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
 }
 
 body:has(.cli-docs-page) header span {

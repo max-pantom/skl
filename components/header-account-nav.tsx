@@ -40,17 +40,20 @@ export function HeaderAccountNav({ viewer }: { viewer: AppViewer | null }) {
   return (
     <div className="flex items-center gap-2">
       {pathname === "/claim" ? (
-        <button type="button" onClick={() => void copyClaimLink()} className={linkClass.create}>
+        <button type="button" onClick={() => void copyClaimLink()} className={`header-account-nav-button header-account-nav-create ${linkClass.create}`}>
           {claimCopied ? "Copied" : "Invite"}
         </button>
       ) : (
-        <Link href={createHref} className={viewer ? linkClass.create : linkClass.settings}>
+        <Link
+          href={createHref}
+          className={`header-account-nav-link ${viewer ? "header-account-nav-create" : "header-account-nav-settings"} ${viewer ? linkClass.create : linkClass.settings}`}
+        >
           Create
         </Link>
       )}
       {viewer ? (
         settingsSlot ? (
-          <Link href={settingsHref} className={linkClass.settings}>
+          <Link href={settingsHref} className={`header-account-nav-link header-account-nav-settings ${linkClass.settings}`}>
             Settings
           </Link>
         ) : (
@@ -72,7 +75,7 @@ export function HeaderAccountNav({ viewer }: { viewer: AppViewer | null }) {
           </Link>
         )
       ) : (
-        <Link href="/login" className={linkClass.settings}>
+        <Link href="/login" className={`header-account-nav-link header-account-nav-settings ${linkClass.settings}`}>
           Log in
         </Link>
       )}
