@@ -1,4 +1,4 @@
-import { getCurrentViewer } from "@/lib/auth";
+import { getRequestViewer } from "@/lib/auth";
 import { getAccessibleSkillBySlug, recordSkillDownload } from "@/lib/data";
 import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { selectSkillFile } from "@/lib/skill-files";
@@ -11,7 +11,7 @@ type RawSkillRouteProps = {
 
 export async function GET(request: Request, { params }: RawSkillRouteProps) {
   const { slug } = await params;
-  const viewer = await getCurrentViewer();
+  const viewer = await getRequestViewer(request);
   const skill = await getAccessibleSkillBySlug(slug, viewer?.id ?? null);
 
   if (!skill) {

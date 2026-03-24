@@ -66,5 +66,9 @@ export async function POST(_request: Request, { params }: RouteProps) {
   revalidatePath(`/s/${skill.slug}`);
   revalidatePath(`/u/${skill.author.username}`);
 
-  return NextResponse.json({ ok: true, starred });
+  const updatedSkill = await db.query.skills.findFirst({
+    where: eq(skills.id, skill.id),
+  });
+
+  return NextResponse.json({ ok: true, starred, starsCount: updatedSkill?.starsCount ?? 0 });
 }

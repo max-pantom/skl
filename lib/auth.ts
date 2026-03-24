@@ -11,6 +11,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { sendAuthVerificationEmail } from "@/lib/email/send-auth-verification-email";
+import { getCliViewerFromRequest } from "@/lib/cli-auth";
 import type { AppViewer } from "@/lib/types";
 import { pickUniqueUsername } from "@/lib/oauth-username";
 
@@ -303,6 +304,16 @@ export async function getCurrentViewer(): Promise<AppViewer | null> {
     xUrl: localUser.xUrl,
     createdAt: localUser.createdAt.toISOString(),
   };
+}
+
+export async function getRequestViewer(request: Request): Promise<AppViewer | null> {
+  const viewer = await getCurrentViewer();
+
+  if (viewer) {
+    return viewer;
+  }
+
+  return getCliViewerFromRequest(request);
 }
 
 export async function requireCurrentViewer(redirectTo = "/login") {

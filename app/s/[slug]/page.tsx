@@ -173,7 +173,11 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
             <p className="page-kicker">Actions</p>
             <div className="mt-5 space-y-3">
               {viewer ? (
-                <SkillStarButton initialStarred={viewerHasStarred} skillSlug={skill.slug} />
+                <SkillStarButton
+                  initialStarred={viewerHasStarred}
+                  initialStarsCount={skill.starsCount}
+                  skillSlug={skill.slug}
+                />
               ) : isAppConfigured() ? (
                 <Link
                   href={`/login?next=${encodeURIComponent(redirectTo)}`}

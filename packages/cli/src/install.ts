@@ -2,16 +2,21 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-import { bundleUrl, DEFAULT_REGISTRY, normalizeRegistryBase } from "./registry.js";
-import { resolveUnderRoot } from "./paths.js";
+import { assertSafeRelativeFilePath, resolveUnderRoot } from "./paths.js";
+import { promptLine } from "./prompt.js";
+import { bundleUrl, manifestUrl, normalizeRegistryBase, rawUrl, requestJson } from "./registry.js";
+import { readCliState } from "./state.js";
 
 export type InstallOptions = {
-  slugSpec: string;
+  slugSpec?: string;
   registry?: string;
   outDir?: string;
   target?: "cursor";
   token?: string;
   cwd?: string;
+  dryRun?: boolean;
+  json?: boolean;
+  verbose?: boolean;
 };
 
 export type BundlePayload = {
@@ -21,21 +26,43 @@ export type BundlePayload = {
   files: Array<{ path: string; content: string }>;
 };
 
-export function parseSlugSpec(spec: string): { slug: string; version?: string } {
+type ManifestPayload = {
+  slug: string;
+  title: string;
+  version: string;
+  files: Array<{ path: string; sha256: string }>;
+};
+
+type SingleFileInstall = {
+  slug: string;
+  version?: string;
+  filePath: string;
+};
+
+export function parseSlugSpec(spec: string): { slug: string; version?: string; filePath?: string } {
   const trimmed = spec.trim();
+  if (!trimmed) {
+    throw new Error("Missing skill slug");
+  }
+
   const at = trimmed.lastIndexOf("@");
   if (at <= 0) {
     return { slug: trimmed };
   }
-  const maybeVersion = trimmed.slice(at + 1);
-  if (!maybeVersion || maybeVersion.includes("/") || maybeVersion.includes("\\")) {
-    return { slug: trimmed };
+
+  const slug = trimmed.slice(0, at);
+  const rest = trimmed.slice(at + 1);
+  const colon = rest.indexOf(":");
+
+  if (colon === -1) {
+    return { slug, version: rest || undefined };
   }
-  const slugPart = trimmed.slice(0, at);
-  if (!slugPart) {
-    throw new Error(`Invalid slug: ${spec}`);
-  }
-  return { slug: slugPart, version: maybeVersion };
+
+  return {
+    slug,
+    version: rest.slice(0, colon) || undefined,
+    filePath: rest.slice(colon + 1) || undefined,
+  };
 }
 
 function resolveInstallRoot(opts: InstallOptions, slug: string): string {
@@ -49,51 +76,81 @@ function resolveInstallRoot(opts: InstallOptions, slug: string): string {
   return path.join(cwd, ".skl", "skills", slug);
 }
 
-export async function installSkill(opts: InstallOptions): Promise<{ root: string; payload: BundlePayload }> {
-  const { slug, version } = parseSlugSpec(opts.slugSpec);
-  if (!slug) {
-    throw new Error("Missing skill slug");
+async function ensureSlugSpec(spec?: string) {
+  if (spec?.trim()) {
+    return spec.trim();
   }
+  return promptLine("Skill slug or slug@version[:file]");
+}
 
-  const registryRaw = opts.registry?.trim() || process.env.SKL_REGISTRY?.trim() || DEFAULT_REGISTRY;
-  const registryBase = normalizeRegistryBase(registryRaw);
-  const url = bundleUrl(registryBase, slug, version);
+export async function installSkill(opts: InstallOptions): Promise<{ root: string; payload: BundlePayload | SingleFileInstall }> {
+  const state = await readCliState();
+  const slugSpec = await ensureSlugSpec(opts.slugSpec);
+  const { slug, version, filePath } = parseSlugSpec(slugSpec);
+  const registry = normalizeRegistryBase(opts.registry?.trim() || state.registry);
+  const token = opts.token?.trim() || state.token?.trim();
+  const root = resolveInstallRoot(opts, slug);
 
-  const headers: Record<string, string> = {
-    accept: "application/json",
-  };
-  const token = opts.token?.trim() || process.env.SKL_TOKEN?.trim();
-  if (token) {
-    headers.authorization = `Bearer ${token}`;
-  }
-
-  const res = await fetch(url, { headers });
-  if (!res.ok) {
-    const text = await res.text();
-    let detail = text;
-    try {
-      const j = JSON.parse(text) as { error?: string };
-      if (j.error) {
-        detail = j.error;
-      }
-    } catch {
-      /* keep body */
+  if (filePath) {
+    const safePath = assertSafeRelativeFilePath(filePath);
+    const url = rawUrl(registry, slug, version, safePath);
+    if (opts.verbose) {
+      console.log(`GET ${url.toString()}`);
     }
-    throw new Error(`Registry returned ${res.status}: ${detail}`);
+    const response = await fetch(url, {
+      headers: token ? { authorization: `Bearer ${token}` } : undefined,
+    });
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+    const content = await response.text();
+    const dest = resolveUnderRoot(root, safePath);
+
+    if (!opts.dryRun) {
+      await fs.mkdir(path.dirname(dest), { recursive: true });
+      await fs.writeFile(dest, content, "utf8");
+    }
+
+    return {
+      root,
+      payload: {
+        slug,
+        version,
+        filePath: safePath,
+      },
+    };
   }
 
-  const payload = (await res.json()) as BundlePayload;
+  const url = bundleUrl(registry, slug, version);
+  if (opts.verbose) {
+    const manifest = await requestJson<ManifestPayload>(manifestUrl(registry, slug, version), {
+      registry,
+      token,
+    });
+    console.log(`Bundle: ${url.toString()}`);
+    console.log(`Manifest: ${manifest.files.map((file) => `${file.path}:${file.sha256.slice(0, 8)}`).join(", ")}`);
+  }
+
+  const payload = await requestJson<BundlePayload>(url, {
+    registry,
+    token,
+  });
   if (!payload.slug || !payload.files?.length) {
     throw new Error("Invalid bundle response from registry");
   }
 
-  const root = resolveInstallRoot(opts, payload.slug);
-  await fs.mkdir(root, { recursive: true });
+  if (!opts.dryRun) {
+    await fs.mkdir(root, { recursive: true });
 
-  for (const file of payload.files) {
-    const dest = resolveUnderRoot(root, file.path);
-    await fs.mkdir(path.dirname(dest), { recursive: true });
-    await fs.writeFile(dest, file.content, "utf8");
+    for (const file of payload.files) {
+      const dest = resolveUnderRoot(root, file.path);
+      await fs.mkdir(path.dirname(dest), { recursive: true });
+      await fs.writeFile(dest, file.content, "utf8");
+    }
+  }
+
+  if (opts.json) {
+    console.log(JSON.stringify({ root, payload }, null, 2));
   }
 
   return { root, payload };

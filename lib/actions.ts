@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { db, isDatabaseConfigured } from "@/db";
 import { communityPosts, communityVotes, forks, skillVersionFiles, skillVersions, skills, stars, users } from "@/db/schema";
 import { isAppConfigured, requireCurrentViewer } from "@/lib/auth";
+import { approveCliAuthRequest, rejectCliAuthRequest, revokeCliSessionsForUser } from "@/lib/cli-auth";
 import { bootstrapUserEmailLifecycle, syncUserToResendAudience } from "@/lib/email/user-lifecycle";
 import {
   PRIMARY_SKILL_FILE,
@@ -613,6 +614,59 @@ export async function toggleCommunityVoteAction(formData: FormData) {
 
   revalidatePath("/community");
   redirect("/community");
+}
+
+export async function approveCliAuthRequestAction(formData: FormData) {
+  ensureConfigured("/cli/authorize");
+  const viewer = await requireCurrentViewer("/cli/authorize");
+  const userCode = getString(formData.get("userCode"));
+
+  if (!userCode) {
+    redirect("/cli/authorize?error=Missing+CLI+login+code.");
+  }
+
+  try {
+    await approveCliAuthRequest(userCode, viewer.id);
+  } catch (error) {
+    redirect(withQuery("/cli/authorize", {
+      user_code: userCode,
+      error: error instanceof Error ? error.message : "Could not approve CLI login.",
+    }));
+  }
+
+  revalidatePath("/settings");
+  redirect(withQuery("/cli/authorize", { user_code: userCode, ok: "1" }));
+}
+
+export async function rejectCliAuthRequestAction(formData: FormData) {
+  ensureConfigured("/cli/authorize");
+  await requireCurrentViewer("/cli/authorize");
+  const userCode = getString(formData.get("userCode"));
+
+  if (!userCode) {
+    redirect("/cli/authorize?error=Missing+CLI+login+code.");
+  }
+
+  try {
+    await rejectCliAuthRequest(userCode);
+  } catch (error) {
+    redirect(withQuery("/cli/authorize", {
+      user_code: userCode,
+      error: error instanceof Error ? error.message : "Could not reject CLI login.",
+    }));
+  }
+
+  redirect(withQuery("/cli/authorize", { user_code: userCode, rejected: "1" }));
+}
+
+export async function revokeCliSessionsAction() {
+  ensureConfigured("/settings");
+  const viewer = await requireCurrentViewer("/settings");
+
+  await revokeCliSessionsForUser(viewer.id);
+
+  revalidatePath("/settings");
+  redirect(withQuery("/settings", { ok: "1", cli: "disconnected" }));
 }
 
 export async function toggleStarAction(formData: FormData) {

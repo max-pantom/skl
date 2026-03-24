@@ -1,7 +1,8 @@
 import Link from "next/link";
 
+import { CommunityVoteButton } from "@/components/community-vote-button";
 import { ProfileAvatar } from "@/components/profile-avatar";
-import { createCommunityPostAction, replyCommunityPostAction, toggleCommunityVoteAction } from "@/lib/actions";
+import { createCommunityPostAction, replyCommunityPostAction } from "@/lib/actions";
 import type { AppViewer, CommunityPost } from "@/lib/types";
 import { cn, formatDate } from "@/lib/utils";
 
@@ -121,20 +122,11 @@ export function CommunityFeed({
                   </div>
                 </div>
 
-                <form action={toggleCommunityVoteAction}>
-                  <input type="hidden" name="postId" value={post.id} />
-                  <button
-                    type="submit"
-                    className={cn(
-                      "inline-flex h-9 items-center justify-center rounded-[18px] px-3 text-[14px] font-medium transition",
-                      post.viewerHasUpvoted
-                        ? "bg-[#242424] text-white"
-                        : "bg-[rgba(228,228,228,0.8)] text-[#6f6f6f] hover:bg-[rgba(228,228,228,0.95)] hover:text-[#242424]",
-                    )}
-                  >
-                    ↑ {post.upvotesCount}
-                  </button>
-                </form>
+                <CommunityVoteButton
+                  postId={post.id}
+                  initialHasUpvoted={post.viewerHasUpvoted}
+                  initialUpvotesCount={post.upvotesCount}
+                />
               </div>
 
               <div className="mt-5 space-y-3">

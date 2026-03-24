@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getCurrentViewer } from "@/lib/auth";
+import { getRequestViewer } from "@/lib/auth";
 import { getAccessibleSkillBySlug, recordSkillDownload } from "@/lib/data";
 import type { SkillDetail } from "@/lib/types";
 
@@ -17,9 +17,9 @@ function buildInstallPayload(skill: SkillDetail) {
   return rest;
 }
 
-export async function POST(_request: Request, { params }: RouteProps) {
+export async function POST(request: Request, { params }: RouteProps) {
   const { slug } = await params;
-  const viewer = await getCurrentViewer();
+  const viewer = await getRequestViewer(request);
   const skill = await getAccessibleSkillBySlug(slug, viewer?.id ?? null);
 
   if (!skill) {

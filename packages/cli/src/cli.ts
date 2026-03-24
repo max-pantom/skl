@@ -1,51 +1,206 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 
+import { diffSkills } from "./diff.js";
+import { inspectSkill } from "./inspect.js";
+import { loginCli, logoutCli, whoAmICli } from "./auth.js";
 import { installSkill, parseSlugSpec } from "./install.js";
+import { publishSkill, updateSkill } from "./publish.js";
 import { DEFAULT_REGISTRY } from "./registry.js";
 
 const program = new Command();
 
-program.name("skl").description("CLI for installing skills from the SKL registry").version("0.1.0");
+program
+  .name("skl")
+  .description("CLI for installing, inspecting, and publishing skills from the SKL registry")
+  .version("0.2.0");
+
+program
+  .command("login")
+  .description("Connect this CLI to your SKL account")
+  .option("-r, --registry <url>", `Registry base URL (default: saved state or ${DEFAULT_REGISTRY})`)
+  .option("--no-open", "Do not try to open the browser automatically")
+  .action(async (options: { registry?: string; open?: boolean }) => {
+    try {
+      await loginCli({
+        registry: options.registry,
+        openBrowser: options.open,
+      });
+    } catch (error) {
+      program.error(error instanceof Error ? error.message : String(error));
+    }
+  });
+
+program
+  .command("logout")
+  .description("Disconnect this CLI from your SKL account")
+  .option("-r, --registry <url>", `Registry base URL (default: saved state or ${DEFAULT_REGISTRY})`)
+  .action(async (options: { registry?: string }) => {
+    try {
+      await logoutCli(options);
+    } catch (error) {
+      program.error(error instanceof Error ? error.message : String(error));
+    }
+  });
+
+program
+  .command("whoami")
+  .description("Show the currently connected SKL account")
+  .option("-r, --registry <url>", `Registry base URL (default: saved state or ${DEFAULT_REGISTRY})`)
+  .option("--json", "Emit JSON output")
+  .action(async (options: { registry?: string; json?: boolean }) => {
+    try {
+      await whoAmICli(options);
+    } catch (error) {
+      program.error(error instanceof Error ? error.message : String(error));
+    }
+  });
 
 program
   .command("install")
   .alias("i")
-  .description("Download a skill from the registry (one bundle request; counts as one download)")
-  .argument("<slug>", "Skill slug, or slug@version")
-  .option(
-    "-r, --registry <url>",
-    `Registry base URL (default: SKL_REGISTRY env or ${DEFAULT_REGISTRY})`,
-  )
-  .option("-o, --dir <path>", "Output directory (default: ./.skl/skills/<slug> or ~/.cursor/skills/<slug> with --target)")
+  .description("Download a skill bundle or a single file from a version")
+  .argument("[slug]", "Skill slug, slug@version, or slug@version:path/to/file")
+  .option("-r, --registry <url>", `Registry base URL (default: saved state or ${DEFAULT_REGISTRY})`)
+  .option("-o, --dir <path>", "Output directory")
   .option("--target <preset>", "Install preset: cursor → ~/.cursor/skills/<slug>")
-  .option("-t, --token <token>", "Bearer token for authenticated installs (default: SKL_TOKEN env)")
-  .action(async (slugArg: string, options: { registry?: string; dir?: string; target?: string; token?: string }) => {
-    try {
-      parseSlugSpec(slugArg);
-    } catch (e) {
-      program.error(e instanceof Error ? e.message : String(e));
-      return;
-    }
+  .option("-t, --token <token>", "Bearer token for authenticated installs")
+  .option("--dry-run", "Show what would be installed without writing files")
+  .option("--json", "Emit JSON output")
+  .option("--verbose", "Show request and manifest details")
+  .action(
+    async (
+      slugArg: string | undefined,
+      options: {
+        registry?: string;
+        dir?: string;
+        target?: string;
+        token?: string;
+        dryRun?: boolean;
+        json?: boolean;
+        verbose?: boolean;
+      },
+    ) => {
+      try {
+        if (slugArg) {
+          parseSlugSpec(slugArg);
+        }
 
-    if (options.target && options.target !== "cursor") {
-      program.error(`Unknown --target "${options.target}". Supported: cursor`);
-      return;
-    }
+        if (options.target && options.target !== "cursor") {
+          program.error(`Unknown --target "${options.target}". Supported: cursor`);
+          return;
+        }
 
+        const result = await installSkill({
+          slugSpec: slugArg,
+          registry: options.registry,
+          outDir: options.dir,
+          target: options.target === "cursor" ? "cursor" : undefined,
+          token: options.token,
+          dryRun: options.dryRun,
+          json: options.json,
+          verbose: options.verbose,
+        });
+
+        if (!options.json) {
+          if ("files" in result.payload) {
+            console.log(`Installed ${result.payload.title} v${result.payload.version} → ${result.root}`);
+            console.log(`Files: ${result.payload.files.map((file) => file.path).join(", ")}`);
+          } else {
+            console.log(`Installed ${result.payload.slug}${result.payload.version ? `@${result.payload.version}` : ""}:${result.payload.filePath} → ${result.root}`);
+          }
+        }
+      } catch (error) {
+        program.error(error instanceof Error ? error.message : String(error));
+      }
+    },
+  );
+
+program
+  .command("inspect")
+  .description("Inspect metadata, versions, files, and author details for a skill")
+  .argument("[slug]", "Skill slug")
+  .option("-r, --registry <url>", `Registry base URL (default: saved state or ${DEFAULT_REGISTRY})`)
+  .option("-t, --token <token>", "Bearer token for authenticated access")
+  .option("--json", "Emit JSON output")
+  .action(async (slug: string | undefined, options: { registry?: string; token?: string; json?: boolean }) => {
     try {
-      const { root, payload } = await installSkill({
-        slugSpec: slugArg,
+      await inspectSkill({
+        slug,
         registry: options.registry,
-        outDir: options.dir,
-        target: options.target === "cursor" ? "cursor" : undefined,
         token: options.token,
+        json: options.json,
       });
+    } catch (error) {
+      program.error(error instanceof Error ? error.message : String(error));
+    }
+  });
 
-      console.log(`Installed ${payload.title} v${payload.version} → ${root}`);
-      console.log(`Files: ${payload.files.map((f) => f.path).join(", ")}`);
-    } catch (e) {
-      program.error(e instanceof Error ? e.message : String(e));
+program
+  .command("diff")
+  .description("Compare two skill versions")
+  .argument("[left]", "Left ref in slug@version form")
+  .argument("[right]", "Right ref in slug@version form")
+  .option("-r, --registry <url>", `Registry base URL (default: saved state or ${DEFAULT_REGISTRY})`)
+  .option("-t, --token <token>", "Bearer token for authenticated access")
+  .option("--json", "Emit JSON output")
+  .action(
+    async (
+      left: string | undefined,
+      right: string | undefined,
+      options: { registry?: string; token?: string; json?: boolean },
+    ) => {
+      try {
+        await diffSkills({
+          left,
+          right,
+          registry: options.registry,
+          token: options.token,
+          json: options.json,
+        });
+      } catch (error) {
+        program.error(error instanceof Error ? error.message : String(error));
+      }
+    },
+  );
+
+program
+  .command("publish")
+  .description("Publish a local skill folder or SKILL.md")
+  .argument("[path]", "Path to a folder or markdown entry file")
+  .option("-r, --registry <url>", `Registry base URL (default: saved state or ${DEFAULT_REGISTRY})`)
+  .option("--dry-run", "Validate and preview without uploading")
+  .option("--json", "Emit JSON output")
+  .action(async (inputPath: string | undefined, options: { registry?: string; dryRun?: boolean; json?: boolean }) => {
+    try {
+      await publishSkill({
+        path: inputPath,
+        registry: options.registry,
+        dryRun: options.dryRun,
+        json: options.json,
+      });
+    } catch (error) {
+      program.error(error instanceof Error ? error.message : String(error));
+    }
+  });
+
+program
+  .command("update")
+  .description("Push a new version from the local project")
+  .argument("[pathOrSlug]", "Optional path override or remote skill slug")
+  .option("-r, --registry <url>", `Registry base URL (default: saved state or ${DEFAULT_REGISTRY})`)
+  .option("--dry-run", "Validate and preview without uploading")
+  .option("--json", "Emit JSON output")
+  .action(async (pathOrSlug: string | undefined, options: { registry?: string; dryRun?: boolean; json?: boolean }) => {
+    try {
+      await updateSkill({
+        pathOrSlug,
+        registry: options.registry,
+        dryRun: options.dryRun,
+        json: options.json,
+      });
+    } catch (error) {
+      program.error(error instanceof Error ? error.message : String(error));
     }
   });
 

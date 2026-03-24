@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getCurrentViewer } from "@/lib/auth";
+import { getRequestViewer } from "@/lib/auth";
 import { getAccessibleSkillBySlug } from "@/lib/data";
 import type { SkillDetail } from "@/lib/types";
 
@@ -24,7 +24,7 @@ function buildSkillPayload(skill: SkillDetail, includeVersions: boolean) {
 export async function GET(request: Request, { params }: RouteProps) {
   const { slug } = await params;
   const includeVersions = new URL(request.url).searchParams.get("include") === "versions";
-  const viewer = await getCurrentViewer();
+  const viewer = await getRequestViewer(request);
   const skill = await getAccessibleSkillBySlug(slug, viewer?.id ?? null);
 
   if (!skill) {

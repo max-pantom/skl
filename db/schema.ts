@@ -130,6 +130,48 @@ export const userEmailEvents = pgTable(
   }),
 );
 
+export const cliAuthRequests = pgTable(
+  "cli_auth_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    deviceCode: varchar("device_code", { length: 96 }).notNull(),
+    userCode: varchar("user_code", { length: 32 }).notNull(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    cliSessionId: uuid("cli_session_id"),
+    cliToken: text("cli_token"),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    rejectedAt: timestamp("rejected_at", { withTimezone: true }),
+    exchangedAt: timestamp("exchanged_at", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    deviceCodeIdx: uniqueIndex("cli_auth_requests_device_code_idx").on(table.deviceCode),
+    userCodeIdx: uniqueIndex("cli_auth_requests_user_code_idx").on(table.userCode),
+    userIdx: index("cli_auth_requests_user_idx").on(table.userId),
+  }),
+);
+
+export const cliSessions = pgTable(
+  "cli_sessions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    tokenHashIdx: uniqueIndex("cli_sessions_token_hash_idx").on(table.tokenHash),
+    userIdx: index("cli_sessions_user_idx").on(table.userId),
+  }),
+);
+
 export const communityPosts = pgTable(
   "community_posts",
   {
@@ -298,6 +340,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   accounts: many(accounts),
   emailEvents: many(userEmailEvents),
+  cliAuthRequests: many(cliAuthRequests),
+  cliSessions: many(cliSessions),
   communityPosts: many(communityPosts),
   communityVotes: many(communityVotes),
   skills: many(skills),
@@ -311,6 +355,25 @@ export const userEmailEventsRelations = relations(userEmailEvents, ({ one }) => 
     fields: [userEmailEvents.userId],
     references: [users.id],
   }),
+}));
+
+export const cliAuthRequestsRelations = relations(cliAuthRequests, ({ one }) => ({
+  user: one(users, {
+    fields: [cliAuthRequests.userId],
+    references: [users.id],
+  }),
+  cliSession: one(cliSessions, {
+    fields: [cliAuthRequests.cliSessionId],
+    references: [cliSessions.id],
+  }),
+}));
+
+export const cliSessionsRelations = relations(cliSessions, ({ one, many }) => ({
+  user: one(users, {
+    fields: [cliSessions.userId],
+    references: [users.id],
+  }),
+  authRequests: many(cliAuthRequests),
 }));
 
 export const communityPostsRelations = relations(communityPosts, ({ one, many }) => ({

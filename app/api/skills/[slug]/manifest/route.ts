@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { getCurrentViewer } from "@/lib/auth";
+import { getRequestViewer } from "@/lib/auth";
 import { getAccessibleSkillBySlug } from "@/lib/data";
 import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { sortSkillFiles } from "@/lib/skill-files";
@@ -17,7 +17,7 @@ function sha256Hex(content: string) {
 
 export async function GET(request: Request, { params }: ManifestRouteProps) {
   const { slug } = await params;
-  const viewer = await getCurrentViewer();
+  const viewer = await getRequestViewer(request);
   const skill = await getAccessibleSkillBySlug(slug, viewer?.id ?? null);
 
   if (!skill) {

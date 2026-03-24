@@ -1,4 +1,4 @@
-import { getCurrentViewer } from "@/lib/auth";
+import { getRequestViewer } from "@/lib/auth";
 import { getAccessibleSkillBySlug, recordSkillDownload } from "@/lib/data";
 import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { sortSkillFiles } from "@/lib/skill-files";
@@ -14,7 +14,7 @@ type BundleRouteProps = {
  */
 export async function GET(request: Request, { params }: BundleRouteProps) {
   const { slug } = await params;
-  const viewer = await getCurrentViewer();
+  const viewer = await getRequestViewer(request);
   const skill = await getAccessibleSkillBySlug(slug, viewer?.id ?? null);
 
   if (!skill) {
