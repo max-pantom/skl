@@ -2,6 +2,32 @@ export function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
 }
 
+function normalizeOriginCandidate(value: string | undefined) {
+  const trimmed = value?.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  const href = /^[a-z][a-z0-9+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const url = new URL(href);
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+function runtimePublicOrigin() {
+  return (
+    normalizeOriginCandidate(process.env.NEXT_PUBLIC_APP_URL) ??
+    normalizeOriginCandidate(process.env.BETTER_AUTH_URL) ??
+    normalizeOriginCandidate(process.env.VERCEL_PROJECT_PRODUCTION_URL) ??
+    normalizeOriginCandidate(process.env.VERCEL_URL)
+  );
+}
+
 export function formatDate(value: string | Date) {
   return new Intl.DateTimeFormat("en", {
     month: "short",
@@ -16,16 +42,7 @@ export function formatNumber(value: number) {
 
 /** Base URL for links and metadata; never throws (bad env falls back to localhost). */
 export function publicAppOrigin(): URL {
-  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (!raw) {
-    return new URL("http://localhost:3000");
-  }
-  try {
-    const href = /^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw}`;
-    return new URL(href);
-  } catch {
-    return new URL("http://localhost:3000");
-  }
+  return new URL(runtimePublicOrigin() ?? "http://localhost:3000");
 }
 
 export function absoluteUrl(path: string) {

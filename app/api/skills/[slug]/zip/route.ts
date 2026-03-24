@@ -35,7 +35,7 @@ export async function GET(request: Request, { params }: ZipSkillRouteProps) {
       content: file.content,
     })),
   );
-  const filename = `${skill.slug}-${resolvedVersion.version}.zip`;
+  const filename = `${skill.slug}.zip`;
 
   return new Response(archive, {
     headers: {

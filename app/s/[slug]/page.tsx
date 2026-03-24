@@ -78,6 +78,7 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
         });
   const downloadLabel =
     selectedVersion.files.length > 1 ? `Download ${selectedVersion.files.length} files (.zip)` : `Download ${selectedFile?.path}`;
+  const downloadName = selectedVersion.files.length > 1 ? `${skill.slug}.zip` : undefined;
 
   if (!selectedFile) {
     notFound();
@@ -211,7 +212,7 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
                 </Link>
               ) : null}
 
-              <a href={downloadHref} download className="skl-btn skl-btn-primary flex w-full justify-center text-center">
+              <a href={downloadHref} download={downloadName} className="skl-btn skl-btn-primary flex w-full justify-center text-center">
                 {downloadLabel}
               </a>
               <OpenInAiButton content={selectedFile.content} />

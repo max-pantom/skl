@@ -4,7 +4,13 @@ function normalizeOrigin(value: string | undefined): string | null {
     return null;
   }
 
-  return trimmed.replace(/\/$/, "");
+  const href = /^[a-z][a-z0-9+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    return new URL(href).origin;
+  } catch {
+    return null;
+  }
 }
 
 function isLocalOrigin(value: string): boolean {
@@ -26,6 +32,16 @@ export function getAppBaseUrl(): string {
   const nextPublicOrigin = normalizeOrigin(process.env.NEXT_PUBLIC_APP_URL);
   if (nextPublicOrigin) {
     return nextPublicOrigin;
+  }
+
+  const vercelProductionOrigin = normalizeOrigin(process.env.VERCEL_PROJECT_PRODUCTION_URL);
+  if (vercelProductionOrigin) {
+    return vercelProductionOrigin;
+  }
+
+  const vercelOrigin = normalizeOrigin(process.env.VERCEL_URL);
+  if (vercelOrigin) {
+    return vercelOrigin;
   }
 
   if (betterAuthOrigin) {
