@@ -67,6 +67,17 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
     file: selectedFile?.path,
     version: selectedVersion.version === skill.currentVersion.version ? null : selectedVersion.version,
   });
+  const downloadHref =
+    selectedVersion.files.length > 1
+      ? withQuery(`/api/skills/${skill.slug}/zip`, {
+          version: selectedVersion.version === skill.currentVersion.version ? null : selectedVersion.version,
+        })
+      : withQuery(`/api/skills/${skill.slug}/raw`, {
+          path: selectedFile?.path,
+          version: selectedVersion.version === skill.currentVersion.version ? null : selectedVersion.version,
+        });
+  const downloadLabel =
+    selectedVersion.files.length > 1 ? `Download ${selectedVersion.files.length} files (.zip)` : `Download ${selectedFile?.path}`;
 
   if (!selectedFile) {
     notFound();
@@ -200,15 +211,9 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
                 </Link>
               ) : null}
 
-              <Link
-                href={withQuery(`/api/skills/${skill.slug}/raw`, {
-                  path: selectedFile.path,
-                  version: selectedVersion.version === skill.currentVersion.version ? null : selectedVersion.version,
-                })}
-                className="skl-btn skl-btn-primary flex w-full justify-center text-center"
-              >
-                Download {selectedFile.path}
-              </Link>
+              <a href={downloadHref} download className="skl-btn skl-btn-primary flex w-full justify-center text-center">
+                {downloadLabel}
+              </a>
               <OpenInAiButton content={selectedFile.content} />
               <CopyRawButton content={selectedFile.content} label={`Copy ${selectedFile.path}`} />
             </div>

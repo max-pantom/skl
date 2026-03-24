@@ -8,16 +8,19 @@ const providerMeta: Record<
   Provider,
   {
     buttonLabel: string;
-    href: string;
+    buildHref: (content: string) => string;
+    needsClipboard: boolean;
   }
 > = {
   claude: {
     buttonLabel: "Open in Claude",
-    href: "https://claude.ai/new",
+    buildHref: (content) => `https://claude.ai/new?q=${encodeURIComponent(content)}`,
+    needsClipboard: false,
   },
   gpt: {
     buttonLabel: "Open in GPT",
-    href: "https://chatgpt.com/",
+    buildHref: () => "https://chatgpt.com/",
+    needsClipboard: true,
   },
 };
 
@@ -31,9 +34,12 @@ export function OpenInAiButton({
 
   async function handleOpen() {
     try {
-      await navigator.clipboard.writeText(content);
+      if (providerMeta[provider].needsClipboard) {
+        await navigator.clipboard.writeText(content);
+      }
+
       setStatus("copied");
-      window.open(providerMeta[provider].href, "_blank", "noopener,noreferrer");
+      window.open(providerMeta[provider].buildHref(content), "_blank", "noopener,noreferrer");
       window.setTimeout(() => setStatus("idle"), 1800);
     } catch {
       setStatus("error");
@@ -61,7 +67,9 @@ export function OpenInAiButton({
         {status === "idle"
           ? providerMeta[provider].buttonLabel
           : status === "copied"
-            ? "Copied and opened"
+            ? provider === "claude"
+              ? "Opened"
+              : "Copied and opened"
             : "Could not open"}
       </button>
     </div>
