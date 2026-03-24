@@ -56,7 +56,7 @@ function formatPaneLine(left: string, right: string, leftWidth: number, rightWid
 }
 
 function title(text: string) {
-  return `${ansi("1m")}${text}${ansi("0m")}`;
+  return `${ansi("1;33m")}${text}${ansi("0m")}`;
 }
 
 function muted(text: string) {
@@ -145,7 +145,7 @@ export async function runTui(options: { registry?: string }) {
         }
         output.write(formatPaneLine(left, info, leftWidth, rightWidth));
       }
-      
+
       output.write(`${horizontal}\n`);
       output.write(`${muted("Keys:")} ↑/↓ move  enter run  number jump  r refresh  q quit\n`);
     } finally {
