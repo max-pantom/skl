@@ -25,10 +25,13 @@ export default async function HomePage() {
             title="Publish and fork AI skills like code."
             description="Single-file prompts with history, stars, and forks. Built for teams who outgrow Slack screenshots."
           />
-          <div className="flex flex-wrap justify-center gap-3 pt-2">
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Link href="/explore" className="skl-btn skl-btn-primary">
               Explore skills
             </Link>
+            <span className="font-mono text-[13px] font-medium text-[#8f8f8f]">
+              npm install -g @sklx/cli
+            </span>
             <Link href="/new" className="skl-btn skl-btn-secondary">
               Publish
             </Link>

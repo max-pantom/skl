@@ -32,11 +32,6 @@ export function ProfileView({
   totalDownloads,
 }: ProfileViewProps) {
   const isMilestoneRank = earlyBelieverRank === 50 || earlyBelieverRank === 100;
-  const earlyRankMessage = earlyBelieverRank
-    ? isMilestoneRank
-      ? `You made us hit the ${earlyBelieverRank === 50 ? "50" : "100"} early-people milestone.`
-      : `You are the No. ${earlyBelieverRank} account. Early believers.`
-    : null;
   const primaryLink = user.website?.trim() ? user.website : user.xUrl?.trim() ? user.xUrl : null;
   const primaryLinkLabel = primaryLink
     ? primaryLink
@@ -57,16 +52,14 @@ export function ProfileView({
             parallax
           />
           {earlyBelieverRank ? (
-            <span className="skl-tooltip-anchor absolute left-[89px] top-0">
+            <span className="absolute right-0 top-0 sm:left-[89px] sm:right-auto">
               <span
                 className={`block rotate-[-23.45deg] text-xs font-semibold ${
                   isMilestoneRank ? "text-[#222222]/80" : "text-black/20"
                 }`}
-                aria-label={earlyRankMessage ?? undefined}
               >
                 #{earlyBelieverRank}
               </span>
-              {earlyRankMessage ? <span className="skl-tooltip">{earlyRankMessage}</span> : null}
             </span>
           ) : null}
         </div>

@@ -769,15 +769,15 @@ body:has(.cli-docs-page) footer {
   padding-bottom: 0.875rem !important;
 }
 
-body:has(.cli-docs-page) header svg {
+body:has(.cli-docs-page) .site-header-brand svg {
   filter: brightness(0) invert(1);
 }
 
-body:has(.cli-docs-page) header svg path {
+body:has(.cli-docs-page) .site-header-brand svg path {
   fill: #ffffff !important;
 }
 
-body:has(.cli-docs-page) header svg g {
+body:has(.cli-docs-page) .site-header-brand svg g {
   opacity: 0.88 !important;
 }
 
@@ -788,13 +788,13 @@ body:has(.cli-docs-page) header a {
 }
 
 body:has(.cli-docs-page) .header-account-nav-create {
-  background: rgba(255, 255, 255, 0.9) !important;
-  color: #090909 !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  color: #050505 !important;
 }
 
 body:has(.cli-docs-page) .header-account-nav-create:hover {
   background: #ffffff !important;
-  color: #090909 !important;
+  color: #050505 !important;
 }
 
 body:has(.cli-docs-page) .header-account-nav-settings {
