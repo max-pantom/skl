@@ -2,6 +2,18 @@
   "name": "@sklx/cli",
   "version": "0.5.0",
   "description": "CLI for installing skills from the SKL registry",
+  "homepage": "https://sklx.one/docs/cli",
+  "keywords": [
+    "skl",
+    "sklx",
+    "cli",
+    "skills",
+    "ai",
+    "registry"
+  ],
+  "bugs": {
+    "url": "https://sklx.one/community"
+  },
   "type": "module",
   "bin": {
     "skl": "./dist/cli.js"
