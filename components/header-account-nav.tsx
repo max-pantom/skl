@@ -75,7 +75,7 @@ export function HeaderAccountNav({ viewer }: { viewer: AppViewer | null }) {
         <Link href="/login" className={linkClass.settings}>
           Log in
         </Link>
-      ) : null}
+      )}
     </div>
   );
 }
