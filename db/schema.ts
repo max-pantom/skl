@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   index,
   integer,
@@ -136,7 +137,7 @@ export const communityPosts = pgTable(
     authorId: uuid("author_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    parentPostId: uuid("parent_post_id").references((): typeof communityPosts.id => communityPosts.id, {
+    parentPostId: uuid("parent_post_id").references((): AnyPgColumn => communityPosts.id, {
       onDelete: "cascade",
     }),
     kind: communityPostKindEnum("kind").notNull().default("feature"),
