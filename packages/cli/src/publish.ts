@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 import { promptChoice, promptConfirm, promptLine, promptMultiSelect } from "./prompt.js";
-import { cliPreviewUrl, cliPublishUrl, cliUpdateUrl, normalizeRegistryBase, requestJson } from "./registry.js";
+import { cliPreviewUrl, cliPublishUrl, cliUpdateUrl, requestJson, resolveRegistryBase } from "./registry.js";
 import { readCliState, readLocalProjectState, writeLocalProjectState } from "./state.js";
 
 const CATEGORIES = ["coding", "design", "writing", "research", "automation", "marketing"] as const;
@@ -207,7 +207,7 @@ function authTokenOrThrow(token?: string) {
 
 export async function publishSkill(options: { path?: string; registry?: string; json?: boolean; dryRun?: boolean }) {
   const state = await readCliState();
-  const registry = normalizeRegistryBase(options.registry?.trim() || state.registry);
+  const registry = await resolveRegistryBase(options.registry?.trim() || state.registry);
   const token = authTokenOrThrow(state.token);
   const { root, entrySource } = await chooseEntryPath(options.path);
   const files = await buildFiles(root, entrySource);
@@ -264,7 +264,7 @@ export async function publishSkill(options: { path?: string; registry?: string; 
 
 export async function updateSkill(options: { pathOrSlug?: string; registry?: string; json?: boolean; dryRun?: boolean }) {
   const state = await readCliState();
-  const registry = normalizeRegistryBase(options.registry?.trim() || state.registry);
+  const registry = await resolveRegistryBase(options.registry?.trim() || state.registry);
   const token = authTokenOrThrow(state.token);
   const cwd = process.cwd();
   const localState = await readLocalProjectState(cwd);

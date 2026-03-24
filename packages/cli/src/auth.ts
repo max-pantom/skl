@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
-import { cliLogoutUrl, cliMeUrl, devicePollUrl, deviceStartUrl, normalizeRegistryBase, requestJson } from "./registry.js";
+import { cliLogoutUrl, cliMeUrl, devicePollUrl, deviceStartUrl, normalizeRegistryBase, requestJson, resolveRegistryBase } from "./registry.js";
 import { clearCliState, readCliState, writeCliState } from "./state.js";
 
 const execFileAsync = promisify(execFile);
@@ -48,7 +48,7 @@ function sleep(ms: number) {
 
 export async function loginCli(options: { registry?: string; openBrowser?: boolean }) {
   const state = await readCliState();
-  const registry = normalizeRegistryBase(options.registry?.trim() || state.registry);
+  const registry = await resolveRegistryBase(options.registry?.trim() || state.registry);
   const start = await requestJson<DeviceStartResponse>(deviceStartUrl(registry), {
     registry,
     method: "POST",
@@ -100,7 +100,7 @@ export async function loginCli(options: { registry?: string; openBrowser?: boole
 
 export async function whoAmICli(options: { registry?: string; json?: boolean }) {
   const state = await readCliState();
-  const registry = normalizeRegistryBase(options.registry?.trim() || state.registry);
+  const registry = await resolveRegistryBase(options.registry?.trim() || state.registry);
   const token = state.token?.trim();
 
   if (!token) {
@@ -128,7 +128,7 @@ export async function whoAmICli(options: { registry?: string; json?: boolean }) 
 
 export async function logoutCli(options: { registry?: string }) {
   const state = await readCliState();
-  const registry = normalizeRegistryBase(options.registry?.trim() || state.registry);
+  const registry = await resolveRegistryBase(options.registry?.trim() || state.registry);
 
   if (state.token?.trim()) {
     try {

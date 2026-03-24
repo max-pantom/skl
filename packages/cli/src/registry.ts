@@ -28,6 +28,20 @@ export function normalizeRegistryBase(url: string): string {
   }
 }
 
+export async function resolveRegistryBase(url: string): Promise<string> {
+  const normalized = normalizeRegistryBase(url);
+
+  try {
+    const response = await fetch(normalized, {
+      method: "GET",
+      redirect: "follow",
+    });
+    return new URL(response.url).origin;
+  } catch {
+    return normalized;
+  }
+}
+
 function apiUrl(registryBase: string, pathname: string) {
   const base = normalizeRegistryBase(registryBase);
   return new URL(`${base}${pathname.startsWith("/") ? pathname : `/${pathname}`}`);
@@ -63,6 +77,13 @@ export function manifestUrl(registryBase: string, slug: string, version?: string
 export function inspectUrl(registryBase: string, slug: string): URL {
   const url = apiUrl(registryBase, `/api/skills/${encodeURIComponent(slug)}`);
   url.searchParams.set("include", "versions");
+  return url;
+}
+
+export function skillsSearchUrl(registryBase: string, query: string, limit = 10): URL {
+  const url = apiUrl(registryBase, "/api/skills");
+  url.searchParams.set("q", query);
+  url.searchParams.set("limit", String(limit));
   return url;
 }
 

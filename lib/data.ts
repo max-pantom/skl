@@ -452,7 +452,7 @@ export async function getPublicSkillBySlug(slug: string): Promise<SkillDetail | 
 
 export async function getAccessibleSkillBySlug(
   slug: string,
-  viewerId?: string | null,
+  _viewerId?: string | null,
 ): Promise<SkillDetail | null> {
   const skill = await getSkillBySlug(slug);
 
@@ -460,15 +460,7 @@ export async function getAccessibleSkillBySlug(
     return null;
   }
 
-  if (skill.visibility === "public") {
-    return skill;
-  }
-
-  if (viewerId && skill.author.id === viewerId) {
-    return skill;
-  }
-
-  return null;
+  return skill;
 }
 
 export async function getViewerStar(skillId: string, userId: string) {

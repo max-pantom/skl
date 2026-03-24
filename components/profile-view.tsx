@@ -57,7 +57,7 @@ export function ProfileView({
             parallax
           />
           {earlyBelieverRank ? (
-            <span className="skl-tooltip-anchor absolute left-[89px] top-[-8px]">
+            <span className="skl-tooltip-anchor absolute left-[89px] top-[-18px]">
               <span
                 className={`block rotate-[-23.45deg] text-xs font-semibold ${
                   isMilestoneRank ? "text-[#222222]/80" : "text-black/20"

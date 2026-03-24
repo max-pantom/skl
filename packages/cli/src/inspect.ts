@@ -1,5 +1,5 @@
 import { promptLine } from "./prompt.js";
-import { inspectUrl, normalizeRegistryBase, requestJson } from "./registry.js";
+import { inspectUrl, requestJson, resolveRegistryBase } from "./registry.js";
 import { readCliState } from "./state.js";
 
 export type SkillVersionFileRecord = {
@@ -36,7 +36,7 @@ type InspectResponse = {
 
 export async function fetchSkillDetail(slug: string, options: { registry?: string; token?: string }) {
   const state = await readCliState();
-  const registry = normalizeRegistryBase(options.registry?.trim() || state.registry);
+  const registry = await resolveRegistryBase(options.registry?.trim() || state.registry);
   const token = options.token?.trim() || state.token?.trim();
   const payload = await requestJson<InspectResponse>(inspectUrl(registry, slug), {
     registry,

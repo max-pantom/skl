@@ -11,7 +11,7 @@ import { SkillStarButton } from "@/components/skill-star-button";
 import { TagList } from "@/components/tag-list";
 import { forkSkillAction } from "@/lib/actions";
 import { getCurrentViewer, isAppConfigured } from "@/lib/auth";
-import { getAccessibleSkillBySlug, getPublicSkillBySlug, hasUserStarredSkill } from "@/lib/data";
+import { getAccessibleSkillBySlug, getSkillBySlug, hasUserStarredSkill } from "@/lib/data";
 import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { isMarkdownPath, selectSkillFile } from "@/lib/skill-files";
 import { formatDate, formatNumber, withQuery } from "@/lib/utils";
@@ -30,7 +30,7 @@ type SkillPageProps = {
 
 export async function generateMetadata({ params }: SkillPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const skill = await getPublicSkillBySlug(slug);
+  const skill = await getSkillBySlug(slug);
 
   if (!skill) {
     return {

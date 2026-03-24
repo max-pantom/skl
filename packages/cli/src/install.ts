@@ -4,7 +4,8 @@ import path from "node:path";
 
 import { assertSafeRelativeFilePath, resolveUnderRoot } from "./paths.js";
 import { promptLine } from "./prompt.js";
-import { bundleUrl, manifestUrl, normalizeRegistryBase, rawUrl, requestJson } from "./registry.js";
+import { bundleUrl, manifestUrl, rawUrl, requestJson, resolveRegistryBase } from "./registry.js";
+import { resolveSkillSlugFromInput } from "./search.js";
 import { readCliState } from "./state.js";
 
 export type InstallOptions = {
@@ -86,8 +87,10 @@ async function ensureSlugSpec(spec?: string) {
 export async function installSkill(opts: InstallOptions): Promise<{ root: string; payload: BundlePayload | SingleFileInstall }> {
   const state = await readCliState();
   const slugSpec = await ensureSlugSpec(opts.slugSpec);
-  const { slug, version, filePath } = parseSlugSpec(slugSpec);
-  const registry = normalizeRegistryBase(opts.registry?.trim() || state.registry);
+  const parsed = parseSlugSpec(slugSpec);
+  const slug = await resolveSkillSlugFromInput(parsed.slug, { registry: opts.registry ?? state.registry });
+  const { version, filePath } = parsed;
+  const registry = await resolveRegistryBase(opts.registry?.trim() || state.registry);
   const token = opts.token?.trim() || state.token?.trim();
   const root = resolveInstallRoot(opts, slug);
 
