@@ -319,10 +319,13 @@ export const communityPostsRelations = relations(communityPosts, ({ one, many })
     references: [users.id],
   }),
   parent: one(communityPosts, {
+    relationName: "community_post_replies",
     fields: [communityPosts.parentPostId],
     references: [communityPosts.id],
   }),
-  replies: many(communityPosts),
+  replies: many(communityPosts, {
+    relationName: "community_post_replies",
+  }),
   votes: many(communityVotes),
 }));
 

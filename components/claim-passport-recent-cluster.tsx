@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 
 import { ClaimProgressDots } from "@/components/claim-progress-dots";
 import { ProfileAvatar } from "@/components/profile-avatar";
@@ -37,126 +37,9 @@ export function ClaimPassportRecentCluster({
 }) {
   const slice = claimants.slice(0, SLOTS.length);
   const rootRef = useRef<HTMLDivElement>(null);
-  const spinFrameRef = useRef<number | null>(null);
-  const angleRef = useRef(0);
-  const velocityRef = useRef(0);
-  const dragStartAngleRef = useRef(0);
-  const dragStartRotationRef = useRef(0);
-  const lastPointerAngleRef = useRef(0);
-  const lastPointerTimeRef = useRef(0);
-  const movedRef = useRef(false);
-  const draggingRef = useRef(false);
-  const [rotationDeg, setRotationDeg] = useState(0);
-
-  const stopSpin = useCallback(() => {
-    if (spinFrameRef.current != null) {
-      cancelAnimationFrame(spinFrameRef.current);
-      spinFrameRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => () => stopSpin(), [stopSpin]);
 
   if (!slice.length) {
     return null;
-  }
-
-  function pointerAngle(clientX: number, clientY: number) {
-    const rect = rootRef.current?.getBoundingClientRect();
-    if (!rect) {
-      return 0;
-    }
-
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    return (Math.atan2(clientY - cy, clientX - cx) * 180) / Math.PI;
-  }
-
-  function startInertia() {
-    stopSpin();
-
-    let last = performance.now();
-    const tick = (now: number) => {
-      const dt = Math.min(32, now - last);
-      last = now;
-      velocityRef.current *= 0.965;
-
-      if (Math.abs(velocityRef.current) < 0.015) {
-        spinFrameRef.current = null;
-        return;
-      }
-
-      angleRef.current += velocityRef.current * dt;
-      setRotationDeg(angleRef.current);
-      spinFrameRef.current = requestAnimationFrame(tick);
-    };
-
-    spinFrameRef.current = requestAnimationFrame(tick);
-  }
-
-  function onPointerDown(event: React.PointerEvent<HTMLDivElement>) {
-    if (event.pointerType === "touch") {
-      draggingRef.current = false;
-      return;
-    }
-
-    stopSpin();
-    draggingRef.current = true;
-    movedRef.current = false;
-    dragStartAngleRef.current = pointerAngle(event.clientX, event.clientY);
-    dragStartRotationRef.current = angleRef.current;
-    lastPointerAngleRef.current = dragStartAngleRef.current;
-    lastPointerTimeRef.current = performance.now();
-    velocityRef.current = 0;
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }
-
-  function onPointerMove(event: React.PointerEvent<HTMLDivElement>) {
-    if (!draggingRef.current) {
-      return;
-    }
-
-    if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
-      return;
-    }
-
-    const nextPointerAngle = pointerAngle(event.clientX, event.clientY);
-    const deltaFromStart = nextPointerAngle - dragStartAngleRef.current;
-    const nextRotation = dragStartRotationRef.current + deltaFromStart;
-    const now = performance.now();
-    const dt = Math.max(1, now - lastPointerTimeRef.current);
-    const pointerDelta = nextPointerAngle - lastPointerAngleRef.current;
-
-    if (Math.abs(deltaFromStart) > 3) {
-      movedRef.current = true;
-    }
-
-    velocityRef.current = pointerDelta / dt;
-    angleRef.current = nextRotation;
-    setRotationDeg(nextRotation);
-    lastPointerAngleRef.current = nextPointerAngle;
-    lastPointerTimeRef.current = now;
-  }
-
-  function onPointerUp(event: React.PointerEvent<HTMLDivElement>) {
-    if (!draggingRef.current) {
-      return;
-    }
-
-    draggingRef.current = false;
-
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-
-    if (!movedRef.current) {
-      velocityRef.current = 0.42;
-    }
-
-    startInertia();
-    window.setTimeout(() => {
-      movedRef.current = false;
-    }, 80);
   }
 
   return (
@@ -166,16 +49,9 @@ export function ClaimPassportRecentCluster({
       style={{
         width: CLUSTER_W,
         height: CLUSTER_H,
-        transform: `rotate(${rotationDeg}deg)`,
-        transformOrigin: "50% 50%",
-        touchAction: "manipulation",
       }}
       role="list"
       aria-label="Recently joined members"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
     >
       {slice.map((c, i) => {
         const slot = SLOTS[i];
@@ -197,11 +73,6 @@ export function ClaimPassportRecentCluster({
             title={`@${c.username}`}
             aria-label={`${c.displayName} (@${c.username})`}
             role="listitem"
-            onClick={(event) => {
-              if (draggingRef.current || movedRef.current) {
-                event.preventDefault();
-              }
-            }}
           >
             <ProfileAvatar
               avatarUrl={c.avatarUrl}

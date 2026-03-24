@@ -11,7 +11,6 @@ export function SiteFooter() {
           </Link>
         </div>
         <div className="flex flex-col items-start gap-1 text-left sm:items-end sm:text-right">
-          <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-[#8f8f8f]">Beta</p>
           <p className="text-[12px] font-medium text-[#8f8f8f]">Copyright 2026 SKL</p>
         </div>
       </div>
