@@ -219,6 +219,47 @@ select {
   overflow: hidden;
 }
 
+.skl-tooltip-anchor {
+  position: relative;
+}
+
+.skl-tooltip {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 10px);
+  z-index: 40;
+  min-width: max-content;
+  max-width: 220px;
+  transform: translateX(-50%);
+  border-radius: 14px;
+  background: rgba(36, 36, 36, 0.94);
+  padding: 8px 10px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+  text-align: center;
+}
+
+.skl-tooltip::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent rgba(36, 36, 36, 0.94) transparent;
+}
+
+.skl-tooltip-anchor:hover .skl-tooltip,
+.skl-tooltip-anchor:focus-within .skl-tooltip {
+  opacity: 1;
+}
+
 .skl-logo-shimmer::after {
   content: "";
   position: absolute;

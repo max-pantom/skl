@@ -47,6 +47,7 @@ export const modelCompatibilitySuggestions = [
 
 export type SkillCategory = (typeof launchCategories)[number];
 export type UserRole = "user" | "pro" | "admin";
+export type CommunityPostKind = "feature" | "report" | "feedback";
 
 export type SkillVersionFileRecord = {
   id: string;
@@ -151,4 +152,25 @@ export type RecentPassportClaimant = {
   displayName: string;
   avatarUrl: string | null;
   role: UserRole;
+};
+
+export type CommunityReply = {
+  id: string;
+  body: string;
+  createdAt: string;
+  upvotesCount: number;
+  author: PublicUser;
+};
+
+export type CommunityPost = {
+  id: string;
+  kind: CommunityPostKind;
+  title: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+  upvotesCount: number;
+  viewerHasUpvoted: boolean;
+  author: PublicUser;
+  replies: CommunityReply[];
 };

@@ -44,7 +44,7 @@ export function HeaderAccountNav({ viewer }: { viewer: AppViewer | null }) {
           {claimCopied ? "Copied" : "Invite"}
         </button>
       ) : (
-        <Link href={createHref} className={linkClass.create}>
+        <Link href={createHref} className={viewer ? linkClass.create : linkClass.settings}>
           Create
         </Link>
       )}
@@ -71,6 +71,10 @@ export function HeaderAccountNav({ viewer }: { viewer: AppViewer | null }) {
             />
           </Link>
         )
+      ) : (
+        <Link href="/login" className={linkClass.settings}>
+          Log in
+        </Link>
       ) : null}
     </div>
   );

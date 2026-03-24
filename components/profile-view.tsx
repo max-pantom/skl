@@ -37,6 +37,13 @@ export function ProfileView({
       ? `You made us hit the ${earlyBelieverRank === 50 ? "50" : "100"} early-people milestone.`
       : `You are the No. ${earlyBelieverRank} account. Early believers.`
     : null;
+  const primaryLink = user.website?.trim() ? user.website : user.xUrl?.trim() ? user.xUrl : null;
+  const primaryLinkLabel = primaryLink
+    ? primaryLink
+        .replace(/^https?:\/\//, "")
+        .replace(/^x\.com\//, "x.com/")
+        .replace(/^twitter\.com\//, "x.com/")
+    : null;
 
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-[1056px] flex-1 flex-col">
@@ -50,14 +57,16 @@ export function ProfileView({
             parallax
           />
           {earlyBelieverRank ? (
-            <span
-              className={`absolute left-[89px] top-[-8px] rotate-[-23.45deg] text-xs font-semibold ${
-                isMilestoneRank ? "text-[#222222]/80" : "text-black/20"
-              }`}
-              title={earlyRankMessage ?? undefined}
-              aria-label={earlyRankMessage ?? undefined}
-            >
-              #{earlyBelieverRank}
+            <span className="skl-tooltip-anchor absolute left-[89px] top-[-8px]">
+              <span
+                className={`block rotate-[-23.45deg] text-xs font-semibold ${
+                  isMilestoneRank ? "text-[#222222]/80" : "text-black/20"
+                }`}
+                aria-label={earlyRankMessage ?? undefined}
+              >
+                #{earlyBelieverRank}
+              </span>
+              {earlyRankMessage ? <span className="skl-tooltip">{earlyRankMessage}</span> : null}
             </span>
           ) : null}
         </div>
@@ -92,14 +101,14 @@ export function ProfileView({
             </div>
           </div>
 
-          {user.website ? (
+          {primaryLink && primaryLinkLabel ? (
             <a
-              href={user.website}
+              href={primaryLink}
               target="_blank"
               rel="noreferrer"
               className="text-base text-[#919191] underline decoration-dotted underline-offset-4"
             >
-              {user.website.replace(/^https?:\/\//, "")}
+              {primaryLinkLabel}
             </a>
           ) : null}
         </div>

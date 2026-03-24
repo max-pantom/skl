@@ -212,7 +212,7 @@ export function MemberIdCard({
 
       {showRankLine ? (
         <div
-          className="absolute z-10 flex max-w-[min(220px,55%)] flex-col gap-1"
+          className="skl-tooltip-anchor absolute z-10 flex max-w-[min(220px,55%)] flex-col gap-1"
           style={{
             left: `calc(14px + ${rankBlockOffsetX}px)`,
             top: `calc(14px + ${rankBlockOffsetY}px)`,
@@ -221,11 +221,11 @@ export function MemberIdCard({
           <p
             className="font-mono text-[12px] leading-tight text-black"
             style={{ opacity: isMilestoneRank ? 0.8 : rankLabelOpacity, color: isMilestoneRank ? "#222222" : undefined }}
-            title={rankMessage}
             aria-label={rankMessage}
           >
             #{earlyBelieverRank} of users
           </p>
+          {rankMessage ? <span className="skl-tooltip">{rankMessage}</span> : null}
         </div>
       ) : null}
 

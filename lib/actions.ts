@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { db, isDatabaseConfigured } from "@/db";
-import { forks, skillVersionFiles, skillVersions, skills, stars, users } from "@/db/schema";
+import { communityPosts, communityVotes, forks, skillVersionFiles, skillVersions, skills, stars, users } from "@/db/schema";
 import { isAppConfigured, requireCurrentViewer } from "@/lib/auth";
 import { bootstrapUserEmailLifecycle, syncUserToResendAudience } from "@/lib/email/user-lifecycle";
 import {
@@ -14,7 +14,7 @@ import {
   isValidSkillFilePath,
   normalizeSkillFilePath,
 } from "@/lib/skill-files";
-import { launchCategories, type SkillCategory } from "@/lib/types";
+import { launchCategories, type CommunityPostKind, type SkillCategory } from "@/lib/types";
 import {
   bumpMajorSemver,
   compareSemver,
@@ -45,6 +45,10 @@ function ensureConfigured(path: string) {
 
 function isCategory(value: string): value is SkillCategory {
   return launchCategories.includes(value as SkillCategory);
+}
+
+function isCommunityPostKind(value: string): value is CommunityPostKind {
+  return value === "feature" || value === "report" || value === "feedback";
 }
 
 function normalizeSubmittedFiles(files: SubmittedSkillFile[]) {
@@ -466,6 +470,130 @@ export async function updateSkillAction(formData: FormData) {
   revalidateSkillSurfaces(currentSlug, viewer.username);
   revalidateSkillSurfaces(updatedSkill.slug, viewer.username);
   redirect(withQuery(`/s/${updatedSkill.slug}`, { message: `Published new version v${nextVersion}.` }));
+}
+
+export async function createCommunityPostAction(formData: FormData) {
+  const redirectTo = "/community";
+  ensureConfigured(redirectTo);
+  const viewer = await requireCurrentViewer(redirectTo);
+  const kind = getString(formData.get("kind"));
+  const title = getString(formData.get("title"));
+  const body = getString(formData.get("body"));
+
+  if (!isCommunityPostKind(kind)) {
+    redirectWithError(redirectTo, "Choose feature, report, or feedback.");
+  }
+
+  if (title.length < 4) {
+    redirectWithError(redirectTo, "Post title must be at least 4 characters.");
+  }
+
+  if (body.length < 12) {
+    redirectWithError(redirectTo, "Add a bit more detail so others can understand the request.");
+  }
+
+  await db!.insert(communityPosts).values({
+    authorId: viewer.id,
+    kind,
+    title,
+    body,
+  });
+
+  revalidatePath("/community");
+  redirect(withQuery("/community", { message: "Posted to the community feed." }));
+}
+
+export async function replyCommunityPostAction(formData: FormData) {
+  const redirectTo = "/community";
+  ensureConfigured(redirectTo);
+  const viewer = await requireCurrentViewer(redirectTo);
+  const parentPostId = getString(formData.get("parentPostId"));
+  const body = getString(formData.get("body"));
+
+  if (!parentPostId) {
+    redirectWithError(redirectTo, "Reply target is missing.");
+  }
+
+  if (body.length < 4) {
+    redirectWithError(redirectTo, "Reply must be at least 4 characters.");
+  }
+
+  const parentPost = await db!.query.communityPosts.findFirst({
+    where: eq(communityPosts.id, parentPostId),
+  });
+
+  if (!parentPost || parentPost.parentPostId) {
+    redirectWithError(redirectTo, "That post can’t be replied to.");
+  }
+
+  await db!.insert(communityPosts).values({
+    authorId: viewer.id,
+    parentPostId,
+    kind: parentPost.kind,
+    body,
+    updatedAt: new Date(),
+  });
+
+  await db!
+    .update(communityPosts)
+    .set({
+      updatedAt: new Date(),
+    })
+    .where(eq(communityPosts.id, parentPostId));
+
+  revalidatePath("/community");
+  redirect("/community");
+}
+
+export async function toggleCommunityVoteAction(formData: FormData) {
+  const redirectTo = "/community";
+  ensureConfigured(redirectTo);
+  const viewer = await requireCurrentViewer(redirectTo);
+  const postId = getString(formData.get("postId"));
+
+  if (!postId) {
+    redirectWithError(redirectTo, "Post information is missing.");
+  }
+
+  const post = await db!.query.communityPosts.findFirst({
+    where: eq(communityPosts.id, postId),
+  });
+
+  if (!post) {
+    redirectWithError(redirectTo, "Post not found.");
+  }
+
+  const existingVote = await db!.query.communityVotes.findFirst({
+    where: and(eq(communityVotes.postId, postId), eq(communityVotes.userId, viewer.id)),
+  });
+
+  if (existingVote) {
+    await db!.transaction(async (tx) => {
+      await tx.delete(communityVotes).where(eq(communityVotes.id, existingVote.id));
+      await tx
+        .update(communityPosts)
+        .set({
+          upvotesCount: sql`GREATEST(${communityPosts.upvotesCount} - 1, 0)`,
+        })
+        .where(eq(communityPosts.id, postId));
+    });
+  } else {
+    await db!.transaction(async (tx) => {
+      await tx.insert(communityVotes).values({
+        postId,
+        userId: viewer.id,
+      });
+      await tx
+        .update(communityPosts)
+        .set({
+          upvotesCount: sql`${communityPosts.upvotesCount} + 1`,
+        })
+        .where(eq(communityPosts.id, postId));
+    });
+  }
+
+  revalidatePath("/community");
+  redirect("/community");
 }
 
 export async function toggleStarAction(formData: FormData) {

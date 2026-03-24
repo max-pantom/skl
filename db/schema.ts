@@ -25,6 +25,7 @@ export const skillCategoryEnum = pgEnum("skill_category", [
 export const skillVisibilityEnum = pgEnum("skill_visibility", ["public", "unlisted"]);
 export const userRoleEnum = pgEnum("user_role", ["user", "pro", "admin"]);
 export const userEmailEventKindEnum = pgEnum("user_email_event_kind", ["profile_welcome", "resend_audience_sync"]);
+export const communityPostKindEnum = pgEnum("community_post_kind", ["feature", "report", "feedback"]);
 
 export const users = pgTable(
   "users",
@@ -125,6 +126,48 @@ export const userEmailEvents = pgTable(
   (table) => ({
     userKindIdx: uniqueIndex("user_email_events_user_kind_idx").on(table.userId, table.kind),
     kindLookupIdx: index("user_email_events_kind_idx").on(table.kind),
+  }),
+);
+
+export const communityPosts = pgTable(
+  "community_posts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    authorId: uuid("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    parentPostId: uuid("parent_post_id").references((): typeof communityPosts.id => communityPosts.id, {
+      onDelete: "cascade",
+    }),
+    kind: communityPostKindEnum("kind").notNull().default("feature"),
+    title: varchar("title", { length: 160 }),
+    body: text("body").notNull(),
+    upvotesCount: integer("upvotes_count").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    authorIdx: index("community_posts_author_idx").on(table.authorId),
+    parentIdx: index("community_posts_parent_idx").on(table.parentPostId),
+    updatedIdx: index("community_posts_updated_idx").on(table.updatedAt),
+  }),
+);
+
+export const communityVotes = pgTable(
+  "community_votes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => communityPosts.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    postIdx: index("community_votes_post_idx").on(table.postId),
+    userPostIdx: uniqueIndex("community_votes_user_post_idx").on(table.userId, table.postId),
   }),
 );
 
@@ -254,6 +297,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   accounts: many(accounts),
   emailEvents: many(userEmailEvents),
+  communityPosts: many(communityPosts),
+  communityVotes: many(communityVotes),
   skills: many(skills),
   stars: many(stars),
   downloads: many(downloads),
@@ -263,6 +308,30 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const userEmailEventsRelations = relations(userEmailEvents, ({ one }) => ({
   user: one(users, {
     fields: [userEmailEvents.userId],
+    references: [users.id],
+  }),
+}));
+
+export const communityPostsRelations = relations(communityPosts, ({ one, many }) => ({
+  author: one(users, {
+    fields: [communityPosts.authorId],
+    references: [users.id],
+  }),
+  parent: one(communityPosts, {
+    fields: [communityPosts.parentPostId],
+    references: [communityPosts.id],
+  }),
+  replies: many(communityPosts),
+  votes: many(communityVotes),
+}));
+
+export const communityVotesRelations = relations(communityVotes, ({ one }) => ({
+  post: one(communityPosts, {
+    fields: [communityVotes.postId],
+    references: [communityPosts.id],
+  }),
+  user: one(users, {
+    fields: [communityVotes.userId],
     references: [users.id],
   }),
 }));

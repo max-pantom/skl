@@ -1,11 +1,14 @@
 import "server-only";
 
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import { db, isDatabaseConfigured } from "@/db";
-import { downloads, skills, stars, users } from "@/db/schema";
+import { communityPosts, communityVotes, downloads, skills, stars, users } from "@/db/schema";
 import { createFallbackSkillFile, sortSkillFiles } from "@/lib/skill-files";
 import type {
+  CommunityPost,
+  CommunityPostKind,
+  CommunityReply,
   ExploreFilters,
   ForkReference,
   ProfileData,
@@ -795,5 +798,104 @@ export async function hasUserStarredSkill(userId: string, skillId: string) {
   } catch (error) {
     logDataLayerError("hasUserStarredSkill", error);
     return false;
+  }
+}
+
+type CommunityPostRow = {
+  id: string;
+  kind: CommunityPostKind;
+  title: string | null;
+  body: string;
+  upvotesCount: number;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  author: AuthorRecord;
+  replies?: Array<{
+    id: string;
+    kind: CommunityPostKind;
+    title: string | null;
+    body: string;
+    upvotesCount: number;
+    createdAt: Date | string;
+    updatedAt: Date | string;
+    author: AuthorRecord;
+  }>;
+};
+
+function mapCommunityReply(
+  reply: NonNullable<NonNullable<CommunityPostRow["replies"]>[number]>,
+): CommunityReply | null {
+  if (!reply.author) {
+    return null;
+  }
+
+  return {
+    id: reply.id,
+    body: reply.body,
+    createdAt: toIso(reply.createdAt),
+    upvotesCount: reply.upvotesCount,
+    author: mapAuthor(reply.author),
+  };
+}
+
+function mapCommunityPost(record: CommunityPostRow, voteIds: Set<string>): CommunityPost | null {
+  if (!record.author) {
+    return null;
+  }
+
+  return {
+    id: record.id,
+    kind: record.kind,
+    title: record.title?.trim() || "Untitled post",
+    body: record.body,
+    createdAt: toIso(record.createdAt),
+    updatedAt: toIso(record.updatedAt),
+    upvotesCount: record.upvotesCount,
+    viewerHasUpvoted: voteIds.has(record.id),
+    author: mapAuthor(record.author),
+    replies: (record.replies ?? [])
+      .map((reply) => mapCommunityReply(reply))
+      .filter((reply): reply is CommunityReply => Boolean(reply)),
+  };
+}
+
+export async function getCommunityFeed(viewerId?: string | null): Promise<CommunityPost[]> {
+  if (!db || !isDatabaseConfigured) {
+    return [];
+  }
+
+  try {
+    const posts = await db.query.communityPosts.findMany({
+      where: isNull(communityPosts.parentPostId),
+      with: {
+        author: true,
+        replies: {
+          with: {
+            author: true,
+          },
+          orderBy: (postsTable, { asc: orderAsc }) => [orderAsc(postsTable.createdAt)],
+        },
+      },
+      orderBy: (postsTable, { desc: orderDesc }) => [orderDesc(postsTable.updatedAt), orderDesc(postsTable.createdAt)],
+    });
+
+    let voteIds = new Set<string>();
+    if (viewerId && posts.length) {
+      const candidateIds = [
+        ...posts.map((post) => post.id),
+        ...posts.flatMap((post) => post.replies.map((reply) => reply.id)),
+      ];
+      const votes = await db.query.communityVotes.findMany({
+        where: and(eq(communityVotes.userId, viewerId), inArray(communityVotes.postId, candidateIds)),
+      });
+      voteIds = new Set(votes.map((vote) => vote.postId));
+    }
+
+    return posts
+      .map((post) => mapCommunityPost(post as CommunityPostRow, voteIds))
+      .filter((post): post is CommunityPost => Boolean(post));
+  } catch (error) {
+    logDataLayerError("getCommunityFeed", error);
+    return [];
   }
 }
