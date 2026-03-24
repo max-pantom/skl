@@ -9,6 +9,9 @@ export function SiteFooter() {
           <Link href="/community" className="text-[14px] font-medium text-[#8f8f8f] underline decoration-dotted underline-offset-4 transition hover:text-[#242424]">
             Community
           </Link>
+          <Link href="/docs/cli" className="text-[14px] font-medium text-[#8f8f8f] underline decoration-dotted underline-offset-4 transition hover:text-[#242424]">
+            CLI Docs
+          </Link>
         </div>
         <div className="flex flex-col items-start gap-1 text-left sm:items-end sm:text-right">
           <p className="text-[12px] font-medium text-[#8f8f8f]">Copyright 2026 SKL</p>

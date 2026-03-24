@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { CopyRawButton } from "@/components/copy-raw-button";
 import { FormNotice } from "@/components/form-notice";
+import { InstallCommandCard } from "@/components/install-command-card";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { OpenInAiButton } from "@/components/open-in-ai-button";
 import { SkillAuthorCard } from "@/components/skill-author-card";
@@ -81,6 +82,7 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
   const downloadLabel =
     selectedVersion.files.length > 1 ? `Download ${selectedVersion.files.length} files (.zip)` : `Download ${selectedFile?.path}`;
   const downloadName = selectedVersion.files.length > 1 ? `${skill.slug}.zip` : undefined;
+  const installCommand = `npx @sklx/cli add ${JSON.stringify(skill.title)}`;
 
   if (!selectedFile) {
     notFound();
@@ -232,6 +234,7 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
               </a>
               <OpenInAiButton content={selectedFile.content} />
               <CopyRawButton content={selectedFile.content} label={`Copy ${selectedFile.path}`} />
+              <InstallCommandCard command={installCommand} />
             </div>
           </section>
 

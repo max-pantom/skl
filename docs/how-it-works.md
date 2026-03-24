@@ -130,7 +130,7 @@ pnpm exec skl install <slug> --target cursor   # ~/.cursor/skills/<slug>/
 - **Registry:** `SKL_REGISTRY` or `--registry` (CLI default when unset: `http://localhost:3000`, aligned with local `NEXT_PUBLIC_APP_URL`).
 - **Auth (reserved):** `SKL_TOKEN` or `--token` adds `Authorization: Bearer` for future authenticated registries.
 
-Published installs can use `npm i -g @skl/cli` once the package is published.
+Published installs can use `npm i -g @sklx/cli` once the package is published.
 
 ## Migrations
 

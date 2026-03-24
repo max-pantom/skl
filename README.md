@@ -84,7 +84,7 @@ Notes:
 
 ### CLI (`skl install`)
 
-The `@skl/cli` workspace package exposes the `skl` binary (linked as a root dev dependency). Build first, then run via `pnpm exec`:
+The `@sklx/cli` workspace package exposes the `skl` binary (linked as a root dev dependency). Build first, then run via `pnpm exec`:
 
 ```bash
 pnpm install

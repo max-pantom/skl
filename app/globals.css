@@ -9,6 +9,12 @@
   --muted: #8f8f8f;
   --line: rgba(36, 36, 36, 0.12);
   --soft: rgba(228, 228, 228, 0.8);
+  --console-bg: #111111;
+  --console-panel: #161616;
+  --console-line: rgba(255, 186, 73, 0.34);
+  --console-amber: #ffb34a;
+  --console-amber-soft: #e0a44a;
+  --console-copy: rgba(255, 227, 176, 0.92);
 }
 
 html {
@@ -226,18 +232,18 @@ select {
 .skl-tooltip {
   position: absolute;
   left: 50%;
-  top: calc(100% + 10px);
+  top: calc(100% + 8px);
   z-index: 40;
   min-width: max-content;
-  max-width: 220px;
+  max-width: 200px;
   transform: translateX(-50%);
-  border-radius: 14px;
+  border-radius: 11px;
   background: rgba(36, 36, 36, 0.94);
-  padding: 8px 10px;
+  padding: 6px 8px;
   color: #ffffff;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.25;
   opacity: 0;
   pointer-events: none;
   transition: opacity 160ms ease;
@@ -250,7 +256,7 @@ select {
   left: 50%;
   bottom: 100%;
   transform: translateX(-50%);
-  border-width: 6px;
+  border-width: 5px;
   border-style: solid;
   border-color: transparent transparent rgba(36, 36, 36, 0.94) transparent;
 }
@@ -258,6 +264,74 @@ select {
 .skl-tooltip-anchor:hover .skl-tooltip,
 .skl-tooltip-anchor:focus-within .skl-tooltip {
   opacity: 1;
+}
+
+.console-page {
+  background:
+    radial-gradient(circle at top left, rgba(255, 179, 74, 0.12), transparent 32%),
+    linear-gradient(180deg, #101010 0%, #151515 100%);
+  color: var(--console-copy);
+}
+
+.console-kicker {
+  color: var(--console-amber-soft);
+  font-family: var(--font-plex-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.console-title {
+  color: var(--console-amber);
+  font-family: var(--font-plex-mono);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.console-copy {
+  color: var(--console-copy);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.console-frame {
+  position: relative;
+  border: 1px solid var(--console-line);
+  background:
+    linear-gradient(180deg, rgba(255, 179, 74, 0.03), transparent 36%),
+    var(--console-panel);
+  box-shadow: inset 0 0 0 1px rgba(255, 179, 74, 0.08);
+}
+
+.console-frame::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(255, 179, 74, 0.14);
+  pointer-events: none;
+}
+
+.console-label {
+  color: var(--console-amber-soft);
+  font-family: var(--font-plex-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.console-command {
+  border: 1px solid rgba(255, 179, 74, 0.18);
+  background: rgba(255, 179, 74, 0.04);
+  color: var(--console-amber);
+  font-family: var(--font-plex-mono);
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 .skl-logo-shimmer::after {
