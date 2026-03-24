@@ -1,6 +1,6 @@
 {
   "name": "@sklx/cli",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "CLI for installing skills from the SKL registry",
   "homepage": "https://sklx.one/docs/cli",
   "keywords": [
