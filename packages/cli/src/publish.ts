@@ -8,6 +8,7 @@ import { readCliState, readLocalProjectState, writeLocalProjectState } from "./s
 const CATEGORIES = ["coding", "design", "writing", "research", "automation", "marketing"] as const;
 const VISIBILITIES = ["public", "unlisted"] as const;
 const IGNORED_DIRS = new Set([".git", "node_modules", ".next", "dist", "build"]);
+const ENTRY_FILE_PATTERN = /(^|\/)SKILL\.md$|\.(md|markdown|mdx|txt|prompt)$/i;
 
 type PublishPayload = {
   title: string;
@@ -20,6 +21,13 @@ type PublishPayload = {
   tags: string[];
   compatibleWith: string[];
   files: Array<{ path: string; content: string }>;
+};
+
+type EntryDefaults = {
+  title?: string;
+  summary?: string;
+  version?: string;
+  compatibleWith?: string[];
 };
 
 type PreviewResponse = {
@@ -49,7 +57,12 @@ async function statSafe(filePath: string) {
   }
 }
 
-async function collectMarkdownCandidates(root: string, includeFallback = true): Promise<string[]> {
+function getRelativeDir(relativePath: string) {
+  const lastSlash = relativePath.lastIndexOf("/");
+  return lastSlash === -1 ? "." : relativePath.slice(0, lastSlash);
+}
+
+async function collectEntryCandidates(root: string): Promise<string[]> {
   const entries: string[] = [];
 
   async function walk(current: string) {
@@ -69,16 +82,54 @@ async function collectMarkdownCandidates(root: string, includeFallback = true): 
       }
       const full = path.join(current, entry.name);
       const rel = path.relative(root, full).replace(/\\/g, "/");
-      if (entry.name === "SKILL.md") {
-        entries.push(rel);
-      } else if (includeFallback && /\.(md|markdown|mdx)$/i.test(entry.name)) {
+      if (ENTRY_FILE_PATTERN.test(rel)) {
         entries.push(rel);
       }
     }
   }
 
   await walk(root);
-  return entries;
+  return entries.sort();
+}
+
+async function chooseEntryFromRoot(root: string) {
+  const candidates = await collectEntryCandidates(root);
+  if (!candidates.length) {
+    throw new Error("No compatible skill entry files found in that folder.");
+  }
+
+  const skillCandidates = candidates.filter((candidate) => candidate.endsWith("SKILL.md"));
+  const preferredCandidates = skillCandidates.length ? skillCandidates : candidates;
+
+  const directories = [...new Set(preferredCandidates.map((candidate) => getRelativeDir(candidate)))];
+  if (directories.length > 1) {
+    const directoryChoice = await promptChoice(
+      "Choose a folder with a skill entry file",
+      directories.map((directory) => ({
+        label: directory === "." ? "." : directory,
+        value: directory,
+      })),
+    );
+
+    const directoryCandidates = preferredCandidates.filter((candidate) => getRelativeDir(candidate) === directoryChoice);
+    if (directoryCandidates.length === 1) {
+      return directoryCandidates[0]!;
+    }
+
+    return promptChoice(
+      "Choose a skill entry file",
+      directoryCandidates.map((candidate) => ({ label: candidate, value: candidate })),
+    );
+  }
+
+  if (preferredCandidates.length === 1) {
+    return preferredCandidates[0]!;
+  }
+
+  return promptChoice(
+    "Choose a skill entry file",
+    preferredCandidates.map((candidate) => ({ label: candidate, value: candidate })),
+  );
 }
 
 async function isProbablyText(filePath: string) {
@@ -112,6 +163,25 @@ async function collectProjectFiles(root: string): Promise<string[]> {
   return entries.sort();
 }
 
+async function chooseFilesToInclude(allFiles: string[]) {
+  const defaultFiles = allFiles.filter((file) => file !== ".skl/project.json");
+  const directories = [...new Set(defaultFiles.map((file) => getRelativeDir(file)))];
+
+  let visibleFiles = defaultFiles;
+  if (directories.length > 1) {
+    const selectedDirectories = await promptMultiSelect(
+      "Choose folders to include",
+      directories.map((directory) => (directory === "." ? "." : directory)),
+      true,
+    );
+
+    const allowedDirectories = new Set(selectedDirectories);
+    visibleFiles = defaultFiles.filter((file) => allowedDirectories.has(getRelativeDir(file)));
+  }
+
+  return promptMultiSelect("Choose files to include", visibleFiles, true);
+}
+
 async function chooseEntryPath(inputPath?: string) {
   const cwd = process.cwd();
   if (inputPath?.trim()) {
@@ -126,38 +196,17 @@ async function chooseEntryPath(inputPath?: string) {
         entrySource: path.basename(resolved),
       };
     }
-    const candidates = await collectMarkdownCandidates(resolved, true);
-    if (!candidates.length) {
-      throw new Error("No markdown candidates found in that folder.");
-    }
-    const entrySource = candidates.length === 1
-      ? candidates[0]!
-      : await promptChoice(
-          "Choose a skill entry file",
-          candidates.map((candidate) => ({ label: candidate, value: candidate })),
-        );
+    const entrySource = await chooseEntryFromRoot(resolved);
     return { root: resolved, entrySource };
   }
 
-  const candidates = await collectMarkdownCandidates(cwd, true);
-  if (!candidates.length) {
-    throw new Error("No markdown candidates found in this repo.");
-  }
-  const skillCandidates = candidates.filter((candidate) => candidate.endsWith("SKILL.md"));
-  const pool = skillCandidates.length ? skillCandidates : candidates;
-  const entrySource = pool.length === 1
-    ? pool[0]!
-    : await promptChoice(
-        "Choose a skill entry file",
-        pool.map((candidate) => ({ label: candidate, value: candidate })),
-      );
+  const entrySource = await chooseEntryFromRoot(cwd);
   return { root: cwd, entrySource };
 }
 
 async function buildFiles(root: string, entrySource: string) {
   const allFiles = await collectProjectFiles(root);
-  const defaultFiles = allFiles.filter((file) => file !== ".skl/project.json");
-  const selected = await promptMultiSelect("Choose files to include", defaultFiles, true);
+  const selected = await chooseFilesToInclude(allFiles);
   const chosenSet = new Set(selected);
   chosenSet.add(entrySource);
 
@@ -170,6 +219,89 @@ async function buildFiles(root: string, entrySource: string) {
     });
   }
   return files;
+}
+
+function parseFrontmatter(content: string) {
+  const match = content.match(/^---\n([\s\S]*?)\n---\n?/);
+  if (!match) {
+    return { data: {} as Record<string, string>, body: content };
+  }
+
+  const data: Record<string, string> = {};
+  for (const rawLine of match[1].split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+    const colonIndex = line.indexOf(":");
+    if (colonIndex === -1) {
+      continue;
+    }
+    const key = line.slice(0, colonIndex).trim().toLowerCase();
+    const value = line.slice(colonIndex + 1).trim().replace(/^['"]|['"]$/g, "");
+    if (key && value) {
+      data[key] = value;
+    }
+  }
+
+  return {
+    data,
+    body: content.slice(match[0].length),
+  };
+}
+
+function firstMeaningfulParagraph(markdown: string) {
+  const lines = markdown
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !line.startsWith("#"))
+    .filter((line) => !line.startsWith("- "))
+    .filter((line) => !/^\d+\.\s/.test(line));
+
+  return lines.find((line) => line.length > 20) ?? lines[0] ?? "";
+}
+
+function extractEntryDefaults(content: string): EntryDefaults {
+  const { data, body } = parseFrontmatter(content);
+  const headingMatch = body.match(/^#\s+(.+)$/m);
+  const title = data.title || data.name || headingMatch?.[1]?.trim() || "";
+  const summary = data.summary || data.description || firstMeaningfulParagraph(body);
+  const version = data.version?.trim() || "1.0.0";
+
+  return {
+    title,
+    summary,
+    version,
+  };
+}
+
+function validatePublishPayload(payload: PublishPayload) {
+  const title = payload.title.trim();
+  const summary = payload.summary.trim();
+  const version = (payload.version ?? "").trim();
+  const primaryFile = payload.files.find((file) => file.path === "SKILL.md");
+  const primaryContent = primaryFile?.content.trim() ?? "";
+
+  if (!primaryContent) {
+    throw new Error("The selected skill entry file is empty. Add content to the file you want to publish as SKILL.md.");
+  }
+
+  if (!title) {
+    throw new Error("Add a title before publishing.");
+  }
+
+  if (!summary) {
+    throw new Error("Add a summary before publishing.");
+  }
+
+  if (!version) {
+    throw new Error("Add a version before publishing.");
+  }
+
+  if (!payload.compatibleWith.length) {
+    throw new Error("Add at least one compatible model before publishing.");
+  }
 }
 
 async function promptMetadata(existing?: Partial<PublishPayload>) {
@@ -211,8 +343,10 @@ export async function publishSkill(options: { path?: string; registry?: string; 
   const token = authTokenOrThrow(state.token);
   const { root, entrySource } = await chooseEntryPath(options.path);
   const files = await buildFiles(root, entrySource);
-  const metadata = await promptMetadata();
-  const version = await promptLine("Version", "1.0.0");
+  const entryContent = files.find((file) => file.path === "SKILL.md")?.content ?? "";
+  const defaults = extractEntryDefaults(entryContent);
+  const metadata = await promptMetadata(defaults);
+  const version = await promptLine("Version", defaults.version || "1.0.0");
   const changelog = await promptLine("Changelog", "Initial release.");
 
   const payload: PublishPayload = {
@@ -221,6 +355,8 @@ export async function publishSkill(options: { path?: string; registry?: string; 
     changelog,
     files,
   };
+
+  validatePublishPayload(payload);
 
   const preview = await requestJson<PreviewResponse>(cliPreviewUrl(registry), {
     registry,

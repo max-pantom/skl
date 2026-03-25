@@ -15,7 +15,7 @@ function createProgram() {
   program
     .name("skl")
     .description("CLI for installing, inspecting, and publishing skills from the SKL registry")
-    .version("0.2.0");
+    .version("0.5.2");
 
   program
     .command("login")
