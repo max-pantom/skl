@@ -38,7 +38,7 @@ export function HeaderAccountNav({ viewer }: { viewer: AppViewer | null }) {
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
       {pathname === "/claim" ? (
         <button type="button" onClick={() => void copyClaimLink()} className={`header-account-nav-button header-account-nav-create ${linkClass.create}`}>
           {claimCopied ? "Copied" : "Invite"}

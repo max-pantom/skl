@@ -19,12 +19,14 @@
 
 html {
   background: #ffffff;
+  overflow-x: clip;
 }
 
 body {
   min-height: 100vh;
   background: #ffffff;
   color: var(--ink);
+  overflow-x: clip;
 }
 
 a {

@@ -4,7 +4,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-zinc-200 py-8">
       <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-3 text-[16px] font-medium text-[#8f8f8f] sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <p className="text-[16px] font-medium uppercase tracking-[0.16em] text-[#8f8f8f]">SKL</p>
           <Link href="/community" className="text-[14px] font-medium text-[#8f8f8f] underline decoration-dotted underline-offset-4 transition hover:text-[#242424]">
             Community
