@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { withLoading } from "./loading.js";
 import { promptChoice, promptConfirm, promptLine, promptMultiSelect } from "./prompt.js";
 import { cliPreviewUrl, cliPublishUrl, cliUpdateUrl, requestJson, resolveRegistryBase } from "./registry.js";
 import { readCliState, readLocalProjectState, writeLocalProjectState } from "./state.js";
@@ -358,15 +359,17 @@ export async function publishSkill(options: { path?: string; registry?: string; 
 
   validatePublishPayload(payload);
 
-  const preview = await requestJson<PreviewResponse>(cliPreviewUrl(registry), {
-    registry,
-    token,
-    method: "POST",
-    body: {
-      mode: "create",
-      ...payload,
-    },
-  });
+  const preview = await withLoading("Validating publish", () =>
+    requestJson<PreviewResponse>(cliPreviewUrl(registry), {
+      registry,
+      token,
+      method: "POST",
+      body: {
+        mode: "create",
+        ...payload,
+      },
+    }),
+  );
 
   console.log(`Ready to publish ${preview.slug} v${preview.nextVersion} with ${preview.fileCount} file(s).`);
   console.log(preview.files.join(", "));
@@ -375,12 +378,14 @@ export async function publishSkill(options: { path?: string; registry?: string; 
     return;
   }
 
-  const result = await requestJson<PublishResponse>(cliPublishUrl(registry), {
-    registry,
-    token,
-    method: "POST",
-    body: payload,
-  });
+  const result = await withLoading("Publishing skill", () =>
+    requestJson<PublishResponse>(cliPublishUrl(registry), {
+      registry,
+      token,
+      method: "POST",
+      body: payload,
+    }),
+  );
 
   await writeLocalProjectState(root, {
     slug: result.skill.slug,
@@ -421,16 +426,18 @@ export async function updateSkill(options: { pathOrSlug?: string; registry?: str
     files,
   };
 
-  const preview = await requestJson<PreviewResponse>(cliPreviewUrl(registry), {
-    registry,
-    token,
-    method: "POST",
-    body: {
-      mode: "update",
-      targetSlug: slug,
-      ...payload,
-    },
-  });
+  const preview = await withLoading("Validating update", () =>
+    requestJson<PreviewResponse>(cliPreviewUrl(registry), {
+      registry,
+      token,
+      method: "POST",
+      body: {
+        mode: "update",
+        targetSlug: slug,
+        ...payload,
+      },
+    }),
+  );
 
   console.log(`Ready to update ${slug}: ${preview.currentVersion ?? "?"} -> ${preview.nextVersion}`);
   console.log(preview.files.join(", "));
@@ -439,12 +446,14 @@ export async function updateSkill(options: { pathOrSlug?: string; registry?: str
     return;
   }
 
-  const result = await requestJson<PublishResponse>(cliUpdateUrl(registry, slug), {
-    registry,
-    token,
-    method: "POST",
-    body: payload,
-  });
+  const result = await withLoading("Publishing update", () =>
+    requestJson<PublishResponse>(cliUpdateUrl(registry, slug), {
+      registry,
+      token,
+      method: "POST",
+      body: payload,
+    }),
+  );
 
   await writeLocalProjectState(root, {
     slug: result.skill.slug,

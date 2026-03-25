@@ -150,7 +150,6 @@ export function CliDocsTerminal() {
       <div className="cli-docs-terminal__screen">
         <div className="cli-docs-terminal__chrome">
           <span>SESSION</span>
-          <span>DOCS://SKLX.ONE/CLI</span>
           <span>STATUS ONLINE</span>
         </div>
 

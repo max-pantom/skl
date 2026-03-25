@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
+import { withLoading } from "./loading.js";
 import { assertSafeRelativeFilePath, resolveUnderRoot } from "./paths.js";
 import { promptLine } from "./prompt.js";
 import { bundleUrl, manifestUrl, rawUrl, requestJson, resolveRegistryBase } from "./registry.js";
@@ -88,7 +89,9 @@ export async function installSkill(opts: InstallOptions): Promise<{ root: string
   const state = await readCliState();
   const slugSpec = await ensureSlugSpec(opts.slugSpec);
   const parsed = parseSlugSpec(slugSpec);
-  const slug = await resolveSkillSlugFromInput(parsed.slug, { registry: opts.registry ?? state.registry });
+  const slug = await withLoading("Resolving skill", () =>
+    resolveSkillSlugFromInput(parsed.slug, { registry: opts.registry ?? state.registry }),
+  );
   const { version, filePath } = parsed;
   const registry = await resolveRegistryBase(opts.registry?.trim() || state.registry);
   const token = opts.token?.trim() || state.token?.trim();
@@ -100,9 +103,11 @@ export async function installSkill(opts: InstallOptions): Promise<{ root: string
     if (opts.verbose) {
       console.log(`GET ${url.toString()}`);
     }
-    const response = await fetch(url, {
-      headers: token ? { authorization: `Bearer ${token}` } : undefined,
-    });
+    const response = await withLoading("Downloading file", () =>
+      fetch(url, {
+        headers: token ? { authorization: `Bearer ${token}` } : undefined,
+      }),
+    );
     if (!response.ok) {
       throw new Error(await response.text());
     }
@@ -134,10 +139,12 @@ export async function installSkill(opts: InstallOptions): Promise<{ root: string
     console.log(`Manifest: ${manifest.files.map((file) => `${file.path}:${file.sha256.slice(0, 8)}`).join(", ")}`);
   }
 
-  const payload = await requestJson<BundlePayload>(url, {
-    registry,
-    token,
-  });
+  const payload = await withLoading("Downloading skill bundle", () =>
+    requestJson<BundlePayload>(url, {
+      registry,
+      token,
+    }),
+  );
   if (!payload.slug || !payload.files?.length) {
     throw new Error("Invalid bundle response from registry");
   }

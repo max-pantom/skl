@@ -75,6 +75,36 @@ function danger(text: string) {
   return `${ansi("31m")}${text}${ansi("0m")}`;
 }
 
+function viewerInitials(displayName: string) {
+  const parts = displayName.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) {
+    return "SK";
+  }
+  if (parts.length === 1) {
+    return parts[0]!.slice(0, 2).toUpperCase();
+  }
+  return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
+}
+
+function makeAvatarLines(displayName?: string) {
+  if (!displayName?.trim()) {
+    return [
+      muted("Avatar"),
+      "┌────┐",
+      "│ ?? │",
+      "└────┘",
+    ];
+  }
+
+  const initials = viewerInitials(displayName).padEnd(2, " ").slice(0, 2);
+  return [
+    muted("Avatar"),
+    "┌────┐",
+    `│ ${accent(initials)} │`,
+    "└────┘",
+  ];
+}
+
 export async function runTui(options: { registry?: string }) {
   if (!input.isTTY || !output.isTTY) {
     throw new Error("TUI mode requires a terminal.");
@@ -116,6 +146,7 @@ export async function runTui(options: { registry?: string }) {
       const horizontal = "─".repeat(Math.max(10, width));
       const actions = buildActions();
       const viewer = state.viewer ? `${state.viewer.displayName} (@${state.viewer.username})` : "Not connected";
+      const avatarLines = makeAvatarLines(state.viewer?.displayName);
       const registry = options.registry || state.registry;
 
       clearScreen();
@@ -126,6 +157,7 @@ export async function runTui(options: { registry?: string }) {
       const infoLines = [
         `Registry: ${registry}`,
         `Account: ${viewer}`,
+        ...avatarLines,
         `State: ${busy ? "Busy" : "Idle"}`,
         `Message: ${status}`,
         "",
