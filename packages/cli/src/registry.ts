@@ -111,6 +111,10 @@ export function cliPublishUrl(registryBase: string): URL {
   return apiUrl(registryBase, "/api/cli/skills/publish");
 }
 
+export function cliMySkillsUrl(registryBase: string): URL {
+  return apiUrl(registryBase, "/api/cli/skills");
+}
+
 export function cliUpdateUrl(registryBase: string, slug: string): URL {
   return apiUrl(registryBase, `/api/cli/skills/${encodeURIComponent(slug)}/update`);
 }

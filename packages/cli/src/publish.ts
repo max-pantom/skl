@@ -1,10 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { fetchSkillDetail } from "./inspect.js";
 import { withLoading } from "./loading.js";
 import { promptChoice, promptConfirm, promptLine, promptMultiSelect } from "./prompt.js";
-import { cliPreviewUrl, cliPublishUrl, cliUpdateUrl, requestJson, resolveRegistryBase } from "./registry.js";
-import { readCliState, readLocalProjectState, writeLocalProjectState } from "./state.js";
+import { cliMySkillsUrl, cliPreviewUrl, cliPublishUrl, cliUpdateUrl, requestJson, resolveRegistryBase } from "./registry.js";
+import { readCliState, readLocalProjectState, upsertCliProject, writeLocalProjectState } from "./state.js";
 
 const CATEGORIES = ["coding", "design", "writing", "research", "automation", "marketing"] as const;
 const VISIBILITIES = ["public", "unlisted"] as const;
@@ -48,6 +49,18 @@ type PublishResponse = {
     title: string;
   };
   version: string;
+};
+
+type OwnedSkillSummary = {
+  slug: string;
+  title: string;
+  visibility: string;
+  updatedAt: string;
+  currentVersion: string | null;
+};
+
+type OwnedSkillsResponse = {
+  skills: OwnedSkillSummary[];
 };
 
 async function statSafe(filePath: string) {
@@ -338,6 +351,81 @@ function authTokenOrThrow(token?: string) {
   return token.trim();
 }
 
+async function statExists(filePath: string) {
+  try {
+    await fs.stat(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function fetchOwnedSkills(registry: string, token: string) {
+  const response = await withLoading("Loading your skills", () =>
+    requestJson<OwnedSkillsResponse>(cliMySkillsUrl(registry), {
+      registry,
+      token,
+    }),
+  );
+
+  return response.skills;
+}
+
+async function chooseOwnedSkill(registry: string, token: string, preferredSlug?: string) {
+  const skills = await fetchOwnedSkills(registry, token);
+  if (!skills.length) {
+    throw new Error("No published skills found on your account yet.");
+  }
+
+  if (preferredSlug) {
+    const exact = skills.find((skill) => skill.slug === preferredSlug);
+    if (exact) {
+      return exact;
+    }
+  }
+
+  if (skills.length === 1) {
+    return skills[0]!;
+  }
+
+  const ordered = preferredSlug
+    ? [...skills].sort((left, right) => Number(right.slug === preferredSlug) - Number(left.slug === preferredSlug))
+    : skills;
+
+  const slug = await promptChoice(
+    "Choose a skill to update",
+    ordered.map((skill) => ({
+      label: `${skill.title} (${skill.slug})${skill.currentVersion ? ` · v${skill.currentVersion}` : ""}${skill.visibility === "unlisted" ? " · unlisted" : ""}`,
+      value: skill.slug,
+    })),
+  );
+
+  return ordered.find((skill) => skill.slug === slug)!;
+}
+
+async function resolveUpdateSource(options: {
+  explicitPath?: string;
+  linkedRoot?: string;
+}) {
+  const cwd = process.cwd();
+  const linkedRoot = options.linkedRoot?.trim() ? path.resolve(options.linkedRoot) : null;
+
+  if (options.explicitPath?.trim()) {
+    return path.resolve(cwd, options.explicitPath);
+  }
+
+  if (linkedRoot && (await statExists(linkedRoot))) {
+    const reuse = await promptConfirm(`Use last linked folder? ${linkedRoot}`, true);
+    if (reuse) {
+      return linkedRoot;
+    }
+  }
+
+  const fallback = linkedRoot || cwd;
+  const nextPath = await promptLine("Path to update files", fallback);
+  return path.resolve(cwd, nextPath);
+}
+
 export async function publishSkill(options: { path?: string; registry?: string; json?: boolean; dryRun?: boolean }) {
   const state = await readCliState();
   const registry = await resolveRegistryBase(options.registry?.trim() || state.registry);
@@ -394,6 +482,13 @@ export async function publishSkill(options: { path?: string; registry?: string; 
     entrySource,
     lastVersion: result.version,
   });
+  await upsertCliProject({
+    slug: result.skill.slug,
+    registry,
+    root,
+    entrySource,
+    lastVersion: result.version,
+  });
 
   if (options.json) {
     console.log(JSON.stringify(result, null, 2));
@@ -411,11 +506,29 @@ export async function updateSkill(options: { pathOrSlug?: string; registry?: str
   const localState = await readLocalProjectState(cwd);
   const explicitPath = options.pathOrSlug && options.pathOrSlug.includes(path.sep);
   const explicitSlug = options.pathOrSlug && !explicitPath ? options.pathOrSlug : undefined;
-  const root = explicitPath ? path.resolve(cwd, options.pathOrSlug!) : cwd;
-  const entrySource = localState?.entrySource || "SKILL.md";
+  const linkedProjects = state.projects ?? [];
+  const targetSkill = await chooseOwnedSkill(registry, token, explicitSlug || localState?.slug);
+  const linkedProject = linkedProjects.find((project) => project.slug === targetSkill.slug) ?? null;
+  const root = await resolveUpdateSource({
+    explicitPath: explicitPath ? options.pathOrSlug : undefined,
+    linkedRoot: linkedProject?.root || localState?.root,
+  });
+  const rootLocalState = await readLocalProjectState(root);
+  const entrySource = rootLocalState?.entrySource || linkedProject?.entrySource || localState?.entrySource || "SKILL.md";
   const files = await buildFiles(root, entrySource);
-  const slug = explicitSlug || localState?.slug || (await promptLine("Skill slug to update"));
-  const metadata = await promptMetadata();
+  const slug = targetSkill.slug;
+  const detail = await withLoading("Loading current skill details", () =>
+    fetchSkillDetail(slug, { registry, token }),
+  );
+  const metadata = await promptMetadata({
+    title: detail.title,
+    slug: detail.slug,
+    summary: detail.summary,
+    category: detail.category,
+    visibility: detail.visibility,
+    tags: detail.tags,
+    compatibleWith: detail.currentVersion.compatibleWith,
+  });
   const version = await promptLine("Next version (leave blank for auto major bump)");
   const changelog = await promptLine("Changelog", "Updated skill content.");
 
@@ -456,6 +569,13 @@ export async function updateSkill(options: { pathOrSlug?: string; registry?: str
   );
 
   await writeLocalProjectState(root, {
+    slug: result.skill.slug,
+    registry,
+    root,
+    entrySource,
+    lastVersion: result.version,
+  });
+  await upsertCliProject({
     slug: result.skill.slug,
     registry,
     root,

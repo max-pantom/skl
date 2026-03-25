@@ -29,14 +29,14 @@ export function SkillCard({
     >
       {/* Mobile — same card pattern as profile {@link ProfileSkillRow}; author link works (no full-card overlay). */}
       <div className={cn(profileSkillMobileCardClass, profileSkillMobileRowHoverClass)}>
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div className="text-left text-[16px] font-medium tabular-nums text-[#242424]/50">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <div className="min-w-0 break-all text-left text-[16px] font-medium tabular-nums text-[#242424]/50">
               v{skill.currentVersion.version}
             </div>
             <span className={profileSkillMobileCategoryPillClass}>{skill.category}</span>
           </div>
-          <div className={cn("flex items-center gap-1.5", profileSkillMobileMetricMutedClass)}>
+          <div className={cn("flex shrink-0 items-center gap-1.5", profileSkillMobileMetricMutedClass)}>
             <IconMetricDownload className="size-[18px] shrink-0" />
             <span>{formatNumber(skill.downloadsCount)}</span>
           </div>

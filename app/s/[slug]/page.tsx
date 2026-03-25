@@ -89,13 +89,13 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
   }
 
   return (
-    <div className="page-shell">
+    <div className="page-shell gap-16">
       <section className="space-y-4">
         {query.error ? <FormNotice tone="error">{query.error}</FormNotice> : null}
         {query.message ? <FormNotice tone="success">{query.message}</FormNotice> : null}
       </section>
 
-      <section className="mt-10 flex flex-col items-center text-center">
+      <section className="flex flex-col items-center text-center">
         <div className="flex max-w-[720px] flex-col items-center gap-3">
           <SkillAuthorCard author={skill.author} />
           <p className="page-kicker">{skill.category}</p>
@@ -118,17 +118,17 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
         </div>
       </section>
 
-      <div className="mt-[72px] grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px]">
-        <section className="border-t border-zinc-200 pt-8">
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-10">
+        <section className="min-w-0 border-t border-zinc-200 pt-8">
           <div className="mb-10 border-b border-zinc-200 pb-8">
             <p className="page-kicker">What this skill does</p>
             <p className="mt-4 max-w-3xl text-[18px] font-medium leading-[1.5] text-[#242424]/90">{skill.summary}</p>
           </div>
 
-          <div className="mb-6 flex items-center justify-between gap-3 border-b border-zinc-200 pb-4">
-            <div>
+          <div className="mb-6 flex flex-col gap-3 border-b border-zinc-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
               <p className="page-kicker">{selectedVersion.version === skill.currentVersion.version ? "Current file" : `Version ${selectedVersion.version}`}</p>
-              <p className="mt-2 text-[18px] font-semibold text-[#242424]">{selectedFile.path}</p>
+              <p className="mt-2 break-all text-[18px] font-semibold text-[#242424]">{selectedFile.path}</p>
             </div>
             <span className="text-[14px] font-medium text-[#8f8f8f]">
               {isMarkdownPath(selectedFile.path) ? "Markdown" : "Text file"}
@@ -144,8 +144,8 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
           )}
         </section>
 
-        <aside className="space-y-8">
-          <section className="border-t border-zinc-200 pt-6">
+        <aside className="min-w-0 space-y-8">
+          <section className="min-w-0 border-t border-zinc-200 pt-6">
             <p className="page-kicker">Files</p>
             <div className="mt-5 space-y-2">
               {selectedVersion.files.map((file) => {
@@ -164,14 +164,14 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
                         : "border-zinc-200 text-[#242424] hover:border-[#242424]"
                     }`}
                   >
-                    {file.path}
+                    <span className="break-all">{file.path}</span>
                   </Link>
                 );
               })}
             </div>
           </section>
 
-          <section className="border-t border-zinc-200 pt-6">
+          <section className="min-w-0 border-t border-zinc-200 pt-6">
             <p className="page-kicker">Actions</p>
             <div className="mt-5 space-y-3">
               {viewer ? (
@@ -238,7 +238,7 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
             </div>
           </section>
 
-          <section className="border-t border-zinc-200 pt-6">
+          <section className="min-w-0 border-t border-zinc-200 pt-6">
             <div className="space-y-6">
               <div>
                 <p className="page-kicker">Compatible</p>
@@ -252,29 +252,29 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
               </div>
 
               <div className="grid gap-4 border-t border-zinc-200 pt-6 text-[16px] font-medium text-[#8f8f8f]">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-start justify-between gap-3">
                   <span>Version</span>
-                  <span className="text-[#242424]">{selectedVersion.version}</span>
+                  <span className="min-w-0 break-all text-right text-[#242424]">{selectedVersion.version}</span>
                 </div>
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-start justify-between gap-3">
                   <span>Published</span>
-                  <span className="text-[#242424]">{formatDate(selectedVersion.createdAt)}</span>
+                  <span className="min-w-0 text-right text-[#242424]">{formatDate(selectedVersion.createdAt)}</span>
                 </div>
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-start justify-between gap-3">
                   <span>Stars</span>
-                  <span className="text-[#242424]">{formatNumber(skill.starsCount)}</span>
+                  <span className="min-w-0 text-right text-[#242424]">{formatNumber(skill.starsCount)}</span>
                 </div>
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-start justify-between gap-3">
                   <span>Forks</span>
-                  <span className="text-[#242424]">{formatNumber(skill.forksCount)}</span>
+                  <span className="min-w-0 text-right text-[#242424]">{formatNumber(skill.forksCount)}</span>
                 </div>
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-start justify-between gap-3">
                   <span>Downloads</span>
-                  <span className="text-[#242424]">{formatNumber(skill.downloadsCount)}</span>
+                  <span className="min-w-0 text-right text-[#242424]">{formatNumber(skill.downloadsCount)}</span>
                 </div>
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-start justify-between gap-3">
                   <span>Files</span>
-                  <span className="text-[#242424]">{formatNumber(selectedVersion.files.length)}</span>
+                  <span className="min-w-0 text-right text-[#242424]">{formatNumber(selectedVersion.files.length)}</span>
                 </div>
               </div>
 
@@ -293,13 +293,13 @@ export default async function SkillPage({ params, searchParams }: SkillPageProps
                   <ul className="mt-4 space-y-4 text-[16px] font-medium text-[#8f8f8f]">
                     {skill.versions.map((v) => (
                       <li key={v.id} className="border-b border-zinc-100 pb-4 last:border-b-0 last:pb-0">
-                        <div className="flex justify-between gap-3">
+                        <div className="flex flex-wrap justify-between gap-3">
                           <Link
                             href={withQuery(`/s/${skill.slug}`, {
                               version: v.version === skill.currentVersion.version ? null : v.version,
                               file: null,
                             })}
-                            className={`font-semibold ${v.version === selectedVersion.version ? "text-[#242424]" : "text-[#8f8f8f] underline decoration-dotted underline-offset-4 transition hover:text-[#242424]"}`}
+                            className={`min-w-0 break-all font-semibold ${v.version === selectedVersion.version ? "text-[#242424]" : "text-[#8f8f8f] underline decoration-dotted underline-offset-4 transition hover:text-[#242424]"}`}
                           >
                             v{v.version}
                           </Link>

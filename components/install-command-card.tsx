@@ -26,7 +26,7 @@ export function InstallCommandCard({
       <p className="mt-3 text-[15px] font-medium leading-snug text-[#242424]/75">
         Copy this command to install this skill directly from the registry.
       </p>
-      <pre className="mt-4 overflow-x-auto rounded-[18px] border border-zinc-200 bg-white px-4 py-3 font-mono text-[13px] leading-6 text-[#242424]">
+      <pre className="skl-thin-scrollbar mt-4 overflow-x-auto rounded-[18px] border border-zinc-200 bg-white px-4 py-3 font-mono text-[13px] leading-6 text-[#242424]">
         <code>{command}</code>
       </pre>
       <button

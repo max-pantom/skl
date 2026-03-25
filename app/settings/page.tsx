@@ -33,8 +33,8 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       {sp.ok ? <FormNotice tone="success">Profile updated.</FormNotice> : null}
 
       <section className="mx-auto w-full max-w-[720px] border-t border-zinc-200 pt-8">
-        <div className="flex items-center justify-between gap-4 rounded-[24px] border border-zinc-200 bg-[linear-gradient(145deg,#ffffff,rgba(244,244,240,0.98))] px-5 py-4">
-          <div className="space-y-1">
+        <div className="flex flex-col gap-4 rounded-[24px] border border-zinc-200 bg-[linear-gradient(145deg,#ffffff,rgba(244,244,240,0.98))] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 space-y-1">
             <p className="text-[16px] font-semibold text-[#242424]">CLI</p>
             <p className="text-[15px] font-medium text-[#8f8f8f]">
               {cliStatus.connected ? "Connected to CLI." : "Not connected to CLI."}
@@ -43,7 +43,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
           {cliStatus.connected ? (
             <form action={revokeCliSessionsAction}>
-              <button type="submit" className="skl-btn skl-btn-secondary whitespace-nowrap">
+              <button type="submit" className="skl-btn skl-btn-secondary">
                 Revoke
               </button>
             </form>
@@ -52,8 +52,8 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       </section>
 
       <form action={updateProfileAction} className="mx-auto w-full max-w-[720px] space-y-8 border-t border-zinc-200 pt-8">
-        <div className="flex items-center justify-between gap-4 rounded-[24px] border border-zinc-200 bg-[linear-gradient(145deg,#ffffff,rgba(244,244,240,0.98))] px-5 py-4">
-          <div className="space-y-1">
+        <div className="flex flex-col gap-4 rounded-[24px] border border-zinc-200 bg-[linear-gradient(145deg,#ffffff,rgba(244,244,240,0.98))] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 space-y-1">
             <p className="text-[16px] font-semibold text-[#242424]">Passport</p>
             <p className="text-[15px] font-medium text-[#8f8f8f]">
               {viewer.emailVerified
@@ -61,7 +61,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                 : "Continue your claim and verification flow."}
             </p>
           </div>
-          <Link href={`/u/${viewer.username}/passport`} className="skl-btn skl-btn-secondary whitespace-nowrap">
+          <Link href={`/u/${viewer.username}/passport`} className="skl-btn skl-btn-secondary">
             Passport
           </Link>
         </div>

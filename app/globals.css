@@ -64,7 +64,7 @@ select {
   }
 
   .skl-btn {
-    @apply inline-flex items-center justify-center rounded-full px-4 py-2.5 text-[16px] font-medium leading-none transition disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex min-w-0 items-center justify-center rounded-full px-4 py-2.5 text-center text-[16px] font-medium leading-tight break-words transition disabled:pointer-events-none disabled:opacity-50;
   }
 
   .skl-btn-primary {
@@ -86,6 +86,10 @@ select {
 
 .page-shell {
   @apply mx-auto flex w-full max-w-[1056px] flex-1 flex-col;
+}
+
+.page-shell > * {
+  min-width: 0;
 }
 
 .page-kicker {
@@ -264,6 +268,28 @@ select {
 .skl-tooltip-anchor:hover .skl-tooltip,
 .skl-tooltip-anchor:focus-within .skl-tooltip {
   opacity: 1;
+}
+
+.skl-thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(143, 143, 143, 0.65) transparent;
+}
+
+.skl-thin-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.skl-thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.skl-thin-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(143, 143, 143, 0.65);
+}
+
+.skl-thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(95, 95, 95, 0.82);
 }
 
 .console-page {

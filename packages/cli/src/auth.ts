@@ -89,6 +89,7 @@ export async function loginCli(options: { registry?: string; openBrowser?: boole
       registry,
       token: result.token,
       viewer: result.viewer,
+      projects: state.projects,
     });
 
     console.log(`Connected as ${result.viewer.displayName} (@${result.viewer.username}).`);
@@ -116,6 +117,7 @@ export async function whoAmICli(options: { registry?: string; json?: boolean }) 
     registry,
     token,
     viewer: payload.viewer,
+    projects: state.projects,
   });
 
   if (options.json) {

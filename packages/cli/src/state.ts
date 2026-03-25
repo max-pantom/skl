@@ -12,6 +12,7 @@ export type CliState = {
     username: string;
     displayName: string;
   };
+  projects?: LocalProjectState[];
 };
 
 export type LocalProjectState = {
@@ -42,10 +43,12 @@ export async function readCliState(): Promise<CliState> {
       registry: parsed.registry?.trim() || DEFAULT_REGISTRY,
       token: parsed.token?.trim() || undefined,
       viewer: parsed.viewer,
+      projects: Array.isArray(parsed.projects) ? parsed.projects : [],
     };
   } catch {
     return {
       registry: DEFAULT_REGISTRY,
+      projects: [],
     };
   }
 }
@@ -59,6 +62,7 @@ export async function clearCliState() {
   const current = await readCliState();
   await writeCliState({
     registry: current.registry || DEFAULT_REGISTRY,
+    projects: current.projects ?? [],
   });
 }
 
@@ -75,4 +79,21 @@ export async function writeLocalProjectState(root: string, state: LocalProjectSt
   const file = projectStatePath(root);
   await fs.mkdir(path.dirname(file), { recursive: true });
   await fs.writeFile(file, JSON.stringify(state, null, 2), "utf8");
+}
+
+export async function upsertCliProject(project: LocalProjectState) {
+  const current = await readCliState();
+  const projects = [...(current.projects ?? [])];
+  const index = projects.findIndex((entry) => entry.slug === project.slug);
+
+  if (index === -1) {
+    projects.push(project);
+  } else {
+    projects[index] = project;
+  }
+
+  await writeCliState({
+    ...current,
+    projects,
+  });
 }
