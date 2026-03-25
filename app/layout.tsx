@@ -59,7 +59,7 @@ export default function RootLayout({
     <html lang="en" className={openRunde.variable} suppressHydrationWarning>
       <body className="font-sans text-[15px] leading-relaxed text-[#242424] antialiased">
         <script dangerouslySetInnerHTML={{ __html: lightOnlyScript }} />
-        <div className="mx-auto flex min-h-screen max-w-6xl flex-col overflow-x-clip px-4 sm:px-6 lg:px-10">
+        <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 sm:px-6 lg:px-10">
           <SiteHeader />
           <main className="flex min-h-0 flex-1 flex-col py-8 sm:py-11">{children}</main>
           <ConditionalFooter />
