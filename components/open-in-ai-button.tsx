@@ -48,8 +48,8 @@ export function OpenInAiButton({
   }
 
   return (
-    <div className="flex gap-2">
-      <div className="skl-select-shell min-w-[106px]">
+    <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="skl-select-shell min-w-0 sm:min-w-[106px]">
         <select
           value={provider}
           onChange={(event) => setProvider(event.target.value as Provider)}

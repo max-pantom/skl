@@ -1,5 +1,6 @@
 import { getRequestViewer } from "@/lib/auth";
 import { getAccessibleSkillBySlug, recordSkillDownload } from "@/lib/data";
+import { ensureAgentReadySkillFiles } from "@/lib/skill-agent-ready";
 import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { sortSkillFiles } from "@/lib/skill-files";
 
@@ -31,7 +32,14 @@ export async function GET(request: Request, { params }: BundleRouteProps) {
 
   await recordSkillDownload(skill.id, viewer?.id ?? null);
 
-  const files = sortSkillFiles(resolvedVersion.files).map((file) => ({
+  const files = ensureAgentReadySkillFiles(
+    {
+      slug: skill.slug,
+      summary: skill.summary,
+      title: skill.title,
+    },
+    sortSkillFiles(resolvedVersion.files),
+  ).map((file) => ({
     path: file.path,
     content: file.content,
   }));

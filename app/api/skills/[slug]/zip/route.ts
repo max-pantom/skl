@@ -1,5 +1,6 @@
 import { getCurrentViewer } from "@/lib/auth";
 import { getAccessibleSkillBySlug, recordSkillDownload } from "@/lib/data";
+import { ensureAgentReadySkillFiles } from "@/lib/skill-agent-ready";
 import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { sortSkillFiles } from "@/lib/skill-files";
 import JSZip from "jszip";
@@ -31,7 +32,14 @@ export async function GET(request: Request, { params }: ZipSkillRouteProps) {
 
   const zip = new JSZip();
 
-  for (const file of sortSkillFiles(resolvedVersion.files)) {
+  for (const file of ensureAgentReadySkillFiles(
+    {
+      slug: skill.slug,
+      summary: skill.summary,
+      title: skill.title,
+    },
+    sortSkillFiles(resolvedVersion.files),
+  )) {
     zip.file(file.path, file.content);
   }
 

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function CliDocsPage() {
   return (
     <div className="cli-docs-page">
-      <div className="page-shell py-8 sm:py-10">
+      <div className="page-shell pt-[4.4375rem] pb-6 sm:pt-[4.4375rem] sm:pb-6">
         <CliDocsTerminal />
       </div>
     </div>

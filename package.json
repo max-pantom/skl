@@ -24,7 +24,7 @@
     "@mdxeditor/editor": "^3.52.5",
     "@resvg/resvg-js": "^2.6.2",
     "@vercel/analytics": "^2.0.1",
-    "agentation": "^2.3.3",
+    "agentation": "^3.0.1",
     "better-auth": "^1.5.5",
     "drizzle-orm": "^0.44.2",
     "gifenc": "^1.0.3",

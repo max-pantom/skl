@@ -8,3 +8,4 @@ coverage
 *.log
 generated-avatars/
 .DS_Store
+test/

@@ -13,6 +13,14 @@ The product shape is now clear:
 - Layer 4: Identity
 - Layer 5: Distribution
 
+## Progress Meter
+
+Roadmap completion: **39.8%** (`51 / 128` checklist items done)
+
+`[########------------]`
+
+Keep this meter updated whenever roadmap checkboxes change.
+
 ## Completed
 
 ### Foundation shipped
@@ -171,7 +179,7 @@ Execution moves earlier than before because without it there is no real retentio
 ### Passport
 
 - [ ] Passport OG image
-- [ ] Stronger delivery/error messaging for verification mail
+- [x] Stronger delivery/error messaging for verification mail
 - [ ] Resend cooldown / resend countdown
 
 Identity stays. It becomes reputation, ownership, and distribution later.
@@ -182,35 +190,35 @@ Identity stays. It becomes reputation, ownership, and distribution later.
 
 ### Download / install
 
-- [ ] Version-aware CLI polish
-- [ ] Install a specific file from a version
-- [ ] `skl inspect <slug>` for metadata, files, versions, author
-- [ ] `skl diff <slug>@a <slug>@b` for version comparison
-- [ ] Better bundle inspection / debugging
+- [x] Version-aware CLI polish
+- [x] Install a specific file from a version
+- [x] `skl inspect <slug>` for metadata, files, versions, author
+- [x] `skl diff <slug>@a <slug>@b` for version comparison
+- [x] Better bundle inspection / debugging
 
 ### Upload / publish
 
-- [ ] `skl publish` from a local folder or `SKILL.md`
-- [ ] `skl update` to push a new version from the local project
-- [ ] Authenticated CLI publishing with token / session flow
-- [ ] Dry-run validation before upload
-- [ ] Preview the computed next version before publish
-- [ ] Push multi-file skills from the CLI
+- [x] `skl publish` from a local folder or `SKILL.md`
+- [x] `skl update` to push a new version from the local project
+- [x] Authenticated CLI publishing with token / session flow
+- [x] Dry-run validation before upload
+- [x] Preview the computed next version before publish
+- [x] Push multi-file skills from the CLI
 
 ### Local project workflow
 
-- [ ] Pull a skill into a project with `skl install`
+- [x] Pull a skill into a project with `skl install`
 - [ ] Edit locally inside the project
 - [ ] Diff local files against the published version
-- [ ] Upload back to SKL with `skl update` or `skl publish`
-- [ ] Round-trip metadata updates from the CLI
+- [x] Upload back to SKL with `skl update` or `skl publish`
+- [x] Round-trip metadata updates from the CLI
 
 ### Targets / integrations
 
-- [ ] Better target presets (`cursor`, local project, custom path)
+- [x] Better target presets (`cursor`, local project, custom path)
 - [ ] Upload from installed local target back to the registry
-- [ ] Machine-readable JSON output for scripts
-- [ ] Non-interactive mode for CI / automation
+- [x] Machine-readable JSON output for scripts
+- [x] Non-interactive mode for CI / automation
 
 ## Phase 6 — Runtime layer
 

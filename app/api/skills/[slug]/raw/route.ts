@@ -1,5 +1,6 @@
 import { getRequestViewer } from "@/lib/auth";
 import { getAccessibleSkillBySlug, recordSkillDownload } from "@/lib/data";
+import { ensureAgentReadySkillFile } from "@/lib/skill-agent-ready";
 import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { selectSkillFile } from "@/lib/skill-files";
 
@@ -35,10 +36,19 @@ export async function GET(request: Request, { params }: RawSkillRouteProps) {
     return new Response("File not found", { status: 404 });
   }
 
-  const filename = `${skill.slug}-${resolvedVersion.version}-${selectedFile.path.replace(/\//g, "-")}`;
-  const contentType = /\.md$/i.test(selectedFile.path) ? "text/markdown; charset=utf-8" : "text/plain; charset=utf-8";
+  const downloadableFile = ensureAgentReadySkillFile(
+    {
+      slug: skill.slug,
+      summary: skill.summary,
+      title: skill.title,
+    },
+    selectedFile,
+  );
 
-  return new Response(selectedFile.content, {
+  const filename = `${skill.slug}-${resolvedVersion.version}-${downloadableFile.path.replace(/\//g, "-")}`;
+  const contentType = /\.md$/i.test(downloadableFile.path) ? "text/markdown; charset=utf-8" : "text/plain; charset=utf-8";
+
+  return new Response(downloadableFile.content, {
     headers: {
       "content-type": contentType,
       "content-disposition": `attachment; filename="${filename}"`,

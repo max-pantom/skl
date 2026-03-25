@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import { getRequestViewer } from "@/lib/auth";
 import { getAccessibleSkillBySlug } from "@/lib/data";
+import { ensureAgentReadySkillFiles } from "@/lib/skill-agent-ready";
 import { resolveSkillInstallVersion } from "@/lib/skill-install";
 import { sortSkillFiles } from "@/lib/skill-files";
 
@@ -32,7 +33,14 @@ export async function GET(request: Request, { params }: ManifestRouteProps) {
     return Response.json({ error: "Version not found" }, { status: 404 });
   }
 
-  const files = sortSkillFiles(resolvedVersion.files).map((file) => ({
+  const files = ensureAgentReadySkillFiles(
+    {
+      slug: skill.slug,
+      summary: skill.summary,
+      title: skill.title,
+    },
+    sortSkillFiles(resolvedVersion.files),
+  ).map((file) => ({
     path: file.path,
     sha256: sha256Hex(file.content),
   }));

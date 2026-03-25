@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getRequestViewer } from "@/lib/auth";
 import { getAccessibleSkillBySlug, recordSkillDownload } from "@/lib/data";
+import { ensureAgentReadyInstallSkill } from "@/lib/skill-agent-ready";
 import type { SkillDetail } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -13,7 +14,8 @@ type RouteProps = {
 };
 
 function buildInstallPayload(skill: SkillDetail) {
-  const { versions: _versions, ...rest } = skill;
+  const agentReadySkill = ensureAgentReadyInstallSkill(skill);
+  const { versions: _versions, ...rest } = agentReadySkill;
   return rest;
 }
 
